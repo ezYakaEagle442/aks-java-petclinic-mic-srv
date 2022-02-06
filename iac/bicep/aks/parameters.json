@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "appName": {
+        "value": "petcliaks"
+      }, 
+      "kvName": {
+        "value": "kv-petclinic"
+      },
+      "kvRGName": {
+        "value": "rg-petclinic"
+      },      
+      "location": {
+        "value": "northeurope"
+      },       
+      "dnsPrefix": {
+        "value": "petclinic"
+      },               
+      "aksVersion": {
+        "value": "1.22.4"
+      }, 
+      "vnetName": {
+        "value": "vnet-aks"
+      },         
+      "subnetName": {
+        "value": "snet-aks"
+      },         
+      "vnetCidr": {
+        "value": "172.16.0.0/16"
+      },         
+      "aksSubnetCidr": {
+        "value": "172.16.1.0/24"
+      }      
+    }
+  }
