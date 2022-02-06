@@ -40,25 +40,8 @@ param agentCount int = 3
 @description('The size of the Virtual Machine.')
 param agentVMSize string = 'Standard_D2s_v3'
 
-@description('User name for the Linux Virtual Machines.')
-param linuxAdminUsername string = '${appName}-adm'
-
-@description('Configure all linux machines with the SSH RSA public key string. Your key should include three parts, for example \'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm\'')
-@secure()
-param sshRSAPublicKey string
-
 @description('The AKS cluster Managed ResourceGroup')
 param nodeRG string = 'rg-MC-${appName}'
-
-
-// https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/sshpublickeys?tabs=bicep
-resource sshPublicKey 'Microsoft.Compute/sshPublicKeys@2021-07-01' = {
-  name: 'sshpubkey'
-  location: location
-  properties: {
-    publicKey: sshRSAPublicKey
-  }
-}
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=bicep
 resource aks 'Microsoft.ContainerService/managedClusters@2021-10-01' = {
@@ -146,16 +129,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2021-10-01' = {
       serviceCidr: '10.42.0.0/24'
       dnsServiceIP: '10.42.0.10'         
     }           
-    linuxProfile: {
-      adminUsername: linuxAdminUsername
-      ssh: {
-        publicKeys: [
-          {
-            keyData: sshRSAPublicKey
-          }
-        ]
-      }
-    }
   }
 }
 
