@@ -1,4 +1,5 @@
-FROM openjdk:11-jre as builder
+# https://docs.microsoft.com/en-us/java/openjdk/containers
+FROM mcr.microsoft.com/openjdk/jdk:11-mariner as builder
 WORKDIR application
 ARG ARTIFACT_NAME
 COPY ${ARTIFACT_NAME}.jar application.jar
