@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.api;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.Customizer;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
