@@ -39,6 +39,8 @@ You can then access petclinic here: http://localhost:8080/
 
 ![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
 
+The UI code is located at spring-petclinic-api-gateway\src\main\resources\static\scripts
+If you want to know more about the Spring Boot Admin server, you might be interested in [https://github.com/codecentric/spring-boot-admin](https://github.com/codecentric/spring-boot-admin)
 
 ## Database configuration
 
