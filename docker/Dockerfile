@@ -1,3 +1,8 @@
+# TODO : study https://spring.io/guides/gs/spring-boot-docker/
+# ==> with this maven plugin, there is no more need of Dockerfile
+# ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=springio/gs-spring-boot-docker
+
+
 # https://docs.microsoft.com/en-us/java/openjdk/containers
 FROM mcr.microsoft.com/openjdk/jdk:11-mariner as builder
 WORKDIR application
@@ -13,7 +18,7 @@ RUN chmod +x dockerize
 
 
 # wget is not installed on adoptopenjdk:11-jre-hotspot
-FROM adoptopenjdk:11-jre-hotspot
+FROM mcr.microsoft.com/openjdk/jdk:11-mariner
 
 WORKDIR application
 
