@@ -23,4 +23,6 @@ jobs:
         distribution: 'microsoft' # https://github.com/actions/setup-java
         cache: maven
     - name: Build with Maven
+      # https://spring.io/guides/gs/spring-boot-docker/: 
+      # mvn spring-boot:build-image -Dspring-boot.build-image.imageName=springio/gs-spring-boot-docker
       run: mvn -B package --file pom.xml
