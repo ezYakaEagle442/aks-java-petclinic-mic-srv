@@ -43,8 +43,6 @@ public class ApiGatewayController {
 
     private final VisitsServiceClient visitsServiceClient;
 
-    private final ReactiveCircuitBreakerFactory cbFactory;
-
     @GetMapping(value = "owners/{ownerId}")
     public Mono<OwnerDetails> getOwnerDetails(final @PathVariable int ownerId) {
         return customersServiceClient.getOwner(ownerId)
