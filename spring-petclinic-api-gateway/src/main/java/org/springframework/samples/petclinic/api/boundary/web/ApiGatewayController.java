@@ -17,7 +17,7 @@ package org.springframework.samples.petclinic.api.boundary.web;
 
 import lombok.RequiredArgsConstructor;
 
-import io.github.resilience4j.circuitbreaker.CircuitBreaker.ReactiveCircuitBreakerFactory;
+// import io.github.resilience4j.circuitbreaker.CircuitBreaker.ReactiveCircuitBreakerFactory;
 import org.springframework.samples.petclinic.api.application.CustomersServiceClient;
 import org.springframework.samples.petclinic.api.application.VisitsServiceClient;
 import org.springframework.samples.petclinic.api.dto.OwnerDetails;
@@ -50,10 +50,6 @@ public class ApiGatewayController {
         return customersServiceClient.getOwner(ownerId)
             .flatMap(owner ->
                 visitsServiceClient.getVisitsForPets(owner.getPetIds())
-                    .transform(it -> {
-                        ReactiveCircuitBreaker cb = cbFactory.create("getOwnerDetails");
-                        return cb.run(it, throwable -> emptyVisitsForPets());
-                    })
                     .map(addVisitsToOwner(owner))
             );
 
