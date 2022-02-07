@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-petclinic-visits
+spec:
+  rules:
+  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: visits-service
+          servicePort: 80
+        path: /
+      - backend:
+          serviceName: visits-service
+          servicePort: 80
+        path: /visits-service
+      - backend:
+          serviceName: visits-service
+          servicePort: 80
+        path: /api/visit/
+      - backend:
+          serviceName: visits-service
+          servicePort: 80
+        path: /manage/health
+      - backend:
+          serviceName: visits-service
+          servicePort: 80
+        path: /manage/info
+
+

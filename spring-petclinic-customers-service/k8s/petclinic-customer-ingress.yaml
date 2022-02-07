@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-petclinic-customers
+spec:
+  rules:
+  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: customers-service
+          servicePort: 80
+        path: /
+      - backend:
+          serviceName: customers-service
+          servicePort: 80
+        path: /customers-service
+      - backend:
+          serviceName: customers-service
+          servicePort: 80
+        path: /api/customer/
+      - backend:
+          serviceName: customers-service
+          servicePort: 80
+        path: /manage/health
+      - backend:
+          serviceName: customers-service
+          servicePort: 80
+        path: /manage/info
