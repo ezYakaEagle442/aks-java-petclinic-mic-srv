@@ -60,11 +60,13 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        <!--
         <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-micrometer</artifactId>
         </dependency>
-
+        -->
+        
         <!-- Webjars -->
         <dependency>
             <groupId>org.webjars</groupId>
