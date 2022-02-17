@@ -1,7 +1,7 @@
 spring:
   cloud:
     config:
-      enabled: false
+      enabled: true
   sql:
     init:
       schema-locations: classpath*:db/hsqldb/schema.sql
