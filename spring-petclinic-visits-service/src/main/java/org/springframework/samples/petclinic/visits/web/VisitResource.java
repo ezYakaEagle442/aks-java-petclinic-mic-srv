@@ -18,7 +18,7 @@ package org.springframework.samples.petclinic.visits.web;
 import java.util.List;
 import javax.validation.Valid;
 
-import io.micrometer.core.annotation.Timed;
+// import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@Timed("petclinic.visit")
+// @Timed("petclinic.visit")
 class VisitResource {
 
     private final VisitRepository visitRepository;
