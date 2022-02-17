@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.customers.web;
 
-import io.micrometer.core.annotation.Timed;
+// import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,7 +36,7 @@ import java.util.Optional;
  */
 @RequestMapping("/owners")
 @RestController
-@Timed("petclinic.owner")
+// @Timed("petclinic.owner")
 @RequiredArgsConstructor
 @Slf4j
 class OwnerResource {
