@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-petclinic-admin-server
+spec:
+  rules:
+  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: admin-server
+          servicePort: 9090
+        path: /admin-server
+      - backend:
+          serviceName: admin-server
+          servicePort: 9090
+        path: /manage/health
+      - backend:
+          serviceName: admin-server
+          servicePort: 9090
+        path: /manage/info

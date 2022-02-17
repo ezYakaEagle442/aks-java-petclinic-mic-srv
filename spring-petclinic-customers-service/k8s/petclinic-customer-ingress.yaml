@@ -10,10 +10,6 @@ spec:
       - backend:
           serviceName: customers-service
           servicePort: 80
-        path: /
-      - backend:
-          serviceName: customers-service
-          servicePort: 80
         path: /customers-service
       - backend:
           serviceName: customers-service

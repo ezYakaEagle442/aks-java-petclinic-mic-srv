@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-petclinic-config-server
+spec:
+  rules:
+  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: config-server
+          servicePort: 8888
+        path: /config-server
+      - backend:
+          serviceName: config-server
+          servicePort: 8888
+        path: /manage/health
+      - backend:
+          serviceName: config-server
+          servicePort: 8888
+        path: /manage/info

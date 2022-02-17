@@ -1,26 +1,21 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: ing-petclinic-vets
+  name: ing-petclinic-ui
 spec:
   rules:
   - host: $ING_HOST # petclinic.<public-IP>.nip.io
     http:
       paths:
       - backend:
-          serviceName: vets-service
+          serviceName: ui-service
           servicePort: 80
-        path: /vets-service
+        path: /
       - backend:
-          serviceName: vets-service
-          servicePort: 80
-        path: /api/vet/**
-      - backend:
-          serviceName: vets-service
+          serviceName: ui-service
           servicePort: 80
         path: /manage/health
       - backend:
-          serviceName: vets-service
+          serviceName: ui-service
           servicePort: 80
         path: /manage/info
-

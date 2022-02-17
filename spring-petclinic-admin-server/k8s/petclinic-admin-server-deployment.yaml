@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: visits-service
+  name: admin-server
   #namespace: staging
 spec:
   selector:
       matchLabels:
-        app: visits-service
+        app: admin-server
   replicas: 3
   template:
       metadata:
         labels:
-            app: visits-service
+            app: admin-server
       spec:
         containers:
-        - name: visits-service
-          image: ${CONTAINER_REGISTRY}.azurecr.io/visits-service:${IMAGE_TAG}
+        - name: admin-server
+          image: ${CONTAINER_REGISTRY}.azurecr.io/admin-server:${IMAGE_TAG}
           imagePullPolicy: Always
           livenessProbe:
             initialDelaySeconds: 60
@@ -24,7 +24,7 @@ spec:
               # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
               # management.endpoints.web.base-path=/actuator
               # https://github.com/spring-projects/spring-petclinic/blob/master/src/main/resources/application.properties
-              path: /actuator # /manage
+              path: /actuator #/manage
               port: 8080
               scheme: HTTP
           readinessProbe:

@@ -24,7 +24,7 @@ spec:
               # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
               # management.endpoints.web.base-path=/actuator
               # https://github.com/spring-projects/spring-petclinic/blob/master/src/main/resources/application.properties
-              path: /manage
+              path: /actuator #/manage
               port: 8080
               scheme: HTTP
           readinessProbe:
