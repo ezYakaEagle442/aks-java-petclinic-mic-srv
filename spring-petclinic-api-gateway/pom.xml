@@ -15,7 +15,7 @@
     </parent>
 
     <properties>
-        <!-- skip test ApiGatewayControllerTest because there is no service yet to serve /api/gateway/-->
+        <!-- skip test ApiGatewayControllerTest because there is no service yet to serve /api/gateway/ -->
         <maven.test.skip>true</maven.test.skip>
         <webjars-bootstrap.version>3.3.7-1</webjars-bootstrap.version>
         <webjars-jquery.version>3.6.0</webjars-jquery.version>
@@ -23,6 +23,7 @@
         <webjars-angular-ui-router.version>1.0.20</webjars-angular-ui-router.version>
         <wro4j.version>1.8.0</wro4j.version>
         <!-- https://stackoverflow.com/questions/60587334/getting-compatible-version-issue-when-running-spring-boot-application-however-in -->
+        <!-- https://stackoverflow.com/questions/68741978/issue-with-io-github-resilience4j-version-1-7-2-spelresolverconfigurationonmiss -->
         <resilience4j.version>1.7.1</resilience4j.version>
         <docker.image.exposed.port>8081</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
@@ -77,38 +78,34 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!--
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
-        <!--Spring resilience4j dependency https://github.com/resilience4j/resilience4j/issues/848 -->
-            <dependency>
+        -->
+        <!--Spring resilience4j dependency https://github.com/resilience4j/resilience4j/issues/848 
+        <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-spring-boot2</artifactId>
             <version>${resilience4j.version}</version>
-            </dependency>
-            <dependency>
+        </dependency>
+        <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-circuitbreaker</artifactId>
             <version>${resilience4j.version}</version>
-            </dependency>            
-
-            <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-circuitbreaker</artifactId>
-            <version>${resilience4j.version}</version>
-            </dependency>
-
-            <dependency>
+        </dependency>            
+        <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-timelimiter</artifactId>
             <version>${resilience4j.version}</version>
-            </dependency>        
+        </dependency>        
         <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-micrometer</artifactId>
             <version>${resilience4j.version}</version>
         </dependency>
+        -->
 
         <!-- Webjars -->
         <dependency>
@@ -189,6 +186,34 @@
                         <version>${mockito.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.0</version>
+                <configuration>
+                    <release>11</release>
+                </configuration>
+            </plugin>                
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                        <configuration>
+                            <additionalProperties>
+                                <encoding.source>${project.build.sourceEncoding}</encoding.source>
+                                <encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>
+                                <java.source>${maven.compiler.source}</java.source>
+                                <java.target>${maven.compiler.target}</java.target>
+                            </additionalProperties>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

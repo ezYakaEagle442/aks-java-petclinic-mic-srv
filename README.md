@@ -4,17 +4,27 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html).
-To achieve that goal we use Azure Application Gateway, APIM, AKS, Open Service Mesh, Resilience4j, Micrometer 
+To achieve that goal we use IaC with Azure Bicep, MS build of OpenJDK 11, GitHub Actions, Azure Container Registry, Azure AD Workload Identity, Azure Key Vault, Open Service Mesh (OSM), Azure Database for MySQL
 
 
 ## Starting services locally without Docker
 
+Quick local test : 
+```sh
+mvn package -Dmaven.test.skip=true
+java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.1.jar
+java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.1.jar --server.port=7881 # --spring.profiles.active=docker
+java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.1.jar
+java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.1.jar
+java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.1.jar
+java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.1.jar
+```
+
 Every microservice is a Spring Boot application and can be started locally using IDE ([Lombok](https://projectlombok.org/) plugin has to be set up) or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
 Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
 If everything goes well, you can access the following services at given location:
-* Discovery Server - http://localhost:8761
 * AngularJS frontend (API Gateway) - http://localhost:8080
-* Customers, Vets and Visits Services - port TBD
+* Customers, Vets and Visits Services - port 8080
 * Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/master/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
 * Grafana Dashboards - http://localhost:3000
@@ -39,7 +49,8 @@ You can then access petclinic here: http://localhost:8080/
 
 ![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
 
-The UI code is located at spring-petclinic-api-gateway\src\main\resources\static\scripts
+The UI code is located at spring-petclinic-api-gateway\src\main\resources\static\scripts.
+
 If you want to know more about the Spring Boot Admin server, you might be interested in [https://github.com/codecentric/spring-boot-admin](https://github.com/codecentric/spring-boot-admin)
 
 ## Database configuration

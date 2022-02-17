@@ -40,6 +40,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Spring Cloud -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
         <!-- Third parties -->
         <dependency>
             <groupId>mysql</groupId>
@@ -55,15 +61,18 @@
             <groupId>org.jolokia</groupId>
             <artifactId>jolokia-core</artifactId>
         </dependency>
+        <!-- https://stackoverflow.com/questions/66876776/cant-find-error-debug-info-methods-in-log-object-which-is-created-via -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
             <scope>provided</scope>
 		</dependency>
+        <!--
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        -->
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>chaos-monkey-spring-boot</artifactId>
