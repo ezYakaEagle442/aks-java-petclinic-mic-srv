@@ -31,6 +31,12 @@
       },         
       "aksSubnetCidr": {
         "value": "172.16.1.0/24"
-      }      
+      },
+      "administratorLogin": {
+        "value": "mys_adm"
+      },
+      "administratorLoginPassword": {
+        "value": "istrator"
+      }          
     }
   }

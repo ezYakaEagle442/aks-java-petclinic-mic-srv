@@ -5,17 +5,15 @@ TODO : Use [Pipelines with GitHub Actions](https://docs.microsoft.com/en-us/azur
 az group create --name rg-iac-kv --location northeurope
 az group create --name rg-iac-aks-petclinic-mic-srv --location northeurope
 
-ssh-keygen -t rsa -b 4096 -N $ssh_passphrase -f ~/.ssh/bicep_key -C "youremail@groland.grd"
-cat ~/.ssh/bicep_key.pub
-
-az deployment group create --name iac-101-kv -f ./kv/kv.bicep -g rg-iac-kv \
-    --parameters @./cnf/bicep/kv/parameters.json
-
-az deployment group create --name iac-101-kv-sec-key -f ./kv/kv_sec_key.bicep -g rg-iac-kv \
-    --parameters @./cnf/bicep/kv/parameters-sec-key.json
+#ssh-keygen -t rsa -b 4096 -N $ssh_passphrase -f ~/.ssh/bicep_key -C "youremail@groland.grd"
+#cat ~/.ssh/bicep_key.pub
 
 az deployment group create --name iac-101-aks -f ./aks/main.bicep -g rg-iac-aks-petclinic-mic-srv \
     --parameters @./aks/parameters.json
+
+az deployment group create --name iac-101-kv -f ./kv/kv.bicep -g rg-iac-kv \
+    --parameters @./kv/parameters-kv.json
+
 
 ```
 

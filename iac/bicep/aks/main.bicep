@@ -58,6 +58,13 @@ param skuName string = 'standard'
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
 
+@description('The MySQL DB Admin Login.')
+param administratorLogin string = 'mys_adm'
+
+@secure()
+@description('The MySQL DB Admin Password.')
+param administratorLoginPassword string
+
 /*
 module rg 'rg.bicep' = {
   name: 'rg-bicep-${appName}'
@@ -188,4 +195,14 @@ module aks 'aks.bicep' = {
     roleAssignments
     // kvAccessPolicies
   ]
+}
+
+module mysql '../mysql/mysql.bicep' = {
+  name: 'mysqldb'
+  params: {
+    appName: appName
+    location: location
+    administratorLogin: administratorLogin
+    administratorLoginPassword: administratorLoginPassword
+  }
 }
