@@ -179,7 +179,6 @@ module aks 'aks.bicep' = {
     nodeRG:MCnodeRG
     subnetID: vnet.outputs.aksSubnetId
     dnsPrefix: dnsPrefix
-    sshRSAPublicKey: kv.getSecret('sshPublicKey')
     logAnalyticsWorkspaceId: loganalyticsworkspace.outputs.logAnalyticsWorkspaceId
     identity: {
       '${aksIdentity.outputs.identityid}' : {}
