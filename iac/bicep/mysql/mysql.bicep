@@ -19,7 +19,7 @@ var databaseSkuName = 'GP_Gen5_2'
 var databaseSkuTier = 'GeneralPurpose'
 var databaseSkuSizeMB = 51200
 var databaseSkucapacity = 2
-var mySqlVersion = '5.6' // https://docs.microsoft.com/en-us/azure/mysql/concepts-supported-versions
+var mySqlVersion = '5.7' // https://docs.microsoft.com/en-us/azure/mysql/concepts-supported-versions
 
 resource server 'Microsoft.DBforMySQL/servers@2017-12-01' = {
   location: location
