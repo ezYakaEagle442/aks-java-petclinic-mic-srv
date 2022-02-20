@@ -12,12 +12,12 @@ To achieve that goal we use IaC with Azure Bicep, MS build of OpenJDK 11, GitHub
 Quick local test : 
 ```sh
 mvn package -Dmaven.test.skip=true
-java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.1.jar
-java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.1.jar --server.port=7881 # --spring.profiles.active=docker
-java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.1.jar
-java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.1.jar
-java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.1.jar
-java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.1.jar
+java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.1.jar --server.port=8888
+java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.1.jar --server.port=9090
+java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.1.jar --server.port=8081 # --spring.profiles.active=docker
+java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.1.jar --server.port=8082
+java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.1.jar --server.port=8083
+java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.1.jar --server.port=8084
 ```
 
 Every microservice is a Spring Boot application and can be started locally using IDE ([Lombok](https://projectlombok.org/) plugin has to be set up) or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
