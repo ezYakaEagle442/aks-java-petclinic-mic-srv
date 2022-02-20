@@ -2,6 +2,9 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: ing-petclinic-admin-server
+  # annotations:
+      # service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL
+      # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   rules:
   - host: $ING_HOST # petclinic.<public-IP>.nip.io
