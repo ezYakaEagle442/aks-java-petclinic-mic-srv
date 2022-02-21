@@ -1,6 +1,6 @@
 # docker build --build-arg --no-cache -t "petclinic-ui" -f "./docker/petclinic-api-gateway/Dockerfile" .
 # docker image ls
-# docker run petclinic-ui -p 8080:8080 -p 8081:8081
+# docker run -p 8080:8080 -p 8081:8081 petclinic-ui 
 # docker container ls
 # docker ps
 # docker exec -it <container-id> /bin/sh

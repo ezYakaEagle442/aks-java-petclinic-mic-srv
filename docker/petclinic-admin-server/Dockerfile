@@ -6,7 +6,7 @@
 
 # docker build --build-arg --no-cache -t "petclinic-admin-server" -f "./docker/petclinic-admin-server/Dockerfile" .
 # docker image ls
-# docker run petclinic-admin-server -p 8080:8080 -p 8081:8081
+# docker run -p 8080:8080 -p 8081:8081 petclinic-admin-server 
 # docker container ls
 # docker ps
 # docker exec -it b177880414c5 /bin/sh

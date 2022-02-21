@@ -1,6 +1,6 @@
 # docker build --build-arg --no-cache -t "petclinic-customers-service" -f "./docker/petclinic-customers-service/Dockerfile" .
 # docker image ls
-# docker run petclinic-customers-service -p 8080:8080 -p 8081:8081
+# docker run -p 8080:8080 -p 8081:8081 petclinic-customers-service
 # docker container ls
 # docker ps
 # docker exec -it <container-id> /bin/sh
