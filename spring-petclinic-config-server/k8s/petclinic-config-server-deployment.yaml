@@ -17,21 +17,24 @@ spec:
         - name: config-server
           image: ${CONTAINER_REGISTRY}.azurecr.io/config-server:${IMAGE_TAG}
           imagePullPolicy: Always
-          livenessProbe:
+          livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
             initialDelaySeconds: 60
             timeoutSeconds: 2
             httpGet:
               # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
               # management.endpoints.web.base-path=/actuator
               # https://github.com/spring-projects/spring-petclinic/blob/master/src/main/resources/application.properties
-              path: /actuator #/manage
-              port: 8080
+              path: /manage/health/liveness # /actuator
+              port: 8081
               scheme: HTTP
           readinessProbe:
             initialDelaySeconds: 30
             timeoutSeconds: 1
-            tcpSocket:
-              port: 8080
+            httpGet:
+              path: "/manage/health/readiness"
+              port: 8081           
+            #tcpSocket:
+            #  port: 8081
           resources:
             # https://github.com/kubernetes/kubernetes/issues/63396
             requests:
