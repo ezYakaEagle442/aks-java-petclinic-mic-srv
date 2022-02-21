@@ -12,12 +12,12 @@ To achieve that goal we use IaC with Azure Bicep, MS build of OpenJDK 11, GitHub
 Quick local test : 
 ```sh
 mvn package -Dmaven.test.skip=true
-java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.1.jar --server.port=8888
-java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.1.jar --server.port=9090
-java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.1.jar --server.port=8081 # --spring.profiles.active=docker
-java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.1.jar --server.port=8082
-java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.1.jar --server.port=8083
-java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.1.jar --server.port=8084
+java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.3.jar --server.port=8888
+java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.3.jar --server.port=9090
+java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.3.jar --server.port=8181 # --spring.profiles.active=docker
+java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.3.jar --server.port=8082
+java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.3.jar --server.port=8083
+java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.3.jar --server.port=8084
 ```
 
 Every microservice is a Spring Boot application and can be started locally using IDE ([Lombok](https://projectlombok.org/) plugin has to be set up) or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
@@ -91,7 +91,7 @@ have been instrumented with [MicroMeter](https://micrometer.io) to collect JVM a
 
 A JMeter load testing script is available to stress the application and generate metrics: [petclinic_test_plan.jmx](spring-petclinic-api-gateway/src/test/jmeter/petclinic_test_plan.jmx)
 
-![Grafana metrics dashboard](docs/grafana-custom-metrics-dashboard.png)
+![Azure Monitor metrics dashboard](docs/todo.png)
 
 ### Using Prometheus
 
@@ -126,6 +126,12 @@ This [spring-petclinic-microservices](https://github.com/spring-petclinic/spring
 hosted in a special GitHub org: [spring-petclinic](https://github.com/spring-petclinic).
 If you have a special interest in a different technology stack
 that could be used to implement the Pet Clinic then please join the community there.
+
+See also :
+- [MS official Azure Spring Cloud sample](https://github.com/Azure-Samples/spring-petclinic-microservices)
+- [Spring Pet Clinic Microservices deployment on AKS](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv) including IaC with Azure Bicep, MS build of OpenJDK 11, GitHub Actions, Azure Container Registry, Azure AD Workload Identity and Azure Key Vault.
+- [Spring Pet Clinic Microservices deployment on ARO](https://github.com/ezYakaEagle442/aro-java-petclinic-mic-srv) including IaC with Azure Bicep, MS build of OpenJDK 11, Quarkus, OpenShift Pipelines based on Tekton, OpenShift built-in Registry, Azure AD Workload Identity and Azure Key Vault.
+- [Spring Pet Clinic Microservices deployment on Azure Container Apps](https://github.com/ezYakaEagle442/aca-java-petclinic-mic-srv) including IaC with Azure Bicep, Dapr, MS build of OpenJDK 11, GitHub Actions, Azure Container Registry, Azure Key Vault.
 
 
 # Contributing
