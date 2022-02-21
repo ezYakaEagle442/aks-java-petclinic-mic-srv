@@ -1,0 +1,145 @@
+name: Build and Deploy Java App to AKS
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/kubernetes-manifest?view=azure-devops
+# https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-azure/deploying-to-azure-kubernetes-service
+
+env:
+  AZURE_CONTAINER_REGISTRY: MY_REGISTRY_NAME # set this to the name of your container registry
+  PROJECT_NAME: MY_PROJECT_NAME              # set this to your project's name
+  RESOURCE_GROUP: MY_RESOURCE_GROUP          # set this to the resource group containing your AKS cluster
+  CLUSTER_NAME: MY_CLUSTER_NAME              # set this to the name of your AKS cluster
+  REGISTRY_URL: MY_REGISTRY_URL              # set this to the URL of your registry
+  # If you bake using helm:
+  CHART_PATH: MY_HELM_FILE                   # set this to the path to your helm file
+  CHART_OVERRIDE_PATH: MY_OVERRIDE_FILES     # set this to an array of override file paths
+
+on: 
+  # Automatically trigger it when detected changes in repo
+  # push:
+  #   branches: 
+  #     [ main ]
+
+  # Allow mannually trigger 
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Azure Login
+      uses: azure/login@v1.4.3
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build image on ACR
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.33.0
+        inlineScript: |
+          az configure --defaults acr=${{ env.AZURE_CONTAINER_REGISTRY }}
+          az acr build -t  -t ${{ env.REGISTRY_URL }}/${{ env.PROJECT_NAME }}:${{ github.sha }}
+
+          dns_zone="cloudapp.azure.com"
+          echo "DNS Zone is : " $dns_zone
+
+          app_dns_zone="petclinic-aks.${location}.${dns_zone}"
+          echo "App DNS zone " $app_dns_zone
+
+          export ING_HOST="ingress-checkpoint."$custom_dns
+          echo "INGRESS HOST " $ING_HOST
+
+          build_id=$(az acr task list-runs --registry $acr_registry_name -o json --query [0].name )
+          build_id=$(echo $build_id | tr -d '"')
+          echo "Successfully pushed image with ID " $build_id
+
+          az acr task logs --registry $acr_registry_name --run-id  $build_id
+
+          envsubst < java-app/petclinic-ingress.yaml > deploy/petclinic-ingress.yaml
+
+          # TODO
+          sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-admin-server/k8s/petclinic-admin-server-deployment.yaml
+          sed -i "s/ING_HOST/$MY_INGRESS_HOST/g" ../spring-petclinic-admin-server/k8s/petclinic-admin-server-ingress.yaml
+          # sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-admin-server/k8s/petclinic-admin-server-srv-cluster-ip.yaml
+
+          mkdir deploy
+          export CONTAINER_REGISTRY=${{ env.AZURE_CONTAINER_REGISTRY }}
+          export IMAGE_TAG=$build_id
+          envsubst < ../spring-petclinic-admin-server/k8s/petclinic-admin-server-deployment.yaml > deploy/petclinic-admin-server-deployment.yaml
+
+
+          sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-api-gateway/k8s/petclinic-ui-deployment.yaml
+          sed -i "s/ING_HOST/$MY_INGRESS_HOST/g" ../spring-petclinic-api-gateway/k8s/petclinic-ui-ingress.yaml
+          # sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-api-gateway/k8s/petclinic-ui-cluster-ip.yaml
+
+          sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-config-server/k8s/petclinic-config-server-deployment.yaml
+          sed -i "s/ING_HOST/$MY_INGRESS_HOST/g" ../spring-petclinic-config-server/k8s/petclinic-config-server-ingress.yaml
+          # sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-config-server/k8s/petclinic-config-server-srv-cluster-ip.yaml
+
+          sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ..spring-petclinic-customers-service/k8s/petclinic-customer-deployment.yaml
+          sed -i "s/ING_HOST/$MY_INGRESS_HOST/g" ../spring-petclinic-customers-service/k8s/petclinic-customer-ingress.yaml
+          # sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-customers-service/k8s/petclinic-customer-srv-cluster-ip.yaml
+
+          sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-vets-service/k8s/petclinic-vet-deployment.yaml
+          sed -i "s/ING_HOST/$MY_INGRESS_HOST/g" ../spring-petclinic-vets-service/k8s/petclinic-vet-ingress.yaml
+          # sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-vets-service/k8s/petclinic-vet-srv-cluster-ip.yaml
+
+          sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-visits-service/k8s/petclinic-visits-deployment.yaml
+          sed -i "s/ING_HOST/$MY_INGRESS_HOST/g" ../spring-petclinic-visits-service/k8s/petclinic-visits-ingress.yaml
+          # sed -i "s/CONTAINER_REGISTRY/$MY_REGISTRY_NAME/g" ../spring-petclinic-visits-service/k8s/petclinic-visits-srv-cluster-ip.yaml
+
+    - name: Gets K8s context
+      uses: azure/aks-set-context@v2.0
+      with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+      id: login
+
+    # https://github.com/Azure/k8s-bake
+    - name: Configure deployment
+      uses: azure/k8s-bake@v2.1
+      with:
+        renderEngine: 'helm'
+        helmChart: ${{ env.CHART_PATH }}
+        overrideFiles: ${{ env.CHART_OVERRIDE_PATH }}
+        overrides: |     
+          replicas:2
+        helm-version: 'latest' 
+      id: bake
+
+      kubectl create namespace development
+      kubectl label namespace/development purpose=development
+
+      kubectl create namespace staging
+      kubectl label namespace/staging purpose=staging
+
+      kubectl create namespace production
+      kubectl label namespace/production purpose=production
+
+      kubectl create namespace ingress
+
+      helm repo update
+      helm repo add nginx https://kubernetes.github.io/ingress-nginx
+
+      helm install ingress stable/nginx-ingress --namespace ingress
+      helm upgrade --install ingress stable/nginx-ingress --namespace ingress
+      ing_ctl_ip=$(kubectl get svc -n ingress ingress-nginx-ingress-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+
+      az network dns record-set cname create -g $rg_name -z $app_dns_zone -n petclinic-ingress
+      az network dns record-set cname set-record -g $rg_name -z $app_dns_zone -n petclinic-ingress -c www.$app_dns_zone --ttl 300
+      az network dns record-set a add-record -g $rg_name -z $app_dns_zone -n www -a $service_ip --ttl 300 # (300s = 5 minutes)
+      az network dns record-set cname show -g $rg_name -z $app_dns_zone -n petclinic-ingress
+
+      az network public-ip update --ids $public_ip_id --dns-name kissmyapp --subscription $subId --resource-group $managed_rg
+
+
+
+    - name: Deploys application
+    - uses: Azure/k8s-deploy@c8fbd76ededaad2799c054a9fd5d0fa5d4e9aee4
+      with:
+        manifests: ${{ steps.bake.outputs.manifestsBundle }}
+        images: |
+          ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.PROJECT_NAME }}:${{ github.sha }}
+        imagepullsecrets: |
+          ${{ env.PROJECT_NAME }}
