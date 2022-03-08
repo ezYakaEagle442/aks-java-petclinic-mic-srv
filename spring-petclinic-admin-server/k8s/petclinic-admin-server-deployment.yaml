@@ -15,7 +15,7 @@ spec:
       spec:
         containers:
         - name: admin-server
-          image: image-registry.openshift-image-registry.svc:5000/${projectname}/admin-server:${IMAGE_TAG}
+          image: ${CONTAINER_REGISTRY}.azurecr.io/admin-server:${IMAGE_TAG}
           imagePullPolicy: Always
           livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
             initialDelaySeconds: 60
