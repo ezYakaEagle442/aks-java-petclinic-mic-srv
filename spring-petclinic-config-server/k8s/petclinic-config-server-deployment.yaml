@@ -38,15 +38,13 @@ spec:
           resources:
             # https://github.com/kubernetes/kubernetes/issues/63396
             requests:
-              memory: "64Mi"
+              memory: "180Mi"
               cpu: "100m"
             limits:
-              memory: "256Mi"
+              memory: "360Mi"
               cpu: "300m"
           ports:
-          - containerPort: 8080
+          - containerPort: 8888
             name: server
           - containerPort: 8081
-            name: management          
-        imagePullSecrets:
-        - name: acr-auth
+            name: management

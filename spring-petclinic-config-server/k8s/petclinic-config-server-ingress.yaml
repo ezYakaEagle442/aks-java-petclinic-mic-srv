@@ -4,18 +4,13 @@ metadata:
   name: ing-petclinic-config-server
 spec:
   rules:
-  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+  - host: $ING_HOST
     http:
       paths:
-      - backend:
-          serviceName: config-server
-          servicePort: 8888
-        path: /config-server
-      - backend:
-          serviceName: config-server
-          servicePort: 8888
-        path: /manage/health
-      - backend:
-          serviceName: config-server
-          servicePort: 8888
-        path: /manage/info
+      - path: /config-server
+        pathType: "Prefix"      
+        backend:
+          service:
+            name: config-server
+            port: 
+              number: 8888
