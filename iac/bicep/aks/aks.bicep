@@ -44,6 +44,7 @@ param agentVMSize string = 'Standard_D2s_v3'
 param nodeRG string = 'rg-MC-${appName}'
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=bicep
+// https://github.com/Azure/AKS-Construction/blob/main/bicep/main.bicep
 resource aks 'Microsoft.ContainerService/managedClusters@2021-10-01' = {
   name: clusterName
   location: location
