@@ -4,23 +4,13 @@ metadata:
   name: ing-petclinic-vets
 spec:
   rules:
-  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+  - host: $ING_HOST
     http:
       paths:
-      - backend:
-          serviceName: vets-service
-          servicePort: 80
-        path: /vets-service
-      - backend:
-          serviceName: vets-service
-          servicePort: 80
-        path: /api/vet/**
-      - backend:
-          serviceName: vets-service
-          servicePort: 80
-        path: /manage/health
-      - backend:
-          serviceName: vets-service
-          servicePort: 80
-        path: /manage/info
-
+      - path: /vets-service
+        pathType: "Prefix"
+        backend:
+          service:
+            name: vets-service
+            port: 
+              number: 80
