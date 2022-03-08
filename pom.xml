@@ -148,6 +148,8 @@
                             <!-- https://github.com/git-commit-id/git-commit-id-maven-plugin/blob/master/docs/using-the-plugin.md -->
                             <excludeProperties>
                                 <excludeProperty>git.user.*</excludeProperty>
+                                <excludeProperty>git.build.user.*</excludeProperty>
+                                <excludeProperty>git.commit.user.*</excludeProperty>
                             </excludeProperties>
                             <verbose>true</verbose>
                             <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
