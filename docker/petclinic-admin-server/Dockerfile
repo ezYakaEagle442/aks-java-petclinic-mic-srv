@@ -11,6 +11,7 @@
 # docker ps
 # docker exec -it b177880414c5 /bin/sh
 # docker inspect --format '{{ .NetworkSettings.Networks.bridge.IPAddress }}' <container>  
+# docker images --filter reference=petclinic-admin-server --format "{{.Tag}}"
 
 # https://docs.microsoft.com/en-us/java/openjdk/containers
 FROM mcr.microsoft.com/openjdk/jdk:11-mariner as builder
@@ -24,7 +25,8 @@ RUN ls -al /usr/lib/jvm/msopenjdk-11
 
 RUN mkdir /tmp/app
 WORKDIR /tmp/app
-COPY "./spring-petclinic-admin-server/target/*.jar" /tmp/app/app.jar
+
+COPY "spring-petclinic-admin-server/target/*.jar" /tmp/app/app.jar
 
 # RUN yum install maven -y
 
@@ -54,7 +56,7 @@ COPY --from=builder /tmp/app/application/ ./
 # RUN touch /app.jar
 EXPOSE 80 8080 8081 8082 8083 8084 8888 9090
 
-ENV SPRING_PROFILES_ACTIVE docker
+ENV SPRING_PROFILES_ACTIVE docker,mysql
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher", "--server.port=9090", "--spring.profiles.active=docker"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher", "--server.port=9090", "--spring.profiles.active=docker,mysql"]
 # ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/tmp/app/app.jar"]
