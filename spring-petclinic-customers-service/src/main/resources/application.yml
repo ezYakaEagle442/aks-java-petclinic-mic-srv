@@ -4,6 +4,17 @@ spring:
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
 
+logging:
+  level:
+    root: "warn"
+    # org.springframework.web: "debug"
+    #org.hibernate: "debug"
+    #com.mysql: "debug"
+    #org.springframework.jdbc.datasource: "debug"
+    #org.springframework.boot.sql.init: "debug"
+    #org.springframework.boot.autoconfigure.jdbc: "debug"
+    #com.zaxxer.hikari.HikariDataSource: "debug"
+    #com.zaxxer.hikari.pool.PoolBase: "debug"
 
 ---
 spring:
