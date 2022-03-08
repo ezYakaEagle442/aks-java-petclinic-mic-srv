@@ -9,26 +9,23 @@ To achieve that goal we use IaC with Azure Bicep, MS build of OpenJDK 11, GitHub
 
 ## Starting services locally without Docker
 
-Quick local test : 
+Quick local test just to verify that the jar files can be run (the routing will not work out of a K8S cluster, and also the apps will fail to start as soon as management port 8081 will be already in use by config server ...) : 
 ```sh
 mvn package -Dmaven.test.skip=true
 java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.3.jar --server.port=8888
 java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.3.jar --server.port=9090
-java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.3.jar --server.port=8181 # --spring.profiles.active=docker
-java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.3.jar --server.port=8082
-java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.3.jar --server.port=8083
-java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.3.jar --server.port=8084
+java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.3.jar --server.port=8082 # --spring.profiles.active=docker
+java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.3.jar --server.port=8083
+java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.3.jar --server.port=8084
+java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.3.jar --server.port=8085
 ```
 
-Every microservice is a Spring Boot application and can be started locally using IDE ([Lombok](https://projectlombok.org/) plugin has to be set up) or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
-Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
+Every microservice is a Spring Boot application and can be started locally. 
+Please note that supporting services (Config Server) must be started before any other application (Customers, Vets, Visits and API).
+Startup Admin server is optional.
 If everything goes well, you can access the following services at given location:
 * AngularJS frontend (API Gateway) - http://localhost:8080
-* Customers, Vets and Visits Services - port 8080
-* Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/master/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
-* Grafana Dashboards - http://localhost:3000
-* Prometheus - http://localhost:9091
 
 
 The `master` branch uses an MS openjdk/jdk:11-mariner Docker base.
@@ -51,6 +48,18 @@ You can then access petclinic here: http://localhost:8080/
 
 The UI code is located at spring-petclinic-api-gateway\src\main\resources\static\scripts.
 
+The Spring Cloud Gateway routing is configuted at spring-petclinic-api-gateway\src\main\resources\application.yml
+
+The OpenShift routing is configured in the Ingress resources at :
+- spring-petclinic-api-gateway\k8s\petclinic-ui-ingress.yaml
+- spring-petclinic-admin-server\k8s\petclinic-admin-server-ingress.yaml
+- spring-petclinic-config-server\k8s\petclinic-config-server-ingress.yaml
+- spring-petclinic-customers-service\k8s\petclinic-customer-ingress.yaml
+- spring-petclinic-vets-service\k8s\petclinic-vet-ingress.yaml
+- spring-petclinic-visits-service\k8s\petclinic-visits-ingress.yaml
+
+The Git repo URL used by Spring config is set in spring-petclinic-config-server\src\main\resources\application.yml
+
 If you want to know more about the Spring Boot Admin server, you might be interested in [https://github.com/codecentric/spring-boot-admin](https://github.com/codecentric/spring-boot-admin)
 
 ## Database configuration
@@ -59,14 +68,28 @@ In its default configuration, Petclinic uses an in-memory database (HSQLDB) whic
 A similar setup is provided for MySql in case a persistent database configuration is needed.
 Dependency for Connector/J, the MySQL JDBC driver is already included in the `pom.xml` files.
 
-### Start a MySql database
 
-You may start a MySql database with docker:
+### Set MySql connection String
 
+You need to reconfigure the MySQL connection string with your own settings (you can get it from the Azure portal / petcliaro-mysql-server / Connection strings / JDBC):
+In the spring-petclinic-microservices-config/blob/main/application.yml :
 ```
-docker run -e MYSQL_ROOT_PASSWORD=petclinic -e MYSQL_DATABASE=petclinic -p 3306:3306 mysql:5.7.8
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    schema: classpath*:db/mysql/schema.sql
+    data: classpath*:db/mysql/data.sql
+    # url: jdbc:mysql://localhost:3306/petclinic?useSSL=false
+    url: jdbc:mysql://petcliaro-mysql-server.mysql.database.azure.com:3306/petclinic?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&verifyServerCertificate=false
+    username: mys_adm
+    password: IsTrator42!
+    initialization-mode: ALWAYS
 ```
-or download and install the MySQL database (e.g., MySQL Community Server 5.7 GA), which can be found here: https://dev.mysql.com/downloads/
+
+You can check the DB connection with this [sample project](https://github.com/Azure-Samples/java-on-azure-examples/tree/main/databases/mysql/get-country).
+
 
 ### Use the Spring 'mysql' profile
 
@@ -84,26 +107,31 @@ ENV SPRING_PROFILES_ACTIVE docker,mysql
 In the `mysql section` of the `application.yml` from the [Configuration repository], you have to change 
 the host and port of your MySQL JDBC connection string. 
 
-## Custom metrics monitoring
 
-Grafana and Prometheus are included in the `docker-compose.yml` configuration, and the public facing applications
-have been instrumented with [MicroMeter](https://micrometer.io) to collect JVM and custom business metrics.
+## CI/CD
 
-A JMeter load testing script is available to stress the application and generate metrics: [petclinic_test_plan.jmx](spring-petclinic-api-gateway/src/test/jmeter/petclinic_test_plan.jmx)
+### Use GitHub Actions to deploy the Java microservices
 
-![Azure Monitor metrics dashboard](docs/todo.png)
+See GitHub [Actions section](./.github/workflows/aks-deploy.yml)
 
-### Using Prometheus
+## Observability
 
-* Prometheus can be accessed from your local machine at http://localhost:9091
+TODO !
 
-### Using Grafana with Prometheus
+## Scaling
 
-* An anonymous access and a Prometheus datasource are setup.
-* A `Spring Petclinic Metrics` Dashboard is available at the URL http://localhost:3000/d/69JXeR0iw/spring-petclinic-metrics.
-You will find the JSON configuration file here: [docker/grafana/dashboards/grafana-petclinic-dashboard.json]().
-* You may create your own dashboard or import the [Micrometer/SpringBoot dashboard](https://grafana.com/dashboards/4701) via the Import Dashboard menu item.
-The id for this dashboard is `4701`.
+TODO !
+
+## Resiliency
+
+Circuit breakers
+TODO !
+
+## Security
+### secret Management
+Azure AD Workload Identity and Azure Key Vault : TODO !
+
+## DNS Management
 
 ### Custom metrics
 Spring Boot registers a lot number of core metrics: JVM, CPU, Tomcat, Logback... 
