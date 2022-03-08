@@ -71,7 +71,7 @@ Dependency for Connector/J, the MySQL JDBC driver is already included in the `po
 
 ### Set MySql connection String
 
-You need to reconfigure the MySQL connection string with your own settings (you can get it from the Azure portal / petcliaro-mysql-server / Connection strings / JDBC):
+You need to reconfigure the MySQL connection string with your own settings (you can get it from the Azure portal / petcliaks-mysql-server / Connection strings / JDBC):
 In the spring-petclinic-microservices-config/blob/main/application.yml :
 ```
 spring:
@@ -82,7 +82,7 @@ spring:
     schema: classpath*:db/mysql/schema.sql
     data: classpath*:db/mysql/data.sql
     # url: jdbc:mysql://localhost:3306/petclinic?useSSL=false
-    url: jdbc:mysql://petcliaro-mysql-server.mysql.database.azure.com:3306/petclinic?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&verifyServerCertificate=false
+    url: jdbc:mysql://petcliaks-mysql-server.mysql.database.azure.com:3306/petclinic?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&verifyServerCertificate=false
     username: mys_adm
     password: IsTrator42!
     initialization-mode: ALWAYS
