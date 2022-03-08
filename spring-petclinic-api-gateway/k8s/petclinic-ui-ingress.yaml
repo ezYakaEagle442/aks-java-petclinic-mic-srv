@@ -4,18 +4,13 @@ metadata:
   name: ing-petclinic-ui
 spec:
   rules:
-  - host: $ING_HOST # petclinic.<public-IP>.nip.io
+  - host: $ING_HOST
     http:
       paths:
-      - backend:
-          serviceName: ui-service
-          servicePort: 80
-        path: /
-      - backend:
-          serviceName: ui-service
-          servicePort: 80
-        path: /manage/health
-      - backend:
-          serviceName: ui-service
-          servicePort: 80
-        path: /manage/info
+      - path: /
+        pathType: "Prefix"
+        backend:
+          service:
+            name: ui-service
+            port: 
+              number: 80
