@@ -15,7 +15,7 @@ spec:
       spec:
         containers:
         - name: admin-server
-          image: ${CONTAINER_REGISTRY}.azurecr.io/admin-server:${IMAGE_TAG}
+          image: image-registry.openshift-image-registry.svc:5000/${projectname}/admin-server:${IMAGE_TAG}
           imagePullPolicy: Always
           livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
             initialDelaySeconds: 60
@@ -38,15 +38,13 @@ spec:
           resources:
             # https://github.com/kubernetes/kubernetes/issues/63396
             requests:
-              memory: "64Mi"
+              memory: "180Mi"
               cpu: "100m"
             limits:
-              memory: "256Mi"
+              memory: "360Mi"
               cpu: "300m"
           ports:
-          - containerPort: 8080
+          - containerPort: 9090
             name: server
           - containerPort: 8081
-            name: management          
-        imagePullSecrets:
-        - name: acr-auth
+            name: management

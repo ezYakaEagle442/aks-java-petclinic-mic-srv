@@ -6,7 +6,7 @@
 
 # docker build --build-arg --no-cache -t "petclinic-admin-server" -f "./docker/petclinic-admin-server/Dockerfile" .
 # docker image ls
-# docker run -p 8080:8080 -p 8081:8081 petclinic-admin-server 
+# docker run -p 8080:8080 -p 8081:8081 -p 8888:8888 -p 9090:9090 petclinic-admin-server 
 # docker container ls
 # docker ps
 # docker exec -it b177880414c5 /bin/sh
@@ -52,9 +52,9 @@ COPY --from=builder /tmp/app/application/ ./
 # COPY --from=builder /tmp/app/target/*.jar app.jar
 # COPY target/*.jar app.jar
 # RUN touch /app.jar
-EXPOSE 8080 8081 8888 9090
+EXPOSE 80 8080 8081 8082 8083 8084 8888 9090
 
 ENV SPRING_PROFILES_ACTIVE docker
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher", "--server.port=9090", "--spring.profiles.active=docker"]
 # ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/tmp/app/app.jar"]
