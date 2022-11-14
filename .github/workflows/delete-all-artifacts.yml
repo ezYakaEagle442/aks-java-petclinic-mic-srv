@@ -1,0 +1,125 @@
+name: Delete All the jar Arfifacts from GitHub Packages
+# https://github.com/${{ GITHUB_REPOSITORY }}/packages/"
+# You need at least delete:packages and read:packages scopes to delete a package
+on:
+  workflow_dispatch:
+
+env:
+  
+  AZ_CLI_VERSION: 2.42.0
+  DEPLOYMENT_VERSION: 2.6.13
+
+  GH_API: api.github.com/user/packages/maven
+
+  # ==== APPS ====:
+  API_GATEWAY: api-gateway
+  ADMIN_SERVER: admin-server
+  CUSTOMERS_SERVICE: customers-service
+  VETS_SERVICE: vets-service
+  VISITS_SERVICE: visits-service
+
+  CONFIG_SERVER: config-server
+  DISCOVERY_SERVER: discovery-server
+
+  PRJ_PREFIX: spring-petclinic
+
+jobs:
+
+  delete-jars:
+    permissions: 
+      contents: read
+      packages: write
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set Base environment variables
+      run: |
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
+        echo "API_GATEWAY_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+        echo "ADMIN_SERVER_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.CUSTOMERS_SERVICE }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+        echo "VETS_SERVICE_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
+
+        
+        echo "ADMIN_SERVER_GROUP_ID=org.springframework.samples.petclinic.admin" >> $GITHUB_ENV
+        echo "ADMIN_SERVER_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
+
+        echo "API_GATEWAY_GROUP_ID=org.springframework.samples.petclinic.api" >> $GITHUB_ENV
+        echo "API_GATEWAY_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
+
+        echo "CONFIG_SERVER_GROUP_ID=org.springframework.samples.petclinic.config" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}" >> $GITHUB_ENV
+
+        echo "CUSTOMERS_SERVICE_GROUP_ID=org.springframework.samples.petclinic.client" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.CUSTOMERS_SERVICE }}" >> $GITHUB_ENV
+
+        echo "DISCOVERY_SERVER_GROUP_ID=org.springframework.samples.petclinic.discovery" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
+
+        echo "VETS_SERVICE_GROUP_ID=org.springframework.samples.petclinic.vets" >> $GITHUB_ENV
+        echo "VETS_SERVICE_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}" >> $GITHUB_ENV
+
+        echo "VISITS_SERVICE_GROUP_ID=org.springframework.samples.petclinic.visits" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
+
+        echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+      shell: bash
+
+    # Variables in the env map cannot be defined in terms of other variables in the map
+    - name: Set dependent environment variables
+      run: |
+        # ==== JARS ====: PWD already in /home/runner/work/azure-spring-cloud-petclinic-mic-srv >> $GITHUB_ENV
+        echo "API_GATEWAY_JAR=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}/target/$API_GATEWAY_JAR_ARTIFACT" >> $GITHUB_ENV
+        echo "ADMIN_SERVER_JAR=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}/target/$ADMIN_SERVER_JAR_ARTIFACT" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_JAR=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}/target/$CONFIG_SERVER_JAR_ARTIFACT" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_JAR=${{ env.PRJ_PREFIX }}-${{ env.CUSTOMERS_SERVICE }}/target/$CUSTOMERS_SERVICE_JAR_ARTIFACT" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_JAR=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}/target/$DISCOVERY_SERVER_JAR_ARTIFACT" >> $GITHUB_ENV
+        echo "VETS_SERVICE_JAR=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}/target/$VETS_SERVICE_JAR_ARTIFACT" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_JAR=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}/target/$VISITS_SERVICE_JAR_ARTIFACT" >> $GITHUB_ENV
+
+        echo "API_GATEWAY_PACKAGE_PATH=$GH_WORKSPACE/${{ env.API_GATEWAY }}/${{ env.API_GATEWAY_JAR_ARTIFACT }}" >> $GITHUB_ENV
+        echo "ADMIN_SERVER_PACKAGE_PATH=$GH_WORKSPACE/${{ env.ADMIN_SERVER }}/${{ env.ADMIN_SERVER_JAR_ARTIFACT }}" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_PACKAGE_PATH=$GH_WORKSPACE/${{ env.CONFIG_SERVER }}/${{ env.CONFIG_SERVER_JAR_ARTIFACT }}" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_PACKAGE_PATH=$GH_WORKSPACE/${{ env.CUSTOMERS_SERVICE }}/${{ env.CUSTOMERS_SERVICE_JAR_ARTIFACT }}" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_PACKAGE_PATH=$GH_WORKSPACE/${{ env.DISCOVERY_SERVER }}/${{ env.DISCOVERY_SERVER_JAR_ARTIFACT }}" >> $GITHUB_ENV
+        echo "VETS_SERVICE_PACKAGE_PATH=$GH_WORKSPACE/${{ env.VETS_SERVICE }}/${{ env.VETS_SERVICE_JAR_ARTIFACT }}" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_PACKAGE_PATH=$GH_WORKSPACE/${{ env.VISITS_SERVICE }}/${{ env.VISITS_SERVICE_JAR_ARTIFACT }}" >> $GITHUB_ENV
+
+        echo "ADMIN_SERVER_API_URL=https://$GH_API/$ADMIN_SERVER_GROUP_ID.$ADMIN_SERVER_ARTIFACT_ID" >> $GITHUB_ENV
+        echo "API_GATEWAY_API_URL=https://$GH_API/$API_GATEWAY_GROUP_ID.$API_GATEWAY_ARTIFACT_ID" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_API_URL=https://$GH_API/$CONFIG_SERVER_GROUP_ID.$CONFIG_SERVER_ARTIFACT_ID" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_API_URL=https://$GH_API/$CUSTOMERS_SERVICE_GROUP_ID.$CUSTOMERS_SERVICE_ARTIFACT_ID" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_API_URL=https://$GH_API/$DISCOVERY_SERVER_GROUP_ID.$DISCOVERY_SERVER_ARTIFACT_ID" >> $GITHUB_ENV
+        echo "VETS_SERVICE_API_URL=https://$GH_API/$VETS_SERVICE_GROUP_ID.$VETS_SERVICE_ARTIFACT_ID" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_API_URL=https://$GH_API/$VISITS_SERVICE_GROUP_ID.$VISITS_SERVICE_ARTIFACT_ID" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Delete ALL Jar artifacts
+      run: |
+        echo "checking package files ..."
+        curl \
+        -H "Authorization: Bearer ${{ env.GHA_PAT }}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://${GH_API}
+
+        echo "About to delete all jars files ..."
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.ADMIN_SERVER_API_URL }}
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.API_GATEWAY_API_URL }}
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.CONFIG_SERVER_API_URL }}
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.CUSTOMERS_SERVICE_API_URL }}
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.DISCOVERY_SERVER_API_URL }}
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.VETS_SERVICE_API_URL }}
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" ${{ env.VISITS_SERVICE_API_URL }}
+
+        curl -X DELETE -u username:${{ env.GHA_PAT }} -H "Accept: application/vnd.github.v3+json" https://${{ env.GH_API }}/org.springframework.samples.${{ env.PRJ_PREFIX }}-spring-petclinic-microservices/spring-petclinic-microservices
+        # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+        # https://learn.microsoft.com/en-us/azure/developer/github/github-variable-substitution
+        echo "All artifacts have been deleted, check at https://github.com/${{github.repository}}/packages/"
+      shell: bash
+      env:
+        GHA_PAT: ${{ secrets.PKG_PAT }}
+
