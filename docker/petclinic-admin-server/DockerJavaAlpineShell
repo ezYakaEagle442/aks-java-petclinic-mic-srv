@@ -1,0 +1,6 @@
+# docker build --build-arg --no-cache -t "java-alpine-shell" -f "./docker/petclinic-admin-server/DockerJavaAlpineShell" .
+# docker image ls
+# docker run -it java-alpine-shell
+FROM alpine:3.16.2
+RUN ls -al /usr/lib
+RUN sh

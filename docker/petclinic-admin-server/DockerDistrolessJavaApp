@@ -1,0 +1,54 @@
+# We do have a distroless JDK 11 image that is about 316 MB. But still, what you can do to trim even further:
+# Use jlink to create a custom Java runtime, and include the module java.se  plus a few others such as the jdk.crypto.ec for SSL connections	
+# Use the Mariner Distroless base image as your final runtime image, and copy the custom Java runtime to it.
+# https://www.baeldung.com/maven-multi-module-project-java-jpms
+# https://www.baeldung.com/maven-multi-module
+# jdeps C:\tmp\applicationinsights-agent-3.4.1.jar
+#   java.base
+#   java.instrument
+#   java.xml 
+#   java.naming
+#   java.management
+#   java.logging
+
+# jdeps spring-petclinic-admin-server/target/aca-spring-petclinic-customers-service-2.6.6.jar
+#   java.base
+#   java.logging   
+#   jdk.crypto.ec
+
+# All of the java.* modules are part of the ubber 'java.se' module.
+
+# docker build --build-arg --no-cache -t "java-distroless-app" -f "./docker/petclinic-admin-server/DockerDistrolessJavaApp" .
+# docker image ls
+# docker run -it java-distroless-app
+
+FROM mcr.microsoft.com/openjdk/jdk:11-mariner as runtime-build
+ENV JAVA_HOME=/usr/lib/jvm/msopenjdk-11
+RUN java -version
+RUN ls -al /usr/lib/jvm/msopenjdk-11
+
+# Create a custom Java runtime
+# https://learn.microsoft.com/en-us/java/openjdk/containers#create-a-custom-java-runtime
+# https://learn.microsoft.com/en-us/java/openjdk/java-jlink-runtimes
+RUN $JAVA_HOME/bin/jlink \
+         --add-modules java.se,jdk.crypto.ec \
+         --strip-debug \
+         --no-man-pages \
+         --no-header-files \
+         --compress=2 \
+         --output /javaruntime
+
+# https://learn.microsoft.com/en-us/java/openjdk/containers#distroless
+FROM mcr.microsoft.com/openjdk/jdk:11-distroless
+ENV JAVA_HOME=/usr/lib/jvm/msopenjdk-11
+ENV PATH=${PATH}:${JAVA_HOME}/bin
+
+# ENV APPLICATIONINSIGHTS_CONNECTION_STRING=""
+ENV APPI_VERSION="3.4.4"
+ENV APP_INSIGHTS_AGENT_JAR_FILE_PATH="/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar"
+ENV SPRING_PROFILES_ACTIVE="docker,mysql"
+
+# Default to UTF-8 file.encoding
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+COPY --from=runtime-build /javaruntime $JAVA_HOME
+CMD ["-version"]
