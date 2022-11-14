@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: Always
           livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
             initialDelaySeconds: 60
-            timeoutSeconds: 2
+            timeoutSeconds: 30
             httpGet:
               # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
               # management.endpoints.web.base-path=/actuator
@@ -29,7 +29,10 @@ spec:
               scheme: HTTP
           readinessProbe:
             initialDelaySeconds: 30
-            timeoutSeconds: 1
+            timeoutSeconds: 30
+            failureThreshold: 5
+            successThreshold: 1
+            periodSeconds: 60
             httpGet:
               path: "/manage/health/readiness"
               port: 8081           
