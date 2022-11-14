@@ -3,76 +3,83 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- tip to verify the dependencies: mvn dependency:tree -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.3</version>
+        <version>2.6.13</version> <!-- /!\ Bug in Netty with Spring Boot 2.6.6, see https://github.com/netty/netty/issues/12343 -->
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>2.6.3</version>
+    <version>2.6.13</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
     <modules>
-        <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-admin-server</module>
-        <module>spring-petclinic-customers-service</module>
+        <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-vets-service</module>
+        <module>spring-petclinic-customers-service</module>
         <module>spring-petclinic-visits-service</module>
         <module>spring-petclinic-api-gateway</module>
     </modules>
 
     <properties>
+
+        <!-- 
+        https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping#which-version-of-spring-cloud-azure-should-i-use 
+        https://spring.io/projects/spring-cloud#adding-spring-cloud-to-an-existing-spring-boot-application 
+        2021.0.3 should be used, NOT 2022.0.0-M3
+        -->
+        <spring-cloud.version>2021.0.4</spring-cloud.version>
+        <spring-cloud-azure.version>4.4.0</spring-cloud-azure.version>
+        <spring-boot.version>2.6.13</spring-boot.version> <!-- /!\ Bug in Netty with Spring Boot 2.6.6, see https://github.com/netty/netty/issues/12343 -->
+
         <java.version>11</java.version>
         <maven.compiler.release>11</maven.compiler.release>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+
         <assertj.version>3.17.1</assertj.version>
         <lombok.version>1.18.22</lombok.version>
-
-        <spring-boot.version>2.6.3</spring-boot.version>
-        <spring-cloud.version>2021.0.0</spring-cloud.version>
-        <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
-
-        <docker.image.prefix>springcommunity</docker.image.prefix>
-        <docker.image.exposed.port>9090</docker.image.exposed.port>
-        <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
-        <docker.image.dockerize.version>v0.6.1</docker.image.dockerize.version>
-        <docker.plugin.version>1.2.0</docker.plugin.version>
+        <chaos-monkey-spring-boot.version>2.6.1</chaos-monkey-spring-boot.version>
+        
     </properties>
 
+    <!-- https://www.baeldung.com/maven-dependencymanagement-vs-dependencies-tags -->
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
+
+            <!-- https://docs.microsoft.com/en-us/azure/developer/java/spring-framework/spring-cloud-azure?tabs=maven#bill-of-material-bom -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
                 <type>pom</type>
-                <scope>import</scope>
-            </dependency>        
+                <scope>import</scope>                
+			</dependency>
+
+            <!-- Azure Key Vault : https://microsoft.github.io/spring-cloud-azure/current/reference/html/appendix.html#migration-guide-for-4-0 -->
             <dependency>
-                <groupId>de.codecentric</groupId>
-                <artifactId>chaos-monkey-spring-boot</artifactId>
-                <version>${chaos-monkey-spring-boot.version}</version>
+                <groupId>com.azure.spring</groupId>
+                <artifactId>spring-cloud-azure-dependencies</artifactId>
+                <version>${spring-cloud-azure.version}</version>
+                <type>pom</type>
+                <scope>import</scope>                
             </dependency>
-            <!-- https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.enabling -->
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-actuator</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
-            <!--https://www.baeldung.com/spring-boot-actuator-enable-endpoints  
-            Additionally, starting with Spring Boot 2.0, we need to include the web starter if we want our endpoints exposed via HTTP:
-            This is configu red already in the child pom
-            
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
-                <version>${spring-boot.version}</version>
+                <groupId>de.codecentric</groupId>
+                <artifactId>chaos-monkey-spring-boot</artifactId>
+                <version>${chaos-monkey-spring-boot.version}</version>
             </dependency>
-            -->           
+
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
@@ -86,14 +93,74 @@
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-logging</artifactId>
-            </dependency>   
+
         </dependencies>
     </dependencyManagement>
 
+
+    <!-- 
+     Dockerize plugin adds dependencies and is deprecated.
+    FYI https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin is the next gen plugin.
+    -->
     <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>development</value>
+                </property>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>cloud</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>cloud</value>
+                </property>
+            </activation>
+            <dependencies>
+                <!-- Azure Key Vault 
+                https://search.maven.org/search?q=a:azure-keyvault-secrets-spring-boot-starter
+                
+                Azure Key Vault : https://microsoft.github.io/spring-cloud-azure/current/reference/html/index.html#dependency-setup-3
+                https://search.maven.org/search?q=a:spring-cloud-azure-starter-keyvault-secrets
+                -->
+
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-dependencies</artifactId>
+                    <version>${spring-cloud.version}</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+
+                <!-- https://stackoverflow.com/questions/20244696/could-not-resolve-placeholder-in-string-value -->
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-context</artifactId>
+                </dependency>
+                    
+                <dependency>
+                    <groupId>com.azure.spring</groupId>
+                    <artifactId>spring-cloud-azure-dependencies</artifactId>
+                    <version>${spring-cloud-azure.version}</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+
+                <!-- https://microsoft.github.io/spring-cloud-azure/4.4.1/reference/html/appendix.html#configuration-spring-cloud-azure-starter-keyvault-secrets -->
+                <dependency>
+                    <groupId>com.azure.spring</groupId>
+                    <artifactId>spring-cloud-azure-starter-keyvault-secrets</artifactId>
+                </dependency>	
+
+            </dependencies>
+        </profile>
+
+
         <profile>
             <id>springboot</id>
             <activation>
@@ -107,7 +174,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.10.0</version>
+                        <version>3.10.1</version>
                         <configuration>
                             <release>11</release>
                         </configuration>
@@ -163,46 +230,95 @@
             </build>
         </profile>
 
+        <!-- https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
         <profile>
-            <id>buildDocker</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>com.spotify</groupId>
-                            <artifactId>docker-maven-plugin</artifactId>
-                            <version>${docker.plugin.version}</version>
-                            <executions>
-                                <execution>
-                                    <phase>install</phase>
-                                    <goals>
-                                        <goal>build</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                            <configuration>
-                                <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
-                                <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
-                                <serverId>docker-hub</serverId>
-                                <registryUrl>https://index.docker.io/v1/</registryUrl>
-                                <resources>
-                                    <resource>
-                                        <targetPath>/</targetPath>
-                                        <directory>${project.build.directory}</directory>
-                                        <include>${project.build.finalName}.jar</include>
-                                    </resource>
-                                </resources>
-                                <buildArgs>
-                                    <ARTIFACT_NAME>${project.build.finalName}</ARTIFACT_NAME>
-                                    <EXPOSED_PORT>${docker.image.exposed.port}</EXPOSED_PORT>
-                                    <DOCKERIZE_VERSION>${docker.image.dockerize.version}</DOCKERIZE_VERSION>
-                                </buildArgs>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
+            <id>github-aks</id>
+            <repositories>
+                <repository>
+                    <id>central</id>
+                    <url>https://repo1.maven.org/maven2</url>
+                </repository>
+                <repository>
+                    <id>github-aks</id>
+                    <url>https://github.com/ezYakaEagle442/java-petclinic-mic-srv/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>                    
+                </repository>
+            </repositories>
         </profile>
+        -->      
     </profiles>
+
+    <!-- 
+    <activeProfiles>
+        <activeProfile>github</activeProfile>
+    </activeProfiles>
+    -->
+
+    <!--
+    <servers>
+        <server>
+            <id>github-aks</id>
+            <username>ezYakaEagle442</username>
+            <password>${env.GITHUB_TOKEN}</password>
+        </server>
+    </servers>
+    -->
+
+    <!--
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+        <repository>
+            <id>gh</id>
+            <name>gh-snapshot</name>
+            
+            <url>http://localhost:8081/repository/maven-snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>        
+    </repositories>
+    -->
+
+    <!--
+    https://www.baeldung.com/maven-snapshot-release-repository
+    <distributionManagement>
+        <repository>
+            <id>github-asa</id>
+            <name>GitHub OWNER Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/ezYakaEagle442/java-petclinic-mic-srv</url>
+            <layout>default</layout>
+        </repository>    
+        <snapshotRepository>
+            <id>gh</id>
+            <name>gh-snapshot</name>
+            <url>http://localhost:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+    </snapshots>    
+
+    <servers>
+        <server>
+        <id>github</id>
+        <username>USERNAME</username>
+        <password>TOKEN</password>
+        </server>
+    </servers>    
+    -->
 
 </project>

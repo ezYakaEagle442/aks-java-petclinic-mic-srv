@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.samples</groupId>
 		<artifactId>spring-petclinic-microservices</artifactId>
-        <version>2.6.3</version>
+        <version>2.6.13</version>
 	</parent>
 
     <properties>
@@ -35,6 +35,9 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!--https://www.baeldung.com/spring-boot-actuator-enable-endpoints  
+        Additionally, starting with Spring Boot 2.0, we need to include the web starter if we want our endpoints exposed via HTTP:
+        This is configured already in the child pom -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -49,6 +52,18 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
+           
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.codecentric</groupId>
+            <artifactId>chaos-monkey-spring-boot</artifactId>
+            <version>${chaos-monkey-spring-boot.version}</version>
+        </dependency>
+
         <!-- Third parties -->
         <dependency>
             <groupId>mysql</groupId>
@@ -70,15 +85,10 @@
 			<artifactId>lombok</artifactId>
             <scope>provided</scope>
 		</dependency>
-        <!--
+        
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-        -->
-        <dependency>
-            <groupId>de.codecentric</groupId>
-            <artifactId>chaos-monkey-spring-boot</artifactId>
         </dependency>
 
         <!-- Testing -->
@@ -99,6 +109,9 @@
         </dependency>
 	</dependencies>
 
+    <!-- 
+    as This Dockerize plugin adds dependencies and is deprecated.
+    FYI https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin is the next gen plugin.
     <profiles>
         <profile>
             <id>buildDocker</id>
@@ -113,4 +126,5 @@
             </build>
         </profile>
     </profiles>
+    -->
 </project>
