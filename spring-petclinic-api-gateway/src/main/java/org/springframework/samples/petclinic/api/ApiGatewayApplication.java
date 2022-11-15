@@ -21,6 +21,7 @@ package org.springframework.samples.petclinic.api;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -42,7 +43,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class ApiGatewayApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ApiGatewayApplication.class, args);
+        // Set StatrtUp Probe
+        // https://docs.spring.io/spring-boot/docs/2.7.x/reference/htmlsingle/#features.spring-application.startup-tracking
+        SpringApplication application = new SpringApplication(ApiGatewayApplication.class);
+        application.setApplicationStartup(new BufferingApplicationStartup(2048));
+        application.run(args);
     }
 
     @Bean
