@@ -1,18 +1,41 @@
 spring:
   application:
-    name: vets-service
+    name: customers-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
-  cache:
-    cache-names: vets
-  profiles:
-    active: production
+
 ---
 spring:
   config:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+---
+# https://microsoft.github.io/spring-cloud-azure/current/reference/html/index.html#configuration-17
+# https://github.com/Azure/azure-sdk-for-java/issues/28128
+# See Azure KeyVault config doc  https://microsoft.github.io/spring-cloud-azure/current/reference/html/index.html#basic-usage-3
+# https://github.com/Azure/azure-sdk-for-java/issues/28310
+spring:
+  cloud:
+    azure:    
+      #profile: # spring.cloud.azure.profile
+        # subscription-id:
+        # tenant-id: ${SPRING_CLOUD_AZURE_TENANT_ID}
+      #credential:
+        #managed-identity-enabled: true        
+      keyvault:
+        secret:
+          enabled: true
+          property-source-enabled: true
+          # endpoint: ${SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT}
+          property-sources:
+            - name: kv-cfg-customers # KV Config for each App Customers-Service
+              endpoint: ${SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT}
+              credential:
+                managed-identity-enabled: true
+                client-id: ${CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID}
+  profiles:
+    active: mysql  
 ---
 management:
   health:
@@ -41,7 +64,7 @@ management:
         liveness:
           include: "livenessState"
     startup: # https://docs.spring.io/spring-boot/docs/2.6.6/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
-      enabled: true           
+      enabled: true                           
     probes:
         enabled: true      
     info:
@@ -52,3 +75,4 @@ management:
       enabled: true            
   server:
     port: 8081
+---
