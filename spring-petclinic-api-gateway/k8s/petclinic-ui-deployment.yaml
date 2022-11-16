@@ -17,6 +17,15 @@ spec:
         - name: ui-service
           image: ${CONTAINER_REGISTRY}.azurecr.io/ui-service:${IMAGE_TAG}
           imagePullPolicy: Always
+          startupProbe:
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 6
+            successThreshold: 1
+            periodSeconds: 60
+            httpGet:
+              path: "/manage/health"
+              port: 8081           
           livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
             initialDelaySeconds: 60
             timeoutSeconds: 30

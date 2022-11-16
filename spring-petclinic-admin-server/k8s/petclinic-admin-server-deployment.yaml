@@ -17,16 +17,28 @@ spec:
         - name: admin-server
           image: ${CONTAINER_REGISTRY}.azurecr.io/admin-server:${IMAGE_TAG}
           imagePullPolicy: Always
+          startupProbe:
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 6
+            successThreshold: 1
+            periodSeconds: 60
+            httpGet:
+              path: "/manage/health"
+              port: 8081 
           livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
-            initialDelaySeconds: 60
-            timeoutSeconds: 10
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 5
+            successThreshold: 1
+            periodSeconds: 60
             httpGet:
               # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
               # management.endpoints.web.base-path=/actuator
               # https://github.com/spring-projects/spring-petclinic/blob/master/src/main/resources/application.properties
               path: /manage/health/liveness # /actuator
               port: 8081
-              scheme: HTTP
+              scheme: HTTP              
           readinessProbe:
             initialDelaySeconds: 30
             timeoutSeconds: 30
