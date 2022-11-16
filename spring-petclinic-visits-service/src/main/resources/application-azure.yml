@@ -1,10 +1,10 @@
 spring:
   application:
-    name: vets-service
+    name: visits-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
   cache:
-    cache-names: vets
+    cache-names: visits
   profiles:
     active: production
 ---
