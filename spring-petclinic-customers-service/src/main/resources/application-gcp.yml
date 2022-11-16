@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: customers-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: configserver:http://config-server:8888
+---
+
+# https://spring.io/projects/spring-cloud-gcp#learn
+# https://googlecloudplatform.github.io/spring-cloud-gcp/3.4.0/reference/html/index.html#secret-manager
+# https://github.com/GoogleCloudPlatform/spring-cloud-gcp/blob/main/spring-cloud-gcp-samples/spring-cloud-gcp-secretmanager-sample/src/main/resources/bootstrap.properties
+# 
+# Example of the project-secret long-form syntax.
+# spring.datasource.password=${sm://projects/my-gcp-project/secrets/my-secret}
+
+
+# Configuration-level settings for Secret Manager must be specified in a bootstrap.properties file because
+# Secret Manager secrets are resolved before application.properties is resolved by Spring.
+
+# (this is true by default when the starter is added.)
+spring.cloud.gcp.secretmanager.enabled=true
+
+spring.cloud.gcp.secretmanager.project-id=<your-project-id>
+
+# https://cloud.google.com/docs/authentication#service-accounts
+
+spring.cloud.gcp.secretmanager.credentials.location=<secretmanager-specific-credentials>
+spring.cloud.gcp.secretmanager.legacy=false
+
+
+# You can also specify a secret from another project.
+# example.property=${sm://MY_PROJECT/MY_SECRET_ID/MY_VERSION}
+
+# Using SpEL, you can reference an environment variable and fallback to a secret if it is missing.
+# example.secret=${MY_ENV_VARIABLE:${sm://application-secret/latest}}
+
+management.endpoints.web.exposure.include=refresh
+# enable external resource from GCP Secret Manager.
+spring.config.import=sm://
+application.secret=${sm://application-secret}
+# enable default secret value when accessing non-exited secret.
+spring.cloud.gcp.secretmanager.allow-default-secret=true
+
+---
+
+management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: "/manage"
+      exposure: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.exposing
+        include: "health,info,startup,env,mappings,metrics" # "*"
+        exclude: "beans"    
+  endpoint:
+    health:
+      enabled: true
+      status:
+        http-mapping:
+          down: 503
+          fatal: 503
+          out-of-service: 503
+      group:
+        readiness:
+          include: "readinessState"
+        liveness:
+          include: "livenessState"
+    startup: # https://docs.spring.io/spring-boot/docs/2.6.6/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
+      enabled: true                           
+    probes:
+        enabled: true      
+    info:
+      enabled: true
+    env:
+      enabled: true
+    mappings:
+      enabled: true            
+  server:
+    port: 8081
+---
