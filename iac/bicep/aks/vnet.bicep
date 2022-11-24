@@ -8,7 +8,7 @@ var aksSubnet = {
   cidr: aksSubnetCidr
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-05-01' = {
   name: vnetName
   location: resourceGroup().location
   properties: {
