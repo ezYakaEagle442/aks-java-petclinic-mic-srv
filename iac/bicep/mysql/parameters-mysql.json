@@ -1,18 +1,30 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "appName": {
-        "value": "petcliaks"
-      },
-      "location": {
-        "value": "northeurope"
-      },       
-      "administratorLogin": {
-        "value": "mys_adm"
-      },
-      "administratorLoginPassword": {
-        "value": "istrator"
-      }      
-    }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "petcliaks"
+    },
+    "location": {
+      "value": "westeurope"
+    },       
+    "administratorLogin": {
+      "value": "mys_adm"
+    },
+    "administratorLoginPassword": {
+      "value": "changeIT"
+    },
+    "setFwRuleClient": {
+      "value": "false"
+    },  
+    "clientIPAddress": {
+      "value": "SET HERE YOUR WORKSTATION IP ADDRESS FOR DEV/TEST AND set the above param setFwRuleClient=true"
+    },  
+    "startIpAddress": {
+      "value": "10.42.2.0"
+    },
+    "endIpAddress": {
+      "value": "10.42.3.255"
+    }    
   }
+}
