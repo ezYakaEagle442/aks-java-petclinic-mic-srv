@@ -3,8 +3,8 @@ kind: Service
 metadata:
   name: admin-server
   #namespace: staging
-  #annotations:
-  #      service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL
+  annotations:
+        service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL
   #      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   ports:
@@ -14,15 +14,15 @@ spec:
     name: http-9090  
   - protocol: TCP
     port: 8080
-    targetPort: 8080  
+    targetPort: 9090  
     name: http-8080
   - protocol: TCP
     port: 80
-    targetPort: 8080
+    targetPort: 9090
     name: http
   - protocol: TCP
     port: 443
-    targetPort: 8080
+    targetPort: 9090
     name: https    
   - protocol: TCP
     port: 8081

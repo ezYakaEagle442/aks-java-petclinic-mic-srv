@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: ing-petclinic-admin-server
   annotations:
-    #service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL # petclinic-admin-aks-xxx.cloudapp.azure.com
+    service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL # petclinic-admin-aks-xxx.cloudapp.azure.com
     #service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 
 spec:
