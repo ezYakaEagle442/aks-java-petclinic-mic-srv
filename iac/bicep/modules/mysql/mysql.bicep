@@ -13,10 +13,12 @@ param administratorLogin string = 'mys_adm'
 @description('The MySQL DB Admin Password.')
 param administratorLoginPassword string
 
-var serverName = '${appName}-server'
+@secure()
+@description('The MySQL DB Server name.')
+param serverName string
 
-@description('AKSOutbound Public IP')
-param aksOutboundPubIP string
+@description('AKS Outbound Public IP')
+param k8sOutboundPubIP string
 
 @description('Should a MySQL Firewall be set to allow client workstation for local Dev/Test only')
 param setFwRuleClient bool = false
@@ -89,8 +91,8 @@ resource fwRuleClientIPAddress 'Microsoft.DBforMySQL/flexibleServers/firewallRul
   name: 'Allow-AKS-OutboundPubIP'
   parent: mysqlserver
   properties: {
-    startIpAddress: aksOutboundPubIP
-    endIpAddress: aksOutboundPubIP
+    startIpAddress: k8sOutboundPubIP
+    endIpAddress: k8sOutboundPubIP
   }
 }
 
