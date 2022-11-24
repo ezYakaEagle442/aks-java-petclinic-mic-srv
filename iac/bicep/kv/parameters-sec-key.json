@@ -1,26 +1,57 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "appName": {
-        "value": "bicepiac"
-      }, 
-      "aksSshKeyName": {
-        "value": "aks-ssh-keys"
-      },
-      "secretsObject": {
-        "value": {
-          "secrets": [
-            {
-              "secretName": "sshPublicKey",
-              "secretValue": "PUT HERE YOUR OWN SSH Public Key"
-            },
-            {
-              "secretName": "sshPrivateKey",
-              "secretValue": "PUT HERE YOUR OWN SSH Private Key"
-            }
-          ]
-        }
-      }        
-    }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "petcliaks"
+    }, 
+    "kvName": {
+      "value": "kv-petcliaks33-UNIQUEID42"
+    },
+    "secretExpiryDate": {
+      "value": "1672444800"
+    },
+    "secretsObject": {
+      "value": {
+        "secrets": [
+          {
+            "secretName": "MYSQL-SERVER-NAME",
+            "secretValue": "petcliaks"
+          },
+          {
+            "secretName": "MYSQL-SERVER-FULL-NAME",
+            "secretValue": "petcliaks.mysql.database.azure.com"
+          },            
+          {
+            "secretName": "SPRING-DATASOURCE-URL",
+            "secretValue": ""
+          },
+          {
+            "secretName": "SPRING-DATASOURCE-USERNAME",
+            "secretValue": "mys_adm"
+          },
+          {
+            "secretName": "SPRING-DATASOURCE-PASSWORD",
+            "secretValue": ""
+          }, 
+          {
+            "secretName": "SPRING-CLOUD-AZURE-KEY-VAULT-ENDPOINT",
+            "secretValue": ""
+          },
+          {
+            "secretName": "SPRING-CLOUD-AZURE-TENANT-ID",
+            "secretValue": ""
+          },
+          {
+            "secretName": "VM-ADMIN-USER-NAME",
+            "secretValue": ""
+          },
+          {
+            "secretName": "VM-ADMIN-PASSWORD",
+            "secretValue": ""
+          }
+        ]
+      }
+    }        
   }
+}

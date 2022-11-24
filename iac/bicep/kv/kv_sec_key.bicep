@@ -36,10 +36,6 @@ param aksSshKeyExpirationDate int = 1656547200
 @description('the AKS cluster SSH key name')
 param aksSshKeyName string = 'kv-ssh-keys-aks${appName}'
 
-@description('Specifies all KV secrets {"secretName":"","secretValue":""} wrapped in a secure object.')
-@secure()
-param secretsObject object
-
 resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: kvName
 }
@@ -75,12 +71,67 @@ resource kvKeys 'Microsoft.KeyVault/vaults/keys@2021-06-01-preview' = {
       ]
     }
     // https://github.com/Azure/azure-rest-api-specs/issues/17657
-    /*
+    // https://learn.microsoft.com/en-us/azure/key-vault/keys/policy-grammar
+    // https://raw.githubusercontent.com/Azure/confidential-computing-cvm/main/cvm_deployment/key/skr-policy.json
     release_policy: {
-      contentType: 'x'
-      data: ''
+      contentType: '???'
+      data: {
+        'anyOf': [
+          {
+            'allOf': [
+              {
+                'claim': 'x-ms-attestation-type'
+                'equals': 'sevsnpvm'
+              }
+              {
+                'claim': 'x-ms-compliance-status'
+                'equals': 'azure-compliant-cvm'
+              }
+            ]
+            'authority': 'https://sharedeus.eus.attest.azure.net/'
+          }
+          {
+            'allOf': [
+              {
+                'claim': 'x-ms-attestation-type'
+                'equals': 'sevsnpvm'
+              }
+              {
+                'claim': 'x-ms-compliance-status'
+                'equals': 'azure-compliant-cvm'
+              }
+            ]
+            'authority': 'https://sharedwus.wus.attest.azure.net/'
+          }
+          {
+            'allOf': [
+              {
+                'claim': 'x-ms-attestation-type'
+                'equals': 'sevsnpvm'
+              }
+              {
+                'claim': 'x-ms-compliance-status'
+                'equals': 'azure-compliant-cvm'
+              }
+            ]
+            'authority': 'https://sharedneu.neu.attest.azure.net/'
+          }
+          {
+            'allOf': [
+              {
+                'claim': 'x-ms-attestation-type'
+                'equals': 'sevsnpvm'
+              }
+              {
+                'claim': 'x-ms-compliance-status'
+                'equals': 'azure-compliant-cvm'
+              }
+            ]
+            'authority': 'https://sharedweu.weu.attest.azure.net/'
+          }
+        ]
+      }
     }
-    */
   }
 }
 
