@@ -17,7 +17,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>spring-petclinic-admin-server</module>
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-vets-service</module>
         <module>spring-petclinic-customers-service</module>
@@ -34,6 +33,12 @@
         -->
         <spring-cloud.version>2021.0.4</spring-cloud.version>
         <spring-cloud-azure.version>4.4.0</spring-cloud-azure.version>
+
+        <!-- 
+        https://googlecloudplatform.github.io/spring-cloud-gcp/reference/html/index.html#compatibility-with-spring-project-versions
+        https://github.com/GoogleCloudPlatform/spring-cloud-gcp
+        -->
+        <spring-cloud-gcp.version>3.4.0</spring-cloud-gcp.version> 
         <spring-boot.version>2.6.13</spring-boot.version> <!-- /!\ Bug in Netty with Spring Boot 2.6.6, see https://github.com/netty/netty/issues/12343 -->
 
         <java.version>11</java.version>
@@ -67,6 +72,18 @@
                 <version>${spring-cloud-azure.version}</version>
                 <type>pom</type>
                 <scope>import</scope>                
+            </dependency>
+
+            <!-- GCP Secret Manager 
+            https://googlecloudplatform.github.io/spring-cloud-gcp/reference/html/index.html#secret-manager 
+            https://search.maven.org/artifact/com.google.cloud/spring-cloud-gcp-dependencies
+            -->    
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>spring-cloud-gcp-dependencies</artifactId>
+                <version>${spring-cloud-gcp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>
@@ -114,11 +131,11 @@
         </profile>
 
         <profile>
-            <id>cloud</id>
+            <id>azure</id>
             <activation>
                 <property>
                     <name>env</name>
-                    <value>cloud</value>
+                    <value>azure</value>
                 </property>
             </activation>
             <dependencies>
@@ -160,6 +177,54 @@
             </dependencies>
         </profile>
 
+        <profile>
+            <id>gcp</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>gcp</value>
+                </property>
+            </activation>
+            <dependencies>
+                <!-- GCP Secret Manager
+                https://search.maven.org/search?q=a:spring-cloud-gcp-starter-secretmanager
+                
+                https://spring.io/projects/spring-cloud-gcp
+                https://search.maven.org/search?q=a:spring-cloud-gcp-starter-secretmanager
+                -->
+
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-dependencies</artifactId>
+                    <version>${spring-cloud.version}</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-context</artifactId>
+                </dependency>
+                
+                <!-- https://googlecloudplatform.github.io/spring-cloud-gcp/reference/html/index.html#secret-manager 
+                https://search.maven.org/artifact/com.google.cloud/spring-cloud-gcp-dependencies
+                -->    
+                <dependency>
+                    <groupId>com.google.cloud</groupId>
+                    <artifactId>spring-cloud-gcp-dependencies</artifactId>
+                    <version>${spring-cloud-gcp.version}</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+
+                <!-- https://googlecloudplatform.github.io/spring-cloud-gcp/reference/html/appendix.html -->
+                <dependency>
+                    <groupId>com.google.cloud</groupId>
+                    <artifactId>spring-cloud-gcp-starter-secretmanager</artifactId>
+                </dependency>	
+
+            </dependencies>
+        </profile>
 
         <profile>
             <id>springboot</id>
