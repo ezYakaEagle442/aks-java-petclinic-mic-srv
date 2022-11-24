@@ -14,11 +14,6 @@ param appName string = 'iacdemo${uniqueString(resourceGroup().id)}'
 @description('The name of the KV, must be UNIQUE.  A vault name must be between 3-24 alphanumeric characters.')
 param kvName string = 'kv-${appName}'
 
-param setKVAccessPolicies bool = false
-
-@description('AKS Identity')
-param AKSIdentity string
-
 @description('The KV location')
 param location string = resourceGroup().location
 
@@ -39,10 +34,13 @@ param skuName string = 'standard'
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
 
-@description('The KV vNetRules')
-param vNetRules array = []
+@description('The KV ipRules')
+param ipRules array = [] 
 
-resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
+@description('The KV vNetRules')
+param vNetRules array = [] 
+
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: kvName
   location: location
   properties: {
@@ -57,74 +55,24 @@ resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
     enabledForTemplateDeployment: true
     enablePurgeProtection: true
     enableSoftDelete: true
-    enableRbacAuthorization: false // /!\ Preview feature: When true, the key vault will use RBAC for authorization of data actions, and the access policies specified in vault properties will be ignored
+    enableRbacAuthorization: true // /!\ When true, the key vault will use RBAC for authorization of data actions, and the access policies specified in vault properties will be ignored
     // When enabledForDeployment is true, networkAcls.bypass must include \"AzureServices\"
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Deny'
-      /*
-      ipRules: [
-        {
-          value: 'string'
-        }
-      ]
-      */
-      virtualNetworkRules: vNetRules
+      ipRules:  [for ipRule in ipRules: {
+          value: ipRule
+      }]
+      virtualNetworkRules:  [for vNetRule in vNetRules: {
+        id: vNetRule.id
+      }]      
     }
     softDeleteRetentionInDays: 7 // 30 must be greater or equal than '7' but less or equal than '90'.
-    accessPolicies: []
+    //accessPolicies: []
   }
 }
 
 output keyVault object = kv
-
-
-// TODO : from Pipeline get aksIdentity objectId
-// https://codingwithtaz.blog/2021/09/08/azure-pipelines-deploy-aks-with-bicep/
-// create accessPolicies https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults/accesspolicies?tabs=bicep
-// /!\ Preview feature: When enableRbacAuthorization is true in KV, the key vault will use RBAC for authorization of data actions, and the access policies specified in vault properties will be ignored
-resource kvAccessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2021-06-01-preview' = if (setKVAccessPolicies) {
-  name: 'add'
-  parent: kv // https://github.com/Azure/bicep/issues/5660 https://gitmetadata.com/repo/Azure/bicep/issues/4756
-  properties: {
-    accessPolicies: [
-      {
-        objectId: AKSIdentity
-        tenantId: tenantId
-        permissions: {
-          certificates: [
-            'list'
-            'get'
-            'getissuers'
-            'recover'
-            'restore'
-          ]
-          keys: [
-            'backup'
-            'create'
-            'decrypt'
-            'delete'
-            'encrypt'
-            'get'
-            'getrotationpolicy'
-            'import'
-            'list'
-            'purge'
-            'recover'
-            'restore'
-            'rotate'
-            'setrotationpolicy'
-            'sign'
-            'update'
-            'verify'
-          ]
-          secrets: [
-            'all'
-          ]
-          storage: [
-          ]
-        }
-      }
-    ]
-  }
-}
+output keyVaultId string = kv.id
+output keyVaultPublicNetworkAccess string = kv.properties.publicNetworkAccess
+output keyVaultURI string = kv.properties.vaultUri

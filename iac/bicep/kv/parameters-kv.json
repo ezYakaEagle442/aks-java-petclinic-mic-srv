@@ -1,12 +1,26 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "appName": {
-        "value": "bicepiac"
-      },
-      "setKVAccessPolicies": {
-        "value": false
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "petcliaks"
+    },
+    "kvName": {
+      "value": "kv-petcliaks33-UNIQUEID42"
+    },
+    "secretsObject": {
+      "value": {
+        "secrets": [
+          {
+            "secretName": "sshPublicKey",
+            "secretValue": "PUT HERE YOUR OWN SSH Public Key"
+          },
+          {
+            "secretName": "sshPrivateKey",
+            "secretValue": "PUT HERE YOUR OWN SSH Private Key"
+          }
+        ]
       }
     }
   }
+}
