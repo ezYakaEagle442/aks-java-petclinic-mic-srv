@@ -14,20 +14,15 @@ param location string = resourceGroup().location
 param networkRuleSetCidr string
 
 
-resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
+resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   name: acrName
   location: location
   sku: {
     name: 'Basic'
   }
-  /*
   identity: {
-    principalId: 'string'
-    tenantId: 'string'
-    type: 'string'
-    userAssignedIdentities: {}
+    type: 'SystemAssigned'
   }
-  */
   properties: {
     adminUserEnabled: false
     dataEndpointEnabled: false // data endpoint rule is not supported for the SKU Basic
@@ -48,4 +43,10 @@ resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
 }
 
 output acrId string = acr.id
-// output acrIdentity string = acr.identity.principalId
+output acrIdentity string = acr.identity.principalId
+output acrType string = acr.type
+output acrRegistryUrl string = acr.properties.loginServer
+
+// outputs-should-not-contain-secrets
+// output acrRegistryUsr string = acr.listCredentials().username
+//output acrRegistryPwd string = acr.listCredentials().passwords[0].value
