@@ -18,6 +18,9 @@ param tags object = {
 // id-<app or service name>-<environment>-<region name>-<###>
 // ex: id-appcn-keda-prod-eastus2-001
 
+@description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
+param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
+
 @description('The admin-server Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
 param adminServerAppIdentityName string = 'id-aks-petclinic-admin-server-dev-westeurope-101'
 
@@ -43,6 +46,14 @@ param visitsServiceAppIdentityName string = 'id-aks-petclinic-visits-service-dev
 // New resources
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities?pivots=deployment-language-bicep
+resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: aksIdentityName
+  location: location
+  tags: tags
+}
+output aksIdentityIdentityId string = aksIdentity.id
+output aksIdentityPrincipalId string = aksIdentity.properties.principalId
+
 resource adminServerIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: adminServerAppIdentityName
   location: location
@@ -83,13 +94,13 @@ resource customersServicedentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
 output customersServiceIdentityId string = customersServicedentity.id
 output customersServicePrincipalId string = customersServicedentity.properties.principalId
 
-resource vetsServiceAppIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+resource vetsServiceIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: vetsServiceAppIdentityName
   location: location
   tags: tags
 }
-output vetsServiceAppIdentityId string = vetsServiceAppIdentity.id
-output vetsServicePrincipalId string = vetsServiceAppIdentity.properties.principalId
+output vetsServiceIdentityId string = vetsServiceIdentity.id
+output vetsServicePrincipalId string = vetsServiceIdentity.properties.principalId
 
 resource visitsServiceIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: visitsServiceAppIdentityName
