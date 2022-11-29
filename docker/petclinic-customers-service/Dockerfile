@@ -24,6 +24,7 @@ FROM mcr.microsoft.com/openjdk/jdk:11-mariner
 WORKDIR /tmp/app
 ENV APPI_VERSION="3.4.4"
 ENV APP_INSIGHTS_AGENT_JAR_FILE_PATH="/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar"
+ENV APPLICATIONINSIGHTS_CONFIGURATION_FILE="BOOT-INF/classes/applicationinsights.json"
 ENV SPRING_PROFILES_ACTIVE = "docker,mysql"
 # https://github.com/Azure/azure-cli/issues/20413
 # https://github.com/Azure/acr-build/issues/10
