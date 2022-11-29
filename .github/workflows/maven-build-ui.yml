@@ -111,13 +111,13 @@ jobs:
         echo "****************************************************************************************"
         echo "*                                                                                      *"
         echo "*                                                                                      *"
-        echo "* /!\ IMPORTANT WARNING: projects must be built with -Denv=cloud                       *"
+        echo "* /!\ IMPORTANT WARNING: projects must be built with -Denv=azure                       *"
         echo "* EXCEPT for api-gateway                                                               *"
         echo "*                                                                                      *"
         echo "*                                                                                      *"
         echo "****************************************************************************************"
 
-        mvn -B clean package --file pom.xml -DskipTests
+        mvn -B clean package --file pom.xml -DskipTests --projects spring-petclinic-api-gateway -rf :asa-spring-petclinic-api-gateway
         echo "github.workspace = ${{ github.workspace }}"
         
         ls -al
@@ -193,6 +193,30 @@ jobs:
     #    tags: ${{ env.REPOSITORY }}/${{ env.API_GATEWAY }}:$tag_id
     #    addLatest: true
 
+
+    - name: Upload Artifacts to Azure BLOB Storage
+      id: blob_upload
+      run: | 
+        # https://learn.microsoft.com/en-us/azure/storage/blobs/blob-cli
+
+        # Runner will be blocked by network rules of storage account. Must Allow its IP
+        # TODO in Bicep : RBAC ==> GH Runner SPN must have "Storage Blob Data Contributor" Role on the storage Account
+
+         az config set extension.use_dynamic_install=yes_without_prompt
+        echo "About to upload Artifcats to Azure BLOB Storage. /!\ --overwrite' is in preview and under development"
+        echo "AZ_BLOB_MAX_CONNECTIONS=${{ env.AZ_BLOB_MAX_CONNECTIONS }}"
+        echo "AZ_BLOB_TIMEOUT=${{ env.AZ_BLOB_TIMEOUT }} "
+        echo "AZ_BLOB_MAX_CONNECTIONS=${{ env.AZ_BLOB_MAX_CONNECTIONS }}"
+
+        # https://learn.microsoft.com/en-us/rest/api/storageservices/setting-timeouts-for-blob-service-operations
+        az storage blob upload --name ${{ env.API_GATEWAY }} --file ${{ github.workspace }}/${{ env.API_GATEWAY_JAR }} --container-name ${{ env.AZ_BLOB_CONTAINER_NAME }} --account-name ${{ env.AZ_STORAGE_NAME }} --auth-mode login --overwrite --max-connections ${{ env.AZ_BLOB_MAX_CONNECTIONS }} --timeout ${{ env.AZ_BLOB_TIMEOUT }}
+
+    - name: Disable local IP access to the Azure BLOB Storage 
+      if: ${{ always() }}
+      run: |
+        echo "About to REMOVE network-rule ALLOWING $LOCAL_IP to Azure BLOB Storage ${{ env.AZ_STORAGE_NAME }}"
+        az storage account network-rule remove --ip-address $LOCAL_IP --account-name  ${{ env.AZ_STORAGE_NAME }} -g ${{ env.RG_APP }} --only-show-errors
+      shell: bash
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners

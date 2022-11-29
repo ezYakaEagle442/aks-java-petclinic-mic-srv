@@ -8,17 +8,29 @@
 name: Java CI with Maven for SVC
 
 env:
+
+  # ==== Versions ====
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.42.0
+  JAVA_VERSION: 11
+
   AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
   REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
   REPOSITORY: petclinic                  # set this to your ACR repository
   PROJECT_NAME: petclinic                # set this to your project's name
 
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
-  
   RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
 
+  # ==== Azure storage to store Artifacts , values must be consistent with the ones in storage.bicep ====:
+  AZ_STORAGE_NAME : stakspetcliaks # customize this
+  AZ_BLOB_CONTAINER_NAME: petcliaks-blob # customize this
+  # AZ_BLOB_SVC_NAME: default # MUST NOT BE MODIFIED
+  # https://stakspetcliaks.blob.core.windows.net/petcliaks-blob/spring-petclinic-vets-service-2.6.13.jar
+
   # ==== APPS ====
+  CLOUD_PROVIDER_ENV: azure
   PRJ_PREFIX: spring-petclinic
 
   API_GATEWAY: api-gateway
@@ -37,11 +49,6 @@ env:
   DOCKERFILE_PATH_CUSTOMERS_SERVICE: ./docker/petclinic-customers-service/Dockerfile
   DOCKERFILE_PATH_VETS_SERVICE: ./docker/petclinic-vets-service/Dockerfile
   DOCKERFILE_PATH_VISITS_SERVICE: ./docker/petclinic-visits-service/Dockerfile
-
-  # ==== Versions ====
-  DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.42.0
-  JAVA_VERSION: 11
 
   # https://github.com/Azure/actions-workflow-samples/blob/master/assets/create-secrets-for-GitHub-workflows.md#consume-secrets-in-your-workflow
   # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-secrets
@@ -135,23 +142,20 @@ jobs:
         echo "****************************************************************************************"
         echo "*                                                                                      *"
         echo "*                                                                                      *"
-        echo "* /!\ IMPORTANT WARNING: projects must be built with -Denv=cloud                       *"
+        echo "* /!\ IMPORTANT WARNING: projects must be built with -Denv=azure                       *"
         echo "* EXCEPT for api-gateway                                                               *"
         echo "*                                                                                      *"
         echo "*                                                                                      *"
         echo "****************************************************************************************"
 
-        mvn -B clean package --file pom.xml -DskipTests -Denv=cloud
+        mvn -B clean package --file pom.xml -DskipTests -Denv=${{ env.CLOUD_PROVIDER_ENV }} --projects spring-petclinic-config-server,spring-petclinic-customers-service,spring-petclinic-vets-service,spring-petclinic-visits-service 
         echo "github.workspace = ${{ github.workspace }}"
         
         ls -al
-        ls -al spring-petclinic-${{ env.ADMIN_SERVER }}/target/*.jar
-        ls -al spring-petclinic-${{ env.API_GATEWAY }}/target/*.jar
         ls -al spring-petclinic-${{ env.CUSTOMERS_SERVICE }}/target/*.jar
         ls -al spring-petclinic-${{ env.VETS_SERVICE }}/target/*.jar
         ls -al spring-petclinic-${{ env.VISITS_SERVICE }}/target/*.jar
         ls -al spring-petclinic-${{ env.CONFIG_SERVER }}/target/*.jar
-        # ls -al spring-petclinic-${{ env.DISCOVERY_SERVER }}/target/*.jar
 
     # https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
@@ -181,13 +185,10 @@ jobs:
         ls -al
 
         echo "Checking all artifacts Jar files :"
-        ls -al spring-petclinic-${{ env.ADMIN_SERVER }}/target/*.jar
-        ls -al spring-petclinic-${{ env.API_GATEWAY }}/target/*.jar
         ls -al spring-petclinic-${{ env.CUSTOMERS_SERVICE }}/target/*.jar
         ls -al spring-petclinic-${{ env.VETS_SERVICE }}/target/*.jar
         ls -al spring-petclinic-${{ env.VISITS_SERVICE }}/target/*.jar
         ls -al spring-petclinic-${{ env.CONFIG_SERVER }}/target/*.jar
-        # ls -al spring-petclinic-${{ env.DISCOVERY_SERVER }}/target/*.jar
 
     # https://github.com/marketplace/actions/docker-setup-buildx
     - name: Set up Docker Buildx
@@ -220,12 +221,6 @@ jobs:
           tag_id=$SHORT_SHA
           echo "tag_id="$tag_id
 
-          # The `set-output` command is deprecated and will be disabled soon. 
-          # see: https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
-          # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
-          # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
-          
-          # echo "::set-output name=tag_id::$tag_id"
           echo "tag_id=$tag_id" >> $GITHUB_ENV
           echo "tag_id=$tag_id" >> $GITHUB_OUTPUT
 
@@ -235,16 +230,8 @@ jobs:
           refresh_token=$(curl https://${{ env.REGISTRY_URL }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.REGISTRY_URL }}&access_token=$access_token" | jq -r .refresh_token)
           docker login ${{ env.REGISTRY_URL }} -u 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$refresh_token"
 
-          #acr_usr=$(az deployment group show -g ${{ env.RG_APP }} -n ${{ env.AZURE_CONTAINER_REGISTRY }} --query properties.outputs.acrRegistryUsr.value | tr -d '"')
-          #acr_pwd=$(az deployment group show -g ${{ env.RG_APP }} -n ${{ env.AZURE_CONTAINER_REGISTRY }} --query properties.outputs.acrRegistryPwd.value | tr -d '"')
-          # az acr login --name ${{ env.REGISTRY_URL }} -u $acr_usr -p $acr_pwd
-          # az acr login --name ${{ env.REGISTRY_URL }} --expose-token
           az configure --defaults acr=${{ env.AZURE_CONTAINER_REGISTRY }}
           
-          # https://github.com/Azure/acr-build/issues/10
-          # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
-          # {{.Run.ID}} would be different for each az acr build , not the best to simplify Image Tag
-
           # https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli?tabs=azure-cli
           docker build --build-arg --no-cache -t ${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CONFIG_SERVER }}:$tag_id -f "./docker/petclinic-config-server/Dockerfile" .
           docker push "${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CONFIG_SERVER }}:$tag_id"
@@ -257,3 +244,47 @@ jobs:
 
           docker build --build-arg --no-cache -t ${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id -f "./docker/petclinic-visits-service/Dockerfile" .
           docker push "${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id"
+
+    - name: Authorize local IP access to the Azure BLOB Storage 
+      if: ${{ always() }}
+      run: |
+        echo "About to ADD network-rule to ALLOW $LOCAL_IP to Azure BLOB Storage ${{ env.AZ_STORAGE_NAME }}"
+        az storage account network-rule add --ip-address $LOCAL_IP --account-name  ${{ env.AZ_STORAGE_NAME }}  --action "Allow" -g ${{ env.RG_APP }}  --only-show-errors
+        sleep 30        
+      shell: bash
+
+    - name: Upload Artifacts to Azure BLOB Storage
+      id: blob_upload
+      run: | 
+        # https://learn.microsoft.com/en-us/azure/storage/blobs/blob-cli
+
+        # Runner will be blocked by network rules of storage account. Must Allow its IP
+        # TODO in Bicep : RBAC ==> GH Runner SPN must have "Storage Blob Data Contributor" Role on the storage Account
+
+         az config set extension.use_dynamic_install=yes_without_prompt
+        echo "About to upload Artifcats to Azure BLOB Storage. /!\ --overwrite' is in preview and under development"
+        echo "AZ_BLOB_MAX_CONNECTIONS=${{ env.AZ_BLOB_MAX_CONNECTIONS }}"
+        echo "AZ_BLOB_TIMEOUT=${{ env.AZ_BLOB_TIMEOUT }} "
+        echo "AZ_BLOB_MAX_CONNECTIONS=${{ env.AZ_BLOB_MAX_CONNECTIONS }}"
+
+        # https://learn.microsoft.com/en-us/rest/api/storageservices/setting-timeouts-for-blob-service-operations
+        az storage blob upload --name  ${{ env.CUSTOMERS_SERVICE }} --file ${{ github.workspace }}/${{ env.CUSTOMERS_SERVICE_JAR }} --container-name ${{ env.AZ_BLOB_CONTAINER_NAME }} --account-name ${{ env.AZ_STORAGE_NAME }} --auth-mode login --overwrite --max-connections ${{ env.AZ_BLOB_MAX_CONNECTIONS }} --timeout ${{ env.AZ_BLOB_TIMEOUT }}
+        az storage blob upload --name ${{ env.VETS_SERVICE }} --file ${{ github.workspace }}/${{ env.VETS_SERVICE_JAR }} --container-name ${{ env.AZ_BLOB_CONTAINER_NAME }} --account-name ${{ env.AZ_STORAGE_NAME }} --auth-mode login --overwrite --max-connections ${{ env.AZ_BLOB_MAX_CONNECTIONS }} --timeout ${{ env.AZ_BLOB_TIMEOUT }}
+        az storage blob upload --name  ${{ env.VISITS_SERVICE }} --file ${{ github.workspace }}/${{ env.VISITS_SERVICE_JAR }} --container-name ${{ env.AZ_BLOB_CONTAINER_NAME }} --account-name ${{ env.AZ_STORAGE_NAME }} --auth-mode login --overwrite --max-connections ${{ env.AZ_BLOB_MAX_CONNECTIONS }} --timeout ${{ env.AZ_BLOB_TIMEOUT }}
+
+    - name: Disable local IP access to the Azure BLOB Storage 
+      if: ${{ always() }}
+      run: |
+        echo "About to REMOVE network-rule ALLOWING $LOCAL_IP to Azure BLOB Storage ${{ env.AZ_STORAGE_NAME }}"
+        az storage account network-rule remove --ip-address $LOCAL_IP --account-name  ${{ env.AZ_STORAGE_NAME }} -g ${{ env.RG_APP }} --only-show-errors
+      shell: bash
+
+    # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
+    # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
+    # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
+    - name: Azure Logout security hardening
+      run: |
+          az logout
+          az cache purge
+          az account clear
+      shell: bash
