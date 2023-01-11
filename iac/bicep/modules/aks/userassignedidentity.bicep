@@ -6,7 +6,7 @@ param appName string = '101-${uniqueString(deployment().name)}'
 param location string = resourceGroup().location
 
 
-resource azidentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+resource azidentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: 'id-${appName}'
   location: location
 }

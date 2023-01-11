@@ -1,5 +1,11 @@
 param acrName string
-param aksPrincipalId string
+
+param aksClusterPrincipalId string
+
+param aksCustomersServicePrincipalId string
+param aksVetsServicePrincipalId string
+param aksVisitsServicePrincipalId string
+param aksConfigServerPrincipalId string
 
 @allowed([
   'Owner'
@@ -32,15 +38,15 @@ param kvName string
 @description('The name of the KV RG')
 param kvRGName string
 
-resource aksSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existing = {
+resource aksSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-07-01' existing = {
   name: '${vnetName}/${subnetName}'
 }
 
-resource acr 'Microsoft.ContainerRegistry/registries@2021-09-01' existing = {
+resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
   name: acrName
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: kvName
   scope: resourceGroup(kvRGName)
 }
@@ -59,11 +65,11 @@ var role = {
 
 // You need Key Vault Administrator permission to be able to see the Keys/Secrets/Certificates in the Azure Portal
 
-resource KVAdminRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource KVAdminRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(kv.id, kvRoleType , subscription().subscriptionId)
   properties: {
     roleDefinitionId: role[kvRoleType]
-    principalId: aksPrincipalId
+    principalId: aksClusterPrincipalId
     principalType: 'ServicePrincipal'
   }
 }
@@ -71,23 +77,23 @@ resource KVAdminRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-
 // https://github.com/Azure/azure-quickstart-templates/blob/master/modules/Microsoft.ManagedIdentity/user-assigned-identity-role-assignment/1.0/main.bicep
 // https://github.com/Azure/bicep/discussions/5276
 // Assign ManagedIdentity ID to the "Network contributor" role to AKS VNet
-resource AKSClusterRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(aksSubnet.id, networkRoleType , aksPrincipalId)
+resource AKSClusterRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aksSubnet.id, networkRoleType , aksClusterPrincipalId)
   scope: aksSubnet
   properties: {
     roleDefinitionId: role[networkRoleType] // subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)
-    principalId: aksPrincipalId
+    principalId: aksClusterPrincipalId
     principalType: 'ServicePrincipal'
   }
 }
 
  // acrpull role to assign to the AKS identity: az role assignment create --assignee $sp_id --role acrpull --scope $acr_registry_id
-resource ACRRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(acr.id, acrRoleType , aksPrincipalId)
+resource ACRRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, acrRoleType , aksClusterPrincipalId)
   scope: acr
   properties: {
     roleDefinitionId: role[acrRoleType]
-    principalId: aksPrincipalId
+    principalId: aksClusterPrincipalId
     principalType: 'ServicePrincipal'
   }
 }

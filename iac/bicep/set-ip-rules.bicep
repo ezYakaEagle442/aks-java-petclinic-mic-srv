@@ -49,9 +49,12 @@ param  ipRules array = []
 param k8sOutboundPubIP string
 
 @description('The MySQL DB Admin Login.')
-param administratorLogin string = 'mys_adm'
+param mySQLadministratorLogin string = 'mys_adm'
 
-resource kvRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+@description('The MySQL server name')
+param mySQLServerName string = 'petcliaks'
+
+resource kvRG 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
   name: kvRGName
   scope: subscription()
 }
@@ -77,7 +80,6 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   scope: kvRG
 }  
 
-
 module mysqlPub './modules/mysql/mysql.bicep' = {
   name: 'mysqldbpub'
   params: {
@@ -87,9 +89,9 @@ module mysqlPub './modules/mysql/mysql.bicep' = {
     clientIPAddress: clientIPAddress
     startIpAddress: startIpAddress
     endIpAddress: endIpAddress
-    serverName: kv.getSecret('MYSQL-SERVER-NAME')
-    administratorLogin: administratorLogin
-    administratorLoginPassword: kv.getSecret('SPRING-DATASOURCE-PASSWORD')
+    mySQLServerName: mySQLServerName
+    mySQLadministratorLogin: mySQLadministratorLogin
+    mySQLadministratorLoginPassword: kv.getSecret('SPRING-DATASOURCE-PASSWORD')
     k8sOutboundPubIP: ipRules[0]
   }
 }

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "petcliaca"
+    },
+    "location": {
+      "value": "westeurope"
+    },
+    "acrName": {
+      "value": "acrpetcliaca"
+    },
+    "autoShutdownNotificationEmail": {
+      "value": "sre-ops-admin@groland.grd"
+    },
+    "windowsVMName": {
+      "value": "vm-winakspetcli"
+    },
+    "adminUsername": {
+      "value": "adm_aks"
+    },
+    "adminPassword": {
+      "value": "changeIT"
+    },
+    "nsgName": {
+      "value": "nsg-aks-petcliaks-app-client"
+    },
+    "nsgRuleName": {
+      "value": "Allow RDP"
+    },        
+    "nicName": {
+      "value": "nic-aks-petcliaks-client-vm"
+    }, 
+    "nsgRuleSourceAddressPrefix": {
+      "value": "10.0.0.0/16"
+    },
+    "administratorLogin": {
+      "value": "mys_adm"
+    },         
+    "administratorLoginPassword": {
+      "value": "changeIT"
+    },
+    "clientIPAddress": {
+      "value": "9.9.9.9 SET HERE YOUR WORKSTATION IP ADDRESS FOR DEV/TEST"
+    },
+    "startIpAddress": {
+      "value": "10.42.2.0"
+    },
+    "endIpAddress": {
+      "value": "10.42.3.255"
+    },
+    "vnetName": {
+      "value": "vnet-aks"
+    },
+    "vnetCidr": {
+      "value": "10.42.0.0/16"
+    },
+    "infrastructureSubnetCidr": {
+      "value": "10.42.2.0/23"
+    },
+    "infrastructureSubnetName": {
+      "value": "snet-infra"
+    },
+    "dockerBridgeCidr" : {
+      "value": "10.42.42.0/28"
+    },
+    "platformReservedCidr" : {
+      "value": "10.90.0.0/21"
+    },
+    "platformReservedDnsIP" : {
+      "value": "10.90.0.10"
+    }
+  }
+}

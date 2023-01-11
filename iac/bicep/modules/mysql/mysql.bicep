@@ -7,18 +7,17 @@ param appName string = 'iacdemo${uniqueString(resourceGroup().id)}'
 param location string = resourceGroup().location
 
 @description('The MySQL DB Admin Login.')
-param administratorLogin string = 'mys_adm'
+param mySQLadministratorLogin string = 'mys_adm'
 
 @secure()
 @description('The MySQL DB Admin Password.')
-param administratorLoginPassword string
+param mySQLadministratorLoginPassword string
 
-@secure()
-@description('The MySQL DB Server name.')
-param serverName string
+@description('The MySQL server name')
+param mySQLServerName string = 'petcliaks'
 
 @description('AKS Outbound Public IP')
-param k8sOutboundPubIP string
+param k8sOutboundPubIP string = '0.0.0.0'
 
 @description('Should a MySQL Firewall be set to allow client workstation for local Dev/Test only')
 param setFwRuleClient bool = false
@@ -38,14 +37,14 @@ var mySqlVersion = '5.7' // https://docs.microsoft.com/en-us/azure/mysql/concept
 
 resource mysqlserver 'Microsoft.DBforMySQL/flexibleServers@2021-12-01-preview' = {
   location: location
-  name: serverName
+  name: mySQLServerName
   sku: {
     name: databaseSkuName
     tier: databaseSkuTier
   }
   properties: {
-    administratorLogin: administratorLogin
-    administratorLoginPassword: administratorLoginPassword
+    administratorLogin: mySQLadministratorLogin
+    administratorLoginPassword: mySQLadministratorLoginPassword
     // availabilityZone: '1'
     backup: {
       backupRetentionDays: 7

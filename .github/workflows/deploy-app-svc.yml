@@ -1,0 +1,128 @@
+name: Deploy Customers, Vets & Visits Apps
+
+env:
+  APP_NAME: petcliaks
+  LOCATION: westeurope # francecentral
+  RG_KV: rg-iac-kv33 # RG where to deploy KV
+  RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
+  
+  DEPLOY_TO_VNET: false
+
+  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
+  SET_KV_ACCESS_POLICIES: false # let it to false
+
+  AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
+  REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
+  REPOSITORY: petclinic                  # set this to your ACR repository
+
+  # ==== Azure storage to store Artifacts , values must be consistent with the ones in storage.bicep ====:
+  AZ_STORAGE_NAME : stakspetcliaks # customize this
+  AZ_BLOB_CONTAINER_NAME: petcliaks-blob # customize this
+  # AZ_BLOB_SVC_NAME: default # MUST NOT BE MODIFIED
+  # https://stakspetcliaks.blob.core.windows.net/petcliaks-blob/spring-petclinic-vets-service-2.6.13.jar
+
+  # https://learn.microsoft.com/en-us/rest/api/storageservices/setting-timeouts-for-blob-service-operations
+  AZ_BLOB_MAX_CONNECTIONS: 5
+  AZ_BLOB_MAXSIZE_CONDITION: 104857600
+  AZ_BLOB_TIMEOUT: 600
+  
+  # ==== APPS ====
+  API_GATEWAY: api-gateway
+  ADMIN_SERVER: admin-server
+  CUSTOMERS_SERVICE: customers-service
+  VETS_SERVICE: vets-service
+  VISITS_SERVICE: visits-service
+
+  CONFIG_SERVER: config-server
+  DISCOVERY_SERVER: discovery-server
+
+  # ==== Secrets ====
+  credentials: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: ${{ secrets.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}
+  SPRING_CLOUD_AZURE_TENANT_ID: ${{ secrets.SPRING_CLOUD_AZURE_TENANT_ID }}
+
+  # ==== Versions ====
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.40.0
+  JAVA_VERSION: 11
+
+on:
+  workflow_dispatch:
+    inputs: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
+      tag_id:
+        description: the Image Tag ID
+        required: true
+        type: string
+
+jobs:
+  deploy-services:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1.4.6 # https://github.com/marketplace/actions/azure-login
+      with:
+        creds: ${{ env.credentials }}
+
+    # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
+    
+
+    - name: Deploy Customers, Vets & Visits services to aks
+      # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
+      run: |
+          echo "About to deploy the Customers, Vets & Visits services ..." 
+          tag_id=${{ inputs.tag_id }}
+          echo "Image Build tag ID:"$tag_id
+
+          imageNameCustomersService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CUSTOMERS_SERVICE }}:$tag_id"
+          imageNameVetsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VETS_SERVICE }}:$tag_id"
+          imageNameVisitsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id"
+
+          echo "imageNameCustomersService= " $imageNameCustomersService
+          echo "imageNameVetsService= " $imageNameVetsService
+          echo "imageNameVisitsService= " $imageNameVisitsService
+
+          az deployment group create --name aks-petclinic-svc -f iac/bicep/modules/aks/apps/aks-svc.bicep -g ${{ env.RG_APP }} \
+            -p appName=${{ env.APP_NAME }} \
+            -p location=${{ env.LOCATION }} \
+            -p acrName=${{ env.AZURE_CONTAINER_REGISTRY }} \
+            -p XXX AKs CLUSTER =${{ env.XXXX }} \
+            -p kvName=${{ env.KV_NAME }} \
+            -p kvRGName=${{ env.RG_KV }} \
+            -p imageNameCustomersService=$imageNameCustomersService \
+            -p imageNameVetsService=$imageNameVetsService \
+            -p imageNameVisitsService=$imageNameVisitsService \
+            -p springCloudAzureKeyVaultEndpoint=${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }} \
+            -p springCloudAzureTenantId=${{ env.SPRING_CLOUD_AZURE_TENANT_ID }} 
+
+      shell: bash
+
+    - name: Configure Diagnostic-Settings
+      run: |
+          echo "aks does not yet support diagnostic settings, see https://github.com/microsoft/azure-container-apps/issues/382" 
+          
+          # az deployment group create --name aks-petclinic-apps -f iac/bicep/modules/aks/diagnostic-settings.bicep -g ${{ env.RG_APP }} \
+      shell: bash
+
+    - name: Configure GitHub-Action-Settings
+      run: |   
+          echo "To be tested ..."       
+          # az deployment group create --name aks-petclinic-apps -f iac/bicep/modules/aks/gha-settings.bicep -g ${{ env.RG_APP }} \
+
+      shell: bash
+
+    # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
+    # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
+    # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
+    - name: Azure Logout security hardening
+      run: |
+          az logout
+          az cache purge
+          az account clear
+      shell: bash

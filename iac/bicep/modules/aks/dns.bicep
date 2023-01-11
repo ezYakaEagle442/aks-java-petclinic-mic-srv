@@ -17,7 +17,7 @@ resource aksPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   location: 'global'  // /!\ 'global' instead of '${location}'. This is because Azure DNS is a global service. otherwise you will hit this error:"MissingRegistrationForLocation. "The subscription is not registered for the resource type 'privateDnsZones' in the location 'westeurope' 
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2022-05-01' existing =  {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' existing =  {
   name: vnetName
 }
 output vnetId string = vnet.id

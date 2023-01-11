@@ -34,7 +34,7 @@ param nicName string = 'nic-aks-${appName}-client-vm'
 @description('emailRecipient informed before the VM shutdown')
 param autoShutdownNotificationEmail string
 
-resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' existing =  {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' existing =  {
   name: vnetName
 }
 output vnetId string = vnet.id
@@ -42,7 +42,7 @@ output vnetGUID string = vnet.properties.resourceGuid
 output subnetId string = vnet.properties.subnets[0].id
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.network/publicipaddresses?tabs=bicep#publicipaddresssku
-resource pip 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
+resource pip 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
   name: 'pip-vm-aks-petclinic-client'
   location: location
   sku: {
@@ -58,7 +58,7 @@ output pipId string = pip.id
 output pipGUID string = pip.properties.resourceGuid
 output pipAddress string = pip.properties.ipAddress
 
-resource NSG 'Microsoft.Network/networkSecurityGroups@2022-05-01' = {
+resource NSG 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   name: nsgName
   location: location
   properties: {
@@ -82,7 +82,7 @@ resource NSG 'Microsoft.Network/networkSecurityGroups@2022-05-01' = {
 }
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.network/networkinterfaces?tabs=bicep
-resource NIC1 'Microsoft.Network/networkInterfaces@2022-05-01' = {
+resource NIC1 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   location: location
   name: nicName
   properties: {

@@ -1,16 +1,18 @@
 param vnetName string = 'vnet-aks'
-param vnetCidr string = '172.16.0.0/16 '
+param vnetCidr string = '172.16.0.0/16'
 param aksSubnetCidr string = '172.16.1.0/24'
 param aksSubnetName string = 'snet-aks'
+
+param location string = 'westeurope'
 
 var aksSubnet = {
   name: aksSubnetName
   cidr: aksSubnetCidr
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2022-05-01' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: vnetName
-  location: resourceGroup().location
+  location: location
   properties: {
     addressSpace: {
       addressPrefixes: [

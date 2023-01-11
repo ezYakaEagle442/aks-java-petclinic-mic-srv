@@ -4,7 +4,7 @@ name: Delete Apps
 env:
   APP_NAME: petcliaks
   APP_NAMESPACE: staging
-  LOCATION: francecentral # westeurope
+  LOCATION: westeurope # francecentral
   
   RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
@@ -42,6 +42,12 @@ jobs:
       with:
         creds: ${{ env.credentials }}
 
+    # https://github.com/marketplace/actions/azure-kubernetes-set-context
+    - uses: azure/aks-set-context@v3
+      with:
+        resource-group: ${{ env.RG_APP }}
+        cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
     - name: Delete Apps
       uses: azure/CLI@v1.0.6 # https://github.com/marketplace/actions/azure-cli-action
       with:
@@ -50,7 +56,7 @@ jobs:
           az config set extension.use_dynamic_install=yes_without_prompt
 
           az aks list -o table
-          az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
+          # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
           az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
           kubectl cluster-info
           kubectl config view

@@ -1,50 +1,40 @@
 # AKS
 
-TODO : Use [Pipelines with GitHub Actions](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-github-actions?tabs=CLI)
+
+In the [Bicep parameter file](./parameters-pre-req.json) :
+- set your laptop/dev station IP adress to the field "clientIPAddress"
+- Instead of putting a secure value (like a password) directly in your Bicep file or parameter file, you can retrieve the value from an Azure Key Vault during a deployment. When a module expects a string parameter with secure:true modifier, you can use the getSecret function to obtain a key vault secret. The value is never exposed because you only reference its key vault ID.
+
+
+FYI, if you want to check the services available per locations :
 ```sh
-az group create --name rg-iac-kv --location northeurope
-az group create --name rg-iac-aks-petclinic-mic-srv --location northeurope
+az provider show -n  Microsoft.ContainerService --query  "resourceTypes[?resourceType == 'managedClusters']".locations | jq '.[0]' | jq 'length'
+
+az provider show -n  Microsoft.RedHatOpenShift --query  "resourceTypes[?resourceType == 'OpenShiftClusters']".locations | jq '.[0]' | jq 'length’
+
+az provider show -n  Microsoft.AppPlatform --query  "resourceTypes[?resourceType == 'Spring']".locations | jq '.[0]' | jq 'length'
+
+az provider show -n  Microsoft.App --query  "resourceTypes[?resourceType == 'managedEnvironments']".locations | jq '.[0]' | jq 'length’
+az provider show -n  Microsoft.App --query  "resourceTypes[?resourceType == 'connectedEnvironments']".locations | jq '.[0]' | jq 'length'
+
+```
+
+
+```sh
+az group create --name rg-iac-kv33 --location westeurope
+az group create --name rg-iac-aks-petclinic-mic-srv --location westeurope
 
 #ssh-keygen -t rsa -b 4096 -N $ssh_passphrase -f ~/.ssh/bicep_key -C "youremail@groland.grd"
 #cat ~/.ssh/bicep_key.pub
 
-az deployment group create --name iac-101-aks -f ./aks/main.bicep -g rg-iac-aks-petclinic-mic-srv \
-    --parameters @./aks/parameters.json
+# az deployment group create --name iac-101-kv -f ./modules/kv/kv.bicep -g rg-iac-kv \
+#    --parameters @./modules/kv/parameters-kv.json
 
-az deployment group create --name iac-101-kv -f ./kv/kv.bicep -g rg-iac-kv \
-    --parameters @./kv/parameters-kv.json
-
+#az deployment group create --name iac-101-pre-req -f ./pre-req.bicep -g rg-iac-aks-petclinic-mic-srv \
+#    --parameters @./parameters-pre-req.json # --debug # --what-if to test like a dry-run
 
 ```
 
-# ARO
-
-```sh
-aro_sp_password=$(az ad sp create-for-rbac --name $appName-aro --role contributor --query password -o tsv)
-echo $aro_sp_password > aro_spp.txt
-echo "Service Principal Password saved to ./aro_spp.txt IMPORTANT Keep your password ..." 
-# aro_sp_password=`cat aro_spp.txt`
-#aro_sp_id=$(az ad sp show --id http://$appName-aro --query appId -o tsv) # | jq -r .appId
-#aro_sp_id=$(az ad sp list --all --query "[?appDisplayName=='${appName}-aro'].{appId:appId}" --output tsv)
-aro_sp_id=$(az ad sp list --show-mine --query "[?appDisplayName=='${appName}-aro'].{appId:appId}" -o tsv)
-echo "Service Principal ID:" $aro_sp_id 
-echo $aro_sp_id > aro_spid.txt
-# aro_sp_id=`cat aro_spid.txt`
-az ad sp show --id $aro_sp_id
-
-clientObjectId="$(az ad sp list --filter "AppId eq '$aro_sp_id'" --query "[?appId=='$aro_sp_id'].objectId" -o tsv)"
-
-aroRpObjectId="$(az ad sp list --filter "displayname eq 'Azure Red Hat OpenShift RP'" --query "[?appDisplayName=='Azure Red Hat OpenShift RP'].objectId" -o tsv)"
-
-pull_secret=`cat pull-secret.txt`
-
-az deployment group create --name iac-101-aro \
-    -f ./aro/main.bicep \
-    -g $aro_rg_name \
-    --parameters clientId=$aro_sp_id \
-        clientObjectId=$clientObjectId \
-        clientSecret=$aro_sp_password \
-        aroRpObjectId=$aroRpObjectId \
-        pullSecret=$pull_secret \
-        domain=openshiftrocks
-```
+Note: you can Run a Bicep script to debug and output the results to Azure Storage, see :
+-  [doc](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/deployment-script-bicep#sample-bicep-files)
+- [https://learn.microsoft.com/en-us/azure/templates/microsoft.resources/deploymentscripts?pivots=deployment-language-bicep](https://learn.microsoft.com/en-us/azure/templates/microsoft.resources/deploymentscripts?pivots=deployment-language-bicep)

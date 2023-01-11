@@ -5,7 +5,7 @@ name: Delete Azure Resource Groups
 
 env:
   APP_NAME: petcliaks
-  LOCATION: francecentral # westeurope
+  LOCATION: westeurope # francecentral
   RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
@@ -43,7 +43,7 @@ jobs:
         creds: ${{ env.credentials }}
 
     - name: Delete Azure Resource Groups
-      uses: azure/CLI@v1.0.6 # https://github.com/marketplace/actions/azure-cli-action
+      uses: azure/CLI@v1.0.7 # https://github.com/marketplace/actions/azure-cli-action
       with:
         azcliversion: ${{ env.AZ_CLI_VERSION }}
         inlineScript: |

@@ -12,7 +12,7 @@
 
 
 FROM mcr.microsoft.com/openjdk/jdk:11-mariner as builder
-ENV APPI_VERSION="3.4.4"
+ENV APPI_VERSION="3.4.7"
 ENV APP_INSIGHTS_AGENT_JAR_FILE_PATH="/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar"
 LABEL Maintainer="pinpin <noname@microsoft.com>"
 LABEL Description="PetClinic UI client: Java Spring Boot microservice built from MS OpenJDK 11-Mariner"
@@ -25,7 +25,7 @@ RUN java -Djarmode=layertools -jar "/tmp/app/app.jar" extract
 
 FROM mcr.microsoft.com/openjdk/jdk:11-mariner
 WORKDIR /tmp/app
-ENV APPI_VERSION="3.4.4"
+ENV APPI_VERSION="3.4.7"
 ENV APP_INSIGHTS_AGENT_JAR_FILE_PATH="/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar"
 ENV APPLICATIONINSIGHTS_CONFIGURATION_FILE="BOOT-INF/classes/applicationinsights.json"
 ENV SPRING_PROFILES_ACTIVE = "docker,mysql"
@@ -40,4 +40,4 @@ COPY --from=builder /tmp/app/spring-boot-loader/ ./
 COPY --from=builder /tmp/app/application/ ./
 EXPOSE 80 8080 8081 8082 8083 8084 8888 9090
 
-ENTRYPOINT ["java", "-javaagent:/tmp/app/applicationinsights-agent-3.4.4.jar", "org.springframework.boot.loader.JarLauncher", "--server.port=8080"]
+ENTRYPOINT ["java", "-javaagent:/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar", "org.springframework.boot.loader.JarLauncher", "--server.port=8080"]

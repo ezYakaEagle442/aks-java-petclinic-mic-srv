@@ -11,7 +11,7 @@ param location string = resourceGroup().location
 
 // Specifies the IP or IP range in CIDR format. Only IPV4 address is allowed
 @description('The AKS cluster CIDR')
-param networkRuleSetCidr string
+param networkRuleSetCidr string = '172.16.0.0/16'
 
 
 resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
@@ -26,7 +26,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   properties: {
     adminUserEnabled: false
     dataEndpointEnabled: false // data endpoint rule is not supported for the SKU Basic
-    /*
+  
     networkRuleSet: {
       defaultAction: 'Deny'
       ipRules: [
@@ -36,7 +36,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
         }
       ]
     }
-    */
+  
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
   }

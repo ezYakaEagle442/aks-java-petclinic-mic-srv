@@ -28,18 +28,18 @@ param subnetID string
 param location string = resourceGroup().location
 
 @description('Optional DNS prefix to use with hosted Kubernetes API server FQDN.')
-param dnsPrefix string = 'appinno'
+param dnsPrefix string = 'appinnojava'
 
 @description('Disk size (in GB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize.')
 @minValue(0)
 @maxValue(1023)
 param osDiskSizeGB int = 0
 
-@description('AKS Cluster UserAssigned Managed Identity')
-param aksIdentityName string = 'aks-${appName}-identity'
+@description('AKS Cluster UserAssigned Managed Identity. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
+param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
 
-@description('The Log Analytics workspace used by the OMS agent in the AKS Cluster')
-param logAnalyticsWorkspaceId string 
+@description('The Log Analytics workspace name used by the OMS agent in the AKS Cluster')
+param logAnalyticsWorkspaceName string = 'log-${appName}'
 
 @description('The number of nodes for the cluster.')
 @minValue(1)
@@ -56,15 +56,34 @@ param nodeRG string = 'rg-MC-${appName}'
 @description('The name of the KV, must be UNIQUE.  A vault name must be between 3-24 alphanumeric characters.')
 param kvName string = 'kv-${appName}'
 
-param logAnalyticsWorkspaceName string = 'log-${appName}'
+@description('Add the Flux GitOps Add-on')
+param fluxGitOpsAddon bool = false
+
+@description('Add the Dapr extension')
+param daprAddon bool = false
+
+@description('Enable high availability (HA) mode for the Dapr control plane')
+param daprAddonHA bool = false
+
+@description('Add the KEDA Add-on')
+param kedaAddon bool = false
+ 
+@description('Installs Azure Workload Identity into the cluster')
+param workloadIdentity bool = true
+
+@description('Enable Microsoft Defender for Containers')
+param defenderForContainers bool = false
 
 resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: kvName
 }
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
   name: logAnalyticsWorkspaceName
-  location: location
+}
+
+resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: aksIdentityName
 }
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=bicep
@@ -78,9 +97,12 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
   }    
   identity: {
     type: 'UserAssigned'
-    userAssignedIdentities: aksIdentityName
+    userAssignedIdentities: {
+      '${aksIdentity.id}': {}
+    }
   } 
   properties: {
+    kubernetesVersion: k8sVersion      
     dnsPrefix: dnsPrefix
     enableRBAC: true
     agentPoolProfiles: [
@@ -147,7 +169,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
     addonProfiles: {
       omsagent: {
         config: {
-          logAnalyticsWorkspaceResourceID: logAnalyticsWorkspaceId
+          logAnalyticsWorkspaceResourceID: logAnalyticsWorkspace.id
         }
         enabled: true
       }
@@ -157,7 +179,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
         }
       }      
       azurepolicy: {
-        enabled: true
+        enabled: false
         config: {
           version: 'v2'
         }
@@ -197,7 +219,11 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
     autoUpgradeProfile: {
       upgradeChannel: 'patch'
     } 
-    kubernetesVersion: k8sVersion  
+    workloadAutoScalerProfile: {
+      keda: {
+          enabled: kedaAddon
+      }
+    }    
     networkProfile: {
       networkMode: 'transparent'
       networkPlugin: 'azure'
@@ -205,7 +231,18 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
       outboundType: 'loadBalancer'
       serviceCidr: '10.42.0.0/24'
       dnsServiceIP: '10.42.0.10'         
-    }           
+    }   
+    securityProfile: {
+      workloadIdentity: {
+        enabled: workloadIdentity
+      }
+      defender: {
+        logAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.id
+        securityMonitoring: {
+          enabled: defenderForContainers
+        }
+      }      
+    }            
   }
 }
 
@@ -213,7 +250,17 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
 output controlPlaneFQDN string = aks.properties.fqdn
 output kubeletIdentity string = aks.properties.identityProfile.kubeletidentity.objectId
 output keyVaultAddOnIdentity string = aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.objectId
-output managedIdentityPrincipalId string = aks.properties.servicePrincipalProfile.clientId
+output spnClientId string = aks.properties.servicePrincipalProfile.clientId
+output aksId string = aks.id
+output aksIdentityPrincipalId string = aks.identity.principalId
+output aksOutboundType string = aks.properties.networkProfile.outboundType
+output aksEffectiveOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.effectiveOutboundIPs
+output aksManagedOutboundIPsCount int = aks.properties.networkProfile.loadBalancerProfile.managedOutboundIPs.count
+
+// The default number of managed outbound public IPs is 1.
+// https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
+output aksOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.outboundIPs.publicIPs
+
 // output ingressIdentity string = aks.properties.addonProfiles.ingressApplicationGateway.identity.objectId
 
 
@@ -253,7 +300,7 @@ resource AKSDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
       }
       {
         category: 'kube-controller-manager'
-        enabled: true
+        enabled: false
       }
       {
         category: 'kube-scheduler'
@@ -280,3 +327,43 @@ resource AKSDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
     ]
   }
 }
+
+
+resource fluxAddon 'Microsoft.KubernetesConfiguration/extensions@2022-04-02-preview' = if(fluxGitOpsAddon) {
+  name: 'flux'
+  scope: aks
+  properties: {
+    extensionType: 'microsoft.flux'
+    autoUpgradeMinorVersion: true
+    releaseTrain: 'Stable'
+    scope: {
+      cluster: {
+        releaseNamespace: 'flux-system'
+      }
+    }
+    configurationProtectedSettings: {}
+  }
+  dependsOn: [daprExtension] //Chaining dependencies because of: https://github.com/Azure/AKS-Construction/issues/385
+}
+output fluxReleaseNamespace string = fluxGitOpsAddon ? fluxAddon.properties.scope.cluster.releaseNamespace : ''
+
+resource daprExtension 'Microsoft.KubernetesConfiguration/extensions@2022-04-02-preview' = if(daprAddon) {
+  name: 'dapr'
+  scope: aks
+  properties: {
+      extensionType: 'Microsoft.Dapr'
+      autoUpgradeMinorVersion: true
+      releaseTrain: 'Stable'
+      configurationSettings: {
+          'global.ha.enabled': '${daprAddonHA}'
+      }
+      scope: {
+        cluster: {
+          releaseNamespace: 'dapr-system'
+        }
+      }
+      configurationProtectedSettings: {}
+  }
+}
+
+output daprReleaseNamespace string = daprAddon ? daprExtension.properties.scope.cluster.releaseNamespace : ''
