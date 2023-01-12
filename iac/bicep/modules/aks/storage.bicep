@@ -221,6 +221,7 @@ var role = {
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.authorization/roleassignments?pivots=deployment-language-bicep
 resource StorageBlobDataContributorRoleAssignmentGHRunner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(azureblobservice.id, storageBlobRoleType , ghRunnerSpnPrincipalId)
+  scope: azurestorage
   properties: {
     roleDefinitionId: role[storageBlobRoleType]
     principalId: ghRunnerSpnPrincipalId
