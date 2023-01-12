@@ -111,8 +111,8 @@ In the GitHub Action Runner, to allow the Service Principal used to access the K
 
 #az rest --method POST --uri 'https://graph.microsoft.com/beta/applications/$APPLICATION_OBJECT_ID/federatedIdentityCredentials' --body '{"name":"$CREDENTIAL_NAME","issuer":"https://token.actions.githubusercontent.com","subject":"$SUBJECT","description":"$DESCRIPTION","audiences":["api://AzureADTokenExchange"]}'
 
-
 # SPN_PWD=$(az ad sp create-for-rbac --name $SPN_APP_NAME --skip-assignment --query password --output tsv)
+az ad sp create-for-rbac --name $SPN_APP_NAME --skip-assignment --sdk-auth
 ```
 
 ```console
@@ -134,24 +134,44 @@ Troubleshoot:
 If you hit _["Error: : No subscriptions found for ***."](https://learn.microsoft.com/en-us/answers/questions/738782/no-subscription-found-for-function-during-azure-cl.html)_ , this is related to an IAM privilege in the subscription.
 
 ```sh
-#SPN_ID=$(az ad sp list --all --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
-SPN_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{id:appId}" --output tsv)
+#SPN_APP_ID=$(az ad sp list --all --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
+SPN_APP_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
 TENANT_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{t:appOwnerOrganizationId}" --output tsv)
 
+# Enterprise Application
+az ad app list --show-mine --query "[?displayName=='${SPN_APP_NAME}'].{objectId:id}"
+az ad app show --id $SPN_APP_ID
+
+# This is the unique ID of the Service Principal object associated with this application.
+SPN_OBJECT_ID=$(az ad sp list --show-mine --query "[?displayName=='${SPN_APP_NAME}'].{objectId:id}" -o tsv)
+az ad sp show --id $SPN_OBJECT_ID
+
 # the assignee is an appId
-az role assignment create --assignee $SPN_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role contributor
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role contributor
+
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role contributor
+
+# https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations
 
 # "Key Vault Secrets User"
-az role assignment create --assignee $SPN_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role 4633458b-17de-408a-b874-0445c86b69e6
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role 4633458b-17de-408a-b874-0445c86b69e6
 
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role 4633458b-17de-408a-b874-0445c86b69e6
+
+# "Key Vault Secrets Officer"
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7
+
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7
 
 # https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal#prerequisites
 # /!\ To assign Azure roles, you must have: requires to have Microsoft.Authorization/roleAssignments/write and Microsoft.Authorization/roleAssignments/delete permissions, 
 # such as User Access Administrator or Owner.
-az role assignment create --assignee $SPN_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role Owner
-az role assignment create --assignee $SPN_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_APP} --role Owner
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role Owner
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_APP} --role Owner
 
-az role assignment create --assignee $SPN_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_APP} --role contributor
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role Owner
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_APP} --role Owner
+
 ```
 
 <span style="color:red">**RBAC Permission model is set on KV, the [pre-req](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#prerequisites) requires to have Microsoft.Authorization/roleAssignments/write and Microsoft.Authorization/roleAssignments/delete permissions, such as User Access Administrator or Owner.
@@ -171,17 +191,59 @@ Paste in your JSON object for your service principal with the name **AZURE_CREDE
 
 You can test your connection with CLI :
 ```sh
-az login --service-principal -u $SPN_ID -p $SPN_PWD --tenant $TENANT_ID
+az login --service-principal -u $SPN_APP_ID -p $SPN_PWD --tenant $TENANT_ID
 ```
 
-
-
-Add SUBSCRIPTION_ID, TENANT_ID, SPN_ID and SPN_PWD as secrets to your GH repo secrets / Actions secrets / Repository secrets
-
+Add SUBSCRIPTION_ID, TENANT_ID, SPN_APP_ID and SPN_PWD as secrets to your GH repo Settings / Security / Secrets and variables / Actions / Actions secrets / Repository secrets
 
 Finally Create a GH [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) "PKG_PAT" that can be use to , [publish packages](./.github/workflows/maven-build.yml#L176) and [delete packages](./.github/workflows/delete-all-artifacts.yml)
 
 <span style="color:red">**Your GitHub [personal access token](https://github.com/settings/tokens?type=beta) needs to have the workflow scope selected. You need at least delete:packages and read:packages scopes to delete a package. You need contents: read and packages: write permissions to publish and download artifacts**</span>
+
+Create SSH Keys, WITHOUT any passphrase (type enter if prompt)
+
+```sh
+# https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.resources/deployment-script-ssh-key-gen/new-key.sh
+export ssh_key=aksadm
+echo -e 'y' | ssh-keygen -t rsa -b 4096 -f ~/.ssh/$ssh_key -C "youremail@groland.grd" # -N $ssh_passphrase
+# test
+# ssh -i ~/.ssh/$ssh_key $admin_username@$network_interface_pub_ip
+```
+
+Add $ssh_key & $ssh_key.pub as secrets SSH_PRV_KEY & SSH_PUB_KEY to your GH repo Settings / Security / Secrets and variables / Actions / Actions secrets / Repository secrets
+
+To avoid to hit the error below : 
+```console
+"The subscription is not registered to use namespace 'Microsoft.KeyVault'. See https://aka.ms/rps-not-found for how to register subscriptions.\",\r\n    \"details\": [\r\n      ***\r\n        \"code\": \"MissingSubscriptionRegistration\"
+```
+
+Read the [docs](https://learn.microsoft.com/en-us/azure/azure-resource-manager/troubleshooting/error-register-resource-provider?tabs=azure-cli)
+Just run :
+```sh
+az provider list --output table
+az provider list --query "[?registrationState=='Registered']" --output table
+az provider list --query "[?namespace=='Microsoft.KeyVault']" --output table
+
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.OperationalInsights 
+az provider register --namespace Microsoft.DBforMySQL
+az provider register --namespace Microsoft.DBforPostgreSQL
+az provider register --namespace Microsoft.Compute 
+az provider register --namespace Microsoft.AppConfiguration       
+az provider register --namespace Microsoft.AppPlatform
+az provider register --namespace Microsoft.EventHub  
+az provider register --namespace Microsoft.Kubernetes 
+az provider register --namespace Microsoft.KubernetesConfiguration  
+az provider register --namespace Microsoft.Kusto  
+az provider register --namespace Microsoft.ManagedIdentity
+az provider register --namespace Microsoft.Monitor 
+az provider register --namespace Microsoft.Network  
+az provider register --namespace Microsoft.RedHatOpenShift 
+az provider register --namespace Microsoft.ServiceBus
+az provider register --namespace Microsoft.Storage
+az provider register --namespace Microsoft.Subscription
+
+```
 
 ## Pipelines
 
