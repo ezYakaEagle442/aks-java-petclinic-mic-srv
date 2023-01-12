@@ -140,10 +140,6 @@ module identities './modules/aks/identity.bicep' = {
   }
 }
 
-resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
-  name: aksIdentityName
-}
-
 module vnet './modules/aks/vnet.bicep' = {
   name: 'vnet-aks'
   // scope: resourceGroup(rg.name)
@@ -173,7 +169,7 @@ module roleAssignments './modules/aks/roleAssignments.bicep' = {
     aksVisitsServicePrincipalId: identities.outputs.visitsServicePrincipalId
     aksConfigServerPrincipalId: identities.outputs.configServerPrincipalId
     aksCustomersServicePrincipalId: identities.outputs.customersServicePrincipalId
-    aksClusterPrincipalId: aksIdentity.properties.principalId
+    aksClusterPrincipalId: identities.outputs.aksIdentityPrincipalId
     kvName: kvName
     kvRGName: kvRGName
     kvRoleType: 'KeyVaultSecretsUser'
