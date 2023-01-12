@@ -76,6 +76,7 @@ resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults/keys?tabs=bicep
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details
+/*
 resource kvKeys 'Microsoft.KeyVault/vaults/keys@2022-07-01' = {
   name: aksSshKeyName
   parent: kv
@@ -169,3 +170,4 @@ resource kvKeys 'Microsoft.KeyVault/vaults/keys@2022-07-01' = {
   }
 }
 output keyUri string = kvKeys.properties.keyUri
+*/
