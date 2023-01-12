@@ -50,6 +50,12 @@ env:
   JAVA_VERSION: 11
 
 on:
+  workflow_call:
+    inputs: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_callinputs
+      tag_id:
+        description: the Image Tag ID
+        required: true
+        type: string  
   workflow_dispatch:
     inputs: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_dispatchinputs
       tag_id:
