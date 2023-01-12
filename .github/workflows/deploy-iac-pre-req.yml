@@ -60,6 +60,7 @@ env:
 
   SSH_PRV_KEY: ${{ secrets.SSH_PRV_KEY }}
   SSH_PUB_KEY: ${{ secrets.SSH_PUB_KEY }}
+  SSH_KEY: aksadm
 
   # https://learn.microsoft.com/en-us/azure/key-vault/secrets/secrets-best-practices#secrets-rotation
   # Because secrets are sensitive to leakage or exposure, it's important to rotate them often, at least every 60 days. 
@@ -143,7 +144,6 @@ jobs:
       shell: bash
 
     - name: Create VM-ADMIN-PASSWORD secret in Azure Key Vault
-      if: ${{ env.DEPLOY_TO_VNET }}
       run: |
           az deployment group create --name aks-petclinic-kv-vm-pwd -f iac/bicep/modules/kv/kv_sec_key.bicep -g ${{ env.RG_KV }} \
             -p appName=${{ env.APP_NAME }} \
@@ -154,25 +154,17 @@ jobs:
       shell: bash
 
     - name: Create SSH-PRV-KEY secret in Azure Key Vault
-      if: ${{ env.DEPLOY_TO_VNET }}
       run: |
-          az deployment group create --name aks-petclinic-kv-ssh-prv-key -f iac/bicep/modules/kv/kv_sec_key.bicep -g ${{ env.RG_KV }} \
-            -p appName=${{ env.APP_NAME }} \
-            -p kvName=${{ env.KV_NAME }} \
-            -p secretName="SSH-PRV-KEY" \
-            -p secretValue=${{ secrets.SSH_PRV_KEY }} \
-            -p secretExpiryDate=${{ env.SECRET_EXPIRY_DATE }}
+          # ERROR: Unable to parse parameter: OPENSSH
+          # woraround using --file: az keyvault secret set --name "SSH-PRV-KEY" --vault-name ${{ env.KV_NAME }} --file .\private.key
+          cat ${{ secrets.SSH_PRV_KEY }} > ${{ env.SSH_KEY }} 
+          az keyvault secret set --name "SSH-PRV-KEY" --vault-name ${{ env.KV_NAME }} --file .\${{ env.SSH_KEY }}
       shell: bash
 
     - name: Create SSH-PUB-KEY secret in Azure Key Vault
-      if: ${{ env.DEPLOY_TO_VNET }}
       run: |
-          az deployment group create --name aks-petclinic-kv-ssh-pub-key -f iac/bicep/modules/kv/kv_sec_key.bicep -g ${{ env.RG_KV }} \
-            -p appName=${{ env.APP_NAME }} \
-            -p kvName=${{ env.KV_NAME }} \
-            -p secretName="SSH-PUB-KEY" \
-            -p secretValue=${{ secrets.SSH_PUB_KEY }} \
-            -p secretExpiryDate=${{ env.SECRET_EXPIRY_DATE }}
+          cat ${{ secrets.SSH_PUB_KEY }} > ${{ env.SSH_KEY }}.pub
+          az keyvault secret set --name "SSH-PUB-KEY" --vault-name ${{ env.KV_NAME }} --file .\${{ env.SSH_KEY }}.pub
       shell: bash
 
     - name: Disable local IP access to the Key Vault
