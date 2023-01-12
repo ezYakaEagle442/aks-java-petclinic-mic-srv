@@ -57,7 +57,7 @@ You have to specify some [KV secrets](./iac/bicep/modules/kv/kv_sec_key.bicep#L2
 dash '-' are not supported in GH secrets, so the secrets must be named in GH with underscore '_'.
 
 (Also the '&' character in the SPRING_DATASOURCE_URL must be escaped with '\&'
-jdbc:mysql://petcliaca777.mysql.database.azure.com:3306/petclinic?useSSL=true\&requireSSL=true\&enabledTLSProtocols=TLSv1.2\&verifyServerCertificate=true)
+jdbc:mysql://petcliaks777.mysql.database.azure.com:3306/petclinic?useSSL=true\&requireSSL=true\&enabledTLSProtocols=TLSv1.2\&verifyServerCertificate=true)
 
 Add the App secrets used by the Spring Config to your GH repo secrets / Actions secrets / Repository secrets / Add :
 
@@ -97,8 +97,22 @@ Read [https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azur
 
 In the GitHub Action Runner, to allow the Service Principal used to access the Key Vault, execute the command below:
 ```sh
+
+#az ad app create --display-name $SPN_APP_NAME > aad_app.json
+# This command will output JSON with an appId that is your client-id. The objectId is APPLICATION-OBJECT-ID and it will be used for creating federated credentials with Graph API calls.
+
+#export APPLICATION_ID=$(cat aad_app.json | jq -r '.appId')
+#export APPLICATION_OBJECT_ID=$(cat aad_app.json | jq -r '.id')
+#az ad sp create --id $APPLICATION_ID
+
+#export CREDENTIAL_NAME="gha_aks_run"
+#export SUBJECT="repo:ezYakaEagle442/aks-java-petclinic-mic-srv:environment:PoC" # "repo:organization/repository:environment:Production"
+#export DESCRIPTION="GitHub Action Runner for Petclinic AKS demo"
+
+#az rest --method POST --uri 'https://graph.microsoft.com/beta/applications/$APPLICATION_OBJECT_ID/federatedIdentityCredentials' --body '{"name":"$CREDENTIAL_NAME","issuer":"https://token.actions.githubusercontent.com","subject":"$SUBJECT","description":"$DESCRIPTION","audiences":["api://AzureADTokenExchange"]}'
+
+
 # SPN_PWD=$(az ad sp create-for-rbac --name $SPN_APP_NAME --skip-assignment --query password --output tsv)
-az ad sp create-for-rbac --name $SPN_APP_NAME
 ```
 
 ```console
@@ -153,7 +167,7 @@ Read :
 - [Use GitHub Actions to connect to Azure documentation](https://docs.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Cwindows).
 - [https://github.com/Azure/login#configure-a-service-principal-with-a-secret](https://github.com/Azure/login#configure-a-service-principal-with-a-secret)
 
-Paste in your JSON object for your service principal with the name **AZURE_CREDENTIALS** as secrets to your GH repo secrets / Actions secrets / Repository secrets.
+Paste in your JSON object for your service principal with the name **AZURE_CREDENTIALS** as secrets to your GH repo Settings / Security / Secrets and variables / Actions / Actions secrets / Repository secrets
 
 You can test your connection with CLI :
 ```sh
@@ -188,121 +202,115 @@ The Workflow run the steps in this in this order :
 
 ```
 ├── Deploy the Azure Infra services workflow ./.github/workflows/deploy-iac.yml
-│   ├── Authorize local IP to access the Azure Key Vault ./.github/workflows/deploy-iac.yml#L143
-│   ├── Create the secrets ./.github/workflows/deploy-iac.yml#L150
-│   ├── Disable local IP access to the Key Vault ./.github/workflows/deploy-iac.yml#L262
-│   ├── Deploy the pre-req ./.github/workflows/deploy-iac.yml#L295
-│   ├── Whitelist ACA Env. OutboundIP to KV and MySQL ./.github/workflows/deploy-iac.yml#L322
-│   ├── Call Maven Build ./.github/workflows/deploy-iac.yml#L369
+│   ├── Trigger the pre-req ./.github/workflows/deploy-iac.yml#L75
+│       ├── Create Azure Key Vault ./.github/workflows/deploy-iac-pre-req.yml#L108
+│       ├── Authorize local IP to access the Azure Key Vault ./.github/workflows/deploy-iac-pre-req.yml#L115
+│       ├── Create the secrets ./.github/workflows/deploy-iac-pre-req.yml#L121
+│       ├── Disable local IP access to the Key Vault ./.github/workflows/deploy-iac-pre-req.yml#L152
+│       ├── Deploy the pre-req ./.github/workflows/deploy-iac-pre-req.yml#L180
+│           ├── Create Log Analytics Workspace ./iac/bicep/pre-req.bicep#L68
+│           ├── Create appInsights  ./iac/bicep/pre-req.bicep#L68
+│           ├── Create ACR ./iac/bicep/pre-req.bicep#L104
+│           ├── Create Identities ./iac/bicep/pre-req.bicep#L124
+│           ├── Create VNet ./iac/bicep/pre-req.bicep#L135
+│           ├── Create roleAssignments ./iac/bicep/pre-req.bicep#L155
+│           ├── Create MySQL ./iac/bicep/pre-req.bicep#L174
+│   ├── Deploy AKS ./iac/bicep/main.bicep
+│       ├── Call AKS module ./iac/bicep/main.bicep#L95
+│       ├── Whitelist AKS Env. OutboundIP to KV and MySQL ./.github/workflows/deploy-iac.yml#L119
+│       ├── Call DB data loading Init ./.github/workflows/deploy-iac.yml#L154
+│       ├── Call Maven Build ./.github/workflows/deploy-iac.yml#L159
 │       ├── Maven Build ./.github/workflows/maven-build.yml#L128
-│       ├── Publish the Maven package ./.github/workflows/maven-build.yml#L166
-│       ├── Check all Jar artifacts ./.github/workflows/maven-build.yml#L177
-│       ├── Build image and push it to ACR ./.github/workflows/maven-build.yml#L200
-│   ├── Call Maven Build-UI ./.github/workflows/deploy-iac.yml#L376
-│   ├── Deploy Backend Services ./.github/workflows/deploy-iac.yml#L382
-│       ├── Deploy Backend services calling iac/bicep/petclinic-apps.bicep
-│       ├── Deploy the UI calling iac/bicep/modules/aca/apps/aca-ui.bicep
-│   ├── Configure Diagnostic-Settings ./.github/workflows/deploy-iac.yml#L453
-│   ├── Configure GitHub-Action-Settings ./.github/workflows/deploy-iac.yml#460
+│           ├── Publish the Maven package ./.github/workflows/maven-build.yml#L176
+│           ├── Build image and push it to ACR ./.github/workflows/maven-build.yml#L241
+│       ├── Call Maven Build-UI ./.github/workflows/deploy-iac.yml#L166
+│           ├── Build image and push it to ACR ./.github/workflows/maven-build-ui.yml#L191
+│       ├── Deploy Backend Services ./.github/workflows/deploy-iac.yml#L185
+│           ├── Deploy Backend services calling ./.github/workflows/deploy-app-svc.yml
+│           ├── Deploy the UI calling ./.github/workflows/deploy-app-ui.yml
 ```
 
 You need to set your own param values in :
 - [Azure Infra services deployment workflow](./.github/workflows/deploy-iac.yml#L13)
 ```sh
 env:
-  APP_NAME: petcliaca
-  LOCATION: westeurope
-  RG_KV: rg-iac-kv42 # RG where to deploy KV
-  RG_APP: rg-iac-aca-petclinic-mic-srv # RG where to deploy the other Azure services: ACA, ACA Env., MySQL, etc.
-  ACA_ENV_NAME: aca-env-pub # ACA Environment name. Ex 'aca-env-pub' or 'aca-env-corp' when deployed to your VNet
-  KV_NAME: kv-petcliaca42 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
+  APP_NAME: petcliaks
+  LOCATION: westeurope # francecentral
+  RG_KV: rg-iac-kv33 # RG where to deploy KV
+  RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
-  AZURE_CONTAINER_REGISTRY: acrpetcliaca # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
-  REPOSITORY: petclinic                  # set this to your ACR repository
+  ACR_NAME: acrpetcliaks
 
-  # GitHub Actions settings
-  GHA_SETTINGS_CFG_REGISTRY_URL: acrpetcliaca.azurecr.io
-  GHA_SETTINGS_CFG_REPO_URL: https://github.com/ezYakaEagle442/aca-java-petclinic-mic-srv
-  
+  VNET_NAME: vnet-aks
+  VNET_CIDR: 172.16.0.0/16
+  AKS_SUBNET_CIDR: 172.16.1.0/24
+  AKS_SUBNET_NAME: snet-aks
+
+  START_IP_ADRESS: 172.16.1.0
+  END_IP_ADRESS: 172.16.1.255
+
+  MYSQL_SERVER_NAME: petcliaks
+  MYSQL_DB_NAME: petclinic
+  MYSQL_ADM_USR: mys_adm
+  MYSQL_TIME_ZONE: Europe/Paris
+  MYSQL_CHARACTER_SET: utf8
+  MYSQL_PORT: 3306
+
+  DEPLOY_TO_VNET: false
+
+  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
+
   # https://learn.microsoft.com/en-us/azure/key-vault/secrets/secrets-best-practices#secrets-rotation
   # Because secrets are sensitive to leakage or exposure, it's important to rotate them often, at least every 60 days. 
   # Expiry date in seconds since 1970-01-01T00:00:00Z. Ex: 1672444800 ==> 31/12/2022'
-  SECRET_EXPIRY_DATE: 1672444800
+  SECRET_EXPIRY_DATE: 1703980800 # ==> 31/12/2023
 ```
 
 - [Maven Build workflow](./.github/workflows/maven-build.yml)
 ```sh
-  AZURE_CONTAINER_REGISTRY: acrpetcliaca # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
-  REGISTRY_URL: acrpetcliaca.azurecr.io  # set this to the URL of your registry
+  AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
+  REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
   REPOSITORY: petclinic                  # set this to your ACR repository
   PROJECT_NAME: petclinic                # set this to your project's name
-  KV_NAME: kv-petcliaca42               # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
-  
-  RG_KV: rg-iac-kv42 # RG where to deploy KV
-  RG_APP: rg-iac-aca-petclinic-mic-srv # RG where to deploy the other Azure services: ACA, ACA Env., MySQL, etc.
+
+  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
+  RG_KV: rg-iac-kv33 # RG where to deploy KV
+  RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
+
+  # ==== Azure storage to store Artifacts , values must be consistent with the ones in storage.bicep ====:
+  AZ_STORAGE_NAME : stakspetcliaks # customize this
+  AZ_BLOB_CONTAINER_NAME: petcliaks-blob # customize this
 ```
 
 
 - [Maven Build workflow for the UI](./.github/workflows/maven-build-ui.yml)
 ```sh
-  AZURE_CONTAINER_REGISTRY: acrpetcliaca # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
-  REGISTRY_URL: acrpetcliaca.azurecr.io  # set this to the URL of your registry
+  AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
+  REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
   REPOSITORY: petclinic                  # set this to your ACR repository
   PROJECT_NAME: petclinic                # set this to your project's name
-  KV_NAME: kv-petcliaca42               # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
-  
-  RG_KV: rg-iac-kv42 # RG where to deploy KV
-  RG_APP: rg-iac-aca-petclinic-mic-srv # RG where to deploy the other Azure services: ACA, ACA Env., MySQL, etc.
+
+  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
+  RG_KV: rg-iac-kv33 # RG where to deploy KV
+  RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
+
+  # ==== Azure storage to store Artifacts , values must be consistent with the ones in storage.bicep ====:
+  AZ_STORAGE_NAME : stakspetcliaks # customize this
+  AZ_BLOB_CONTAINER_NAME: petcliaks-blob # customize this
 ```
 
-Once you commit, then push your code update to your repo, it will trigger a Maven build which you need to can CANCELL from https://github.com/USERNAME/aca-java-petclinic-mic-srv/actions/workflows/maven-build.yml the first time you trigger the workflow, anyway it will fail because the ACR does not exist yet and the docker build will fail to push the Images.
+Once you commit, then push your code update to your repo, it will trigger a Maven build which you need to can CANCELL from https://github.com/USERNAME/aks-java-petclinic-mic-srv/actions/workflows/maven-build.yml the first time you trigger the workflow, anyway it will fail because the ACR does not exist yet and the docker build will fail to push the Images.
 
 Note: the GH Hosted Runner / [Ubuntu latest image has already Azure CLI installed](https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#cli-tools)
 
-# Deploy Azure Container Apps and the petclinic microservices Apps with IaC
+# Deploy AKS and the petclinic microservices Apps with IaC
 
 You can read the [Bicep section](iac/bicep/README.md) but you do not have to run it through CLI, instead you can manually trigger the GitHub Action [deploy-iac.yml](./.github/workflows/deploy-iac.yml), see the Workflow in the next [section](#iac-deployment-flow)
 
-This network can be managed or custom (pre-configured by the user beforehand). In either case, the environment has dependencies on services outside of that virtual network. For a list of these dependencies
-see the [ACA doc](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration#outbound-fqdn-dependencies)
-
-## IaC deployment flow
-
-By default the Azure Container Apps [Environment](https://learn.microsoft.com/en-us/azure/container-apps/networking) is deployed as external resources and are available for public requests, i.e not deployed to a VNet. 
-(External environments are deployed with a virtual IP on an external, public facing IP address.)
-
-- [Bicep ](./iac/bicep/modules/aca/acaPublicEnv.bicep#L36)
-```code
-param deployToVNet bool = false
-```
+AKS has dependencies on services outside of that virtual network. For a list of these dependencies
+see the [AKS doc](https://learn.microsoft.com/en-us/azure/aks/limit-egress-traffic)
 
 
-```
-├── Create RG
-│
-├── Create KV ./iac/bicep/modules/kv/kv.bicep
-│   ├── Create KV ./iac/bicep/modules/kv/kv.bicep#L46
-├── Create pre-requisites ./iac/bicep/pre-req.bicep
-│   ├── Create logAnalyticsWorkspace ./iac/bicep/pre-req.bicep#L102
-│   ├── Create appInsights ./iac/bicep/pre-req.bicep#L119
-│   ├── Call ACR Module ./iac/bicep/pre-req.bicep#L138
-│   ├── Call ACA Module defaultPublicManagedEnvironment ./iac/bicep/pre-req.bicep#L156
-│   ├── Call MySQL Module ./iac/bicep/pre-req.bicep#L173
-├── Run the Main ./iac/bicep/petclinic-apps.bicep
-│   ├── Call ACA Module ./iac/bicep/modules/aca/aca.bicep#215
-│   ├── Call roleAssignments Module ./iac/bicep/petclinic-apps.bicep#270
-│   └── Call KV Access Policies ./iac/bicep/petclinic-apps.bicep#357
-```
-
-- [Azure Infra services deployment workflow](./.github/workflows/deploy-iac.yml#L13)
-```code
-DEPLOY_TO_VNET: false
-```
-
-To Deploy the Apps into your VNet, see [Deployment to VNet section](#deployment-to-vnet)
-
-<span style="color:red">**Be aware that the MySQL DB is NOT deployed in a VNet but network FireWall Rules are Set. So ensure to allow ACA Outbound IP addresses or check the option "Allow public access from any Azure service within Azure to this server" in the Azure Portal / your MySQL DB / Networking / Firewall rules. 
-enableRbacAuthorization is set to true in KV (Preview feature), the key vault will use RBAC for authorization of data actions, and the access policies specified in vault properties will be ignored**</span>
 
 ## Security
 ### secret Management
@@ -316,85 +324,9 @@ Read :
 - [https://github.com/Azure/azure-sdk-for-java/issues/28310](https://github.com/Azure/azure-sdk-for-java/issues/28310)
 - [Maven Project parent pom.xml](pom.xml#L168)
 
-The Config-server does use the config declared on the repo at [https://github.com/ezYakaEagle442/aca-cfg-srv/blob/main/application.yml](https://github.com/ezYakaEagle442/aca-cfg-srv/blob/main/application.yml) and uses a [User-Assigned Managed Identity](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview#managed-identity-types) to be able to read secrets from KeyVault.
+The Config-server does use the config declared on the repo at [https://github.com/ezYakaEagle442/aks-cfg-srv/blob/main/application.yml](https://github.com/ezYakaEagle442/aks-cfg-srv/blob/main/application.yml) and uses a [User-Assigned Managed Identity](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview#managed-identity-types) to be able to read secrets from KeyVault.
 
 If you face any issue, see the [troubleshoot section](#key-vault-troubleshoot-with-USER-Assigned-MI)
-
-## Deployment to VNet
-
-You can your Apps into your own VNet when creating the Azure Container Apps Environment, see:
-- [Bicep ](./iac/bicep/modules/aca/acaVNetEnv.bicep#L71), setting its [vnetConfiguration](./iac/bicep/modules/aca/acaVNetEnv.bicep#L84)
-
-```code
-param deployToVNet bool = true
-```
-[Azure Infra services deployment workflow](./.github/workflows/deploy-iac-to-vnet.yml#L16)
-```code
-DEPLOY_TO_VNET: true
-```
-
-
-
-```
-├── Create RG
-│
-├── Create KV ./iac/bicep/modules/kv/kv.bicep
-│   ├── Create KV ./iac/bicep/modules/kv/kv.bicep#L46
-├── Create pre-requisites ./iac/bicep/pre-req-deploy-to-vnet
-│   ├── Create logAnalyticsWorkspace ./iac/bicep/pre-req.bicep#L102
-│   ├── Create appInsights ./iac/bicep/pre-req.bicep#L119
-│   ├── Call ACR Module ./iac/bicep/pre-req.bicep#L138
-│   ├── Call ACA Module defaultPublicManagedEnvironment ./iac/bicep/pre-req.bicep#L156
-│   ├── Call VNet Module ./iac/bicep/pre-req-deploy-to-vnet.bicep#L150
-│   ├── Call ACA Module corpManagedEnvironment ./iac/bicep/pre-req-deploy-to-vnet#L171
-│   ├── Call MySQL Module ./iac/bicep/pre-req-deploy-to-vnet.bicep#L196
-│   ├── Call DNS Private-Zone Module ./iac/bicep/pre-req-deploy-to-vnet.bicep#L212
-│   ├── Call ClientVM Module ./iac/bicep/pre-req-deploy-to-vnet.bicep#L224
-├── Run the Main ./iac/bicep/petclinic-apps.bicep
-│   ├── Call ACA Module ./iac/bicep/modules/aca/aca.bicep#215
-│   ├── Call roleAssignments Module ./iac/bicep/petclinic-apps.bicep#270
-│   └── Call KV Access Policies ./iac/bicep/petclinic-apps.bicep#357
-```
-
-
-### DNS Management
-
-When configuring Azure Container Apps Environment to your VNet, a Private-DNS Zone is created during the [Bicep pre-req deployment](./iac/bicep/pre-req-deploy-to-vnet.bicep#L212), see [./iac/bicep/modules/aca/dns.bicep](./iac/bicep/modules/aca/dns.bicep#L34)
-
-/!\ IMPORTANT: Set location to 'global' instead of '${location}'. This is because Azure DNS is a global service. 
-Otherwise you will hit this error:
-```sh
-"MissingRegistrationForLocation. "The subscription is not registered for the resource type 'privateDnsZones' in the location 'westeurope' 
-```
-
-```sh
-resource acaPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  //<env>.<RANDOM>.<REGION>.azurecontainerapps.io. Ex: https://aca-test-vnet.wittyhill-01dfb8c1.westeurope.azurecontainerapps.io
-  name: '${location}.azurecontainerapps.io' // 'private.azurecontainerapps.io'
-  location: 'global'  
-}
-```
-### Client VM
-When configuring Azure Container Apps Environment to your VNet, a JumpOff client VM is created during the [Bicep pre-req deployment](./iac/bicep/pre-req-deploy-to-vnet.bicep#L224), see [./iac/bicep/aca/client-vm.bicep](./iac/bicep/modules/aca/client-vm.bicep#L129)
-
-## App Container syntax
-
-command	is the container's startup command.	Equivalent to Docker's entrypoint field.
-See the [docs](https://learn.microsoft.com/en-us/azure/container-apps/containers#configuration)
-
-When allocating resources, the total amount of CPUs and memory requested for all the containers in a container app must add up to one of the [following combinations](https://learn.microsoft.com/en-us/azure/container-apps/containers#configuration).
-
-vCPUs (cores)	| Memory
--------------:|:-------:
-0.25 	| 0.5Gi
-0.5	  | 1.0Gi
-0.75	| 1.5Gi
-1.0	  | 2.0Gi
-1.25	| 2.5Gi
-1.5		| 3.0Gi
-1.75	| 3.5Gi
-2.0		| 4.0Gi
-
 
 # Starting services locally without Docker
 
@@ -404,12 +336,12 @@ Quick local test just to verify that the jar files can be run (the routing will 
 
 ```sh
  mvn clean package -DskipTests -Denv=cloud
-java -jar spring-petclinic-config-server\target\aca-spring-petclinic-config-server-2.6.13.jar --server.port=8888
-java -jar spring-petclinic-admin-server\target\aca-spring-petclinic-admin-server-2.6.13.jar --server.port=9090
-java -jar spring-petclinic-visits-service\target\aca-spring-petclinic-visits-service-2.6.13.jar --server.port=8082 # --spring.profiles.active=docker
-java -jar spring-petclinic-vets-service\target\aca-spring-petclinic-vets-service-2.6.13.jar --server.port=8083
-java -jar spring-petclinic-customers-service\target\aca-spring-petclinic-customers-service-2.6.13.jar --server.port=8084
-java -jar spring-petclinic-api-gateway\target\aca-spring-petclinic-api-gateway-2.6.13.jar --server.port=8085
+java -jar spring-petclinic-config-server\target\aks-spring-petclinic-config-server-2.6.13.jar --server.port=8888
+java -jar spring-petclinic-admin-server\target\aks-spring-petclinic-admin-server-2.6.13.jar --server.port=9090
+java -jar spring-petclinic-visits-service\target\aks-spring-petclinic-visits-service-2.6.13.jar --server.port=8082 # --spring.profiles.active=docker
+java -jar spring-petclinic-vets-service\target\aks-spring-petclinic-vets-service-2.6.13.jar --server.port=8083
+java -jar spring-petclinic-customers-service\target\aks-spring-petclinic-customers-service-2.6.13.jar --server.port=8084
+java -jar spring-petclinic-api-gateway\target\aks-spring-petclinic-api-gateway-2.6.13.jar --server.port=8085
 ```
 
 Note: tip to verify the dependencies
@@ -443,16 +375,16 @@ access_token=$(az account get-access-token --query accessToken -o tsv)
 
 refresh_token=$(curl https://${{ env.REGISTRY_URL }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.REGISTRY_URL }}&access_token=$access_token" | jq -r .refresh_token)
 
-refresh_token=$(curl https://acrpetcliaca.azurecr.io/oauth2/exchange -v -d "grant_type=access_token&service=acrpetcliaca.azurecr.io&access_token=$access_token" | jq -r .refresh_token)
+refresh_token=$(curl https://acrpetcliaks.azurecr.io/oauth2/exchange -v -d "grant_type=access_token&service=acrpetcliaks.azurecr.io&access_token=$access_token" | jq -r .refresh_token)
 
 # docker login ${{ env.REGISTRY_URL }} -u 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$refresh_token"
 
 docker build --build-arg --no-cache -t "petclinic-admin-server" -f "./docker/petclinic-admin-server/Dockerfile" .
-docker tag petclinic-admin-server acrpetcliaca.azurecr.io/petclinic/petclinic-admin-server
-az acr login --name acrpetcliaca.azurecr.io -u $acr_usr -p $acr_pwd
-az acr build --registry acrpetcliaca -g  rg-iac-aca-petclinic-mic-srv  -t petclinic/adm-test:test --file "./docker/petclinic-admin-server/Dockerfile" .
-docker push acrpetcliaca.azurecr.io/petclinic/petclinic-admin-server
-docker pull acrpetcliaca.azurecr.io/petclinic/petclinic-admin-server
+docker tag petclinic-admin-server acrpetcliaks.azurecr.io/petclinic/petclinic-admin-server
+az acr login --name acrpetcliaks.azurecr.io -u $acr_usr -p $acr_pwd
+az acr build --registry acrpetcliaks -g  rg-iac-aks-petclinic-mic-srv  -t petclinic/adm-test:test --file "./docker/petclinic-admin-server/Dockerfile" .
+docker push acrpetcliaks.azurecr.io/petclinic/petclinic-admin-server
+docker pull acrpetcliaks.azurecr.io/petclinic/petclinic-admin-server
 docker image ls
 ```
 
@@ -474,9 +406,9 @@ You can then access petclinic here: http://localhost:8080/
 
 ![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
 
-The UI code is located at spring-petclinic-api-gateway\src\main\resources\static\scripts.
+The UI code is located at spring-petclinic-api-gateway\src\main\resources\static\scripts
 
-The Spring Zuul(Netflix Intelligent Routing) config at https://github.com/ezYakaEagle442/aca-cfg-srv/blob/main/api-gateway.yml has been deprecated and replaced by the Spring Cloud Gateway.
+The Spring Zuul(Netflix Intelligent Routing) config at https://github.com/ezYakaEagle442/aks-cfg-srv/blob/main/api-gateway.yml has been deprecated and replaced by the Spring Cloud Gateway.
 
 The Spring Cloud Gateway routing is configured at [spring-petclinic-api-gateway/src/main/resources/application.yml](spring-petclinic-api-gateway/src/main/resources/application.yml)
 
@@ -489,7 +421,14 @@ see :
 - [https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolutionhttps://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
 - [https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/)
 
-**Specifically required when deploying the Petclinic App to ACA**  see [ACA Internal routing section](#aca-internal-routing)
+
+The OpenShift routing is configured in the Ingress resources at :
+- spring-petclinic-api-gateway\k8s\petclinic-ui-ingress.yaml
+- spring-petclinic-admin-server\k8s\petclinic-admin-server-ingress.yaml
+- spring-petclinic-config-server\k8s\petclinic-config-server-ingress.yaml
+- spring-petclinic-customers-service\k8s\petclinic-customer-ingress.yaml
+- spring-petclinic-vets-service\k8s\petclinic-vet-ingress.yaml
+- spring-petclinic-visits-service\k8s\petclinic-visits-ingress.yaml
 
 The Git repo URL used by Spring config is set in spring-petclinic-config-server/src/main/resources/application.yml
 
@@ -534,8 +473,8 @@ Dependency for Connector/J, the MySQL JDBC driver is already included in the `po
 
 ### Set MySql connection String
 
-You need to reconfigure the MySQL connection string with your own settings (you can get it from the Azure portal / petcliaca-mysql-server / Connection strings / JDBC):
-In the [spring-petclinic-microservices-config/blob/main/application.yml](https://github.com/ezYakaEagle442/aca-cfg-srv/blob/main/application.yml) :
+You need to reconfigure the MySQL connection string with your own settings (you can get it from the Azure portal / petcliaks-mysql-server / Connection strings / JDBC):
+In the [spring-petclinic-microservices-config/blob/main/application.yml](https://github.com/ezYakaEagle442/aks-cfg-srv/blob/main/application.yml) :
 ```
 spring:
   config:
@@ -544,24 +483,10 @@ spring:
   datasource:
     schema: classpath*:db/mysql/schema.sql
     data: classpath*:db/mysql/data.sql
-
-    # url: jdbc:mysql://localhost:3306/petclinic?useSSL=false
-    # url: jdbc:mysql://petclinic.mysql.database.azure.com:3306/petclinic?useSSL=true
-    # https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-using-ssl.html
-    # url: jdbc:mysql://petclinic.mysql.database.azure.com:3306/petclinic?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&verifyServerCertificate=true
-    # https://learn.spring.io/spring-boot/docs/2.7.3/reference/html/application-properties.html#appendix.application-properties.data
-    
-    # spring.datasource.password will be automatically injected from KV secrets SPRING-DATASOURCE-PASSWORD
-    # url: jdbc:mysql://${SPRING-DATASOURCE-URL}:3306/${MYSQL-DATABASE-NAME}?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&verifyServerCertificate=true    
-    # username: ${SPRING-DATASOURCE-USERNAME}
-    # password: ${SPRING-DATASOURCE-PASSWORD}  
-    initialization-mode: NEVER # ALWAYS
-    # https://javabydeveloper.com/spring-boot-loading-initial-data/
-    platform: mysql
-    #driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://petcliaks.mysql.database.azure.com:3306/petclinic?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&verifyServerCertificate=true
 ```
 In fact the spring.datasource.password will be automatically injected from KV secrets SPRING-DATASOURCE-PASSWORD using the config below in each micro-service :
-example for Customers-Service [spring-petclinic-customers-service/src/main/resources/application.yml](spring-petclinic-customers-service/src/main/resources/application.yml)
+example for Customers-Service [spring-petclinic-customers-service/src/main/resources/application.yml](spring-petclinic-customers-service/src/main/resources/application-azure.yml#L32)
 
 ```
 spring:
@@ -609,10 +534,10 @@ Read the Application Insights docs :
 - [https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent)
 - [https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-spring-boot#spring-boot-via-docker-entry-point](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-spring-boot#spring-boot-via-docker-entry-point)
 - [https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#set-the-application-insights-connection-string](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#set-the-application-insights-connection-string)
-- [https://techcommunity.microsoft.com/t5/apps-on-azure-blog/observability-with-azure-container-apps/ba-p/3627909](https://techcommunity.microsoft.com/t5/apps-on-azure-blog/observability-with-azure-container-apps/ba-p/3627909)
 - [https://techcommunity.microsoft.com/t5/apps-on-azure-blog/bg-p/AppsonAzureBlog](https://techcommunity.microsoft.com/t5/apps-on-azure-blog/bg-p/AppsonAzureBlog)
 - [https://github.com/microsoft/ApplicationInsights-Java](https://github.com/microsoft/ApplicationInsights-Java)
 - [https://github.com/microsoft/AzureMonitorCommunity](https://github.com/microsoft/AzureMonitorCommunity)
+- [https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-log-query](https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-log-query)
 
 The config files are located in each micro-service at src/main/resources/applicationinsights.json
 The Java agent is downloaded in the App container in /tmp/app, you can have a look at a Docker file, example at [./docker/petclinic-customers-service/Dockerfile](./docker/petclinic-customers-service/Dockerfile)
@@ -626,16 +551,13 @@ You can specify your own configuration file path by using one of these two optio
 In our configuration, in the containers the applicationinsights.json is located at BOOT-INF/classes/applicationinsights.json
 so we must set APPLICATIONINSIGHTS_CONFIGURATION_FILE=BOOT-INF/classes/applicationinsights.json
 
-The Application Insights [Connection String](./iac/bicep/aca/main.bicep#L234) [set in the Apps](./iac/bicep/aca/aca.bicep#L736) is retrieved from the [AppInsights Resource](./iac/bicep/aca/pre-req.bicep#L126) created at the pre-req provisionning stage.
-
-
 ### Use the Petclinic application and make a few REST API calls
 
 Open the Petclinic application and try out a few tasks - view pet owners and their pets, 
 vets, and schedule pet visits:
 
 ```bash
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/
 ```
 
 You can also use your browser or  `curl` the REST API exposed by the Petclinic application. 
@@ -643,24 +565,22 @@ The admin REST API allows you to create/update/remove items in Pet Owners, Pets,
 You can run the following curl commands:
 
 URL ex:
-- https://aca-petcliaca-api-gateway.bluepebble-754d2322.francecentral.azurecontainerapps.io/
-- http://aca-petcliaca-customers-service--0uvglgf.bluepebble-754d2322.francecentral.azurecontainerapps.io/owners/3/pets/4
-- https://aca-petcliaca-visits-service--l1fs5w2.bluepebble-754d2322.francecentral.azurecontainerapps.io/owners/6/pets/8/visits
-- https://aca-petcliaca-vets-service--mxki9ff.bluepebble-754d2322.francecentral.azurecontainerapps.io/vets
+- https://aks-petcliaks-api-gateway.francecentral.<AKS_DNS_SUFFIX>/
+- http://aks-petcliaks-customers-service.francecentral.<AKS_DNS_SUFFIX>/owners/3/pets/4
+- https://aks-petcliaks-visits-service.francecentral.<AKS_DNS_SUFFIX>/owners/6/pets/8/visits
+- https://aks-petcliaks-vets-service.francecentral.<AKS_DNS_SUFFIX>/vets
 
-<CONTAINER_APP_ENV_DNS_SUFFIX>=<GUID>.<CONTAINER_APP_ENV_DNS_SUFFIX>
-ex: mxki9ff.bluepebble-754d2322.francecentral.azurecontainerapps.io
 
 ```bash
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/owners
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/owners/4
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/owners/ 
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/petTypes
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/owners/3/pets/4
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/owners/6/pets/8/
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/vet/vets
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/visit/owners/6/pets/8/visits
-curl -X GET https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/visit/owners/6/pets/8/visits
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/4
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/ 
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/petTypes
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/3/pets/4
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/6/pets/8/
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/vet/vets
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/visit/owners/6/pets/8/visits
+curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/visit/owners/6/pets/8/visits
 ```
 
 ### Open Actuator endpoints for API Gateway and Customers Service apps
@@ -672,15 +592,15 @@ Actuator endpoints let you monitor and interact with your application. By defaul
 You can try them out by opening the following app actuator endpoints in a browser:
 
 ```bash
-https://aca-petcliaca-api-gateway.bluepebble-754d2322.francecentral.azurecontainerapps.io/
+https://aks-petcliaks-api-gateway.francecentral.<AKS_DNS_SUFFIX>/
 
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/manage/
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/manage/env
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/manage/configprops
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/manage/
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/manage/env
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/manage/configprops
 
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/manage
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/manage/env
-open https://aca-petcliaca-api-gateway-<CONTAINER_APP_ENV_DNS_SUFFIX>/api/customer/manage/configprops
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/manage
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/manage/env
+open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/manage/configprops
 
 ### Monitor Petclinic logs and metrics in Azure Log Analytics
 
@@ -695,294 +615,40 @@ az monitor log-analytics query \
 
 az monitor log-analytics query \
 --workspace $LOG_ANALYTICS_WORKSPACE_CLIENT_ID \
---analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s contains 'api' | where RevisionName_s == 'aca-petcliaca-api-gateway--2nstmem' | where TimeGenerated > ago(5m) | where Log_s  contains 'api' | project Time=TimeGenerated, Message=Log_s | sort by Time desc" \
---out table > aca-petcliaca-api-gateway--2nstmem_ROUTING_ERROR500.log
+--analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s contains 'api' | where RevisionName_s == 'aks-petcliaks-api-gateway--2nstmem' | where TimeGenerated > ago(5m) | where Log_s  contains 'api' | project Time=TimeGenerated, Message=Log_s | sort by Time desc" \
+--out table > aks-petcliaks-api-gateway--2nstmem_ROUTING_ERROR500.log
 
 
 ```
 
 ### Kusto Query with Log Analytics
 
-Open the Log Analytics that you created - you can find the Log Analytics in the same Resource Group where you created an Azure Container Apps service instance.
+Open the Log Analytics that you created - you can find the Log Analytics in the same Resource Group where you created the AKS cluster.
 
-In the Log Analyics page, selects Logs blade and run any of the sample queries supplied below for Azure Container Apps.
+In the Log Analyics page, selects Logs blade and run any of the sample queries supplied below for AKS.
 
-Type and run the following Kusto query to see all the logs from the ACA Service :
+Type and run the following Kusto query to see all the logs from the AKS Service :
 
 
 ```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains "success"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains "Timeout"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where ContainerAppName_s == 'aca-petcliaca-api-gateway'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains'nodes are available'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'Failed to pull image'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'500 Internal Server'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'404'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'401'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'Unauthorized'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'200'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'token'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains'pod didn't trigger scale-up: 1 max node group size reached'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains'scale'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'pod'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where TimeGenerated > ago (1h)
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| sort by Time asc
-| take 100
-| limit 500
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'Insufficient cpu'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-| summarize count_per_app = count() by AppName
-| sort by count_per_app desc 
-| render piechart
-
-ContainerAppSystemLogs_CL
-| where Log_s contains'Insufficient memory'
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| take 100
-| limit 500
-| sort by Time desc
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains "no such"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| sort by Time desc
-| summarize count_per_app = count() by AppName
-| sort by count_per_app desc 
-| render piechart
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains "probe failed"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s
-| sort by Time desc
-| summarize count_per_app = count() by AppName
-| sort by count_per_app desc 
-| render piechart
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where RevisionName_s == "aca-petcliaca-admin-server--l2tcxpe"
-| where Log_s contains "no such"
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| sort by Time desc
-| take 100
-| limit 500
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where RevisionName_s == "aca-petcliaca-admin-server--l2tcxpe"
-| where Log_s contains "failed"
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppSystemLogs_CL
-| where ContainerAppName_s == 'aca-petcliaca-api-gateway'
-| where Type_s == 'Warning'
-| project TimeGenerated, Level, Type=Type, LogType=Type_s, AppName=ContainerAppName_s, Message=Log_s
-| sort by TimeGenerated
-
-ContainerAppSystemLogs_CL
-| where ContainerAppName_s == 'aca-petcliaca-api-gateway'
-| where Type_s == 'Normal'
-| project TimeGenerated, Level, Type=Type, LogType=Type_s, AppName=ContainerAppName_s, Message=Log_s
-| sort by TimeGenerated
-```
-
-```sql
-ContainerAppSystemLogs_CL
-| where Log_s contains "error" or Log_s contains "exception"
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| summarize count_per_app = count() by AppName,Revision
-| sort by count_per_app desc 
-| render piechart
-
-ContainerAppSystemLogs_CL
-| where Log_s contains "error" or Log_s contains "exception" and TimeGenerated > ago (10min)
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains "the object has been modified; please apply your changes to the latest version and try again" and TimeGenerated > ago (10min)
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| sort by Time desc
-
-ContainerAppSystemLogs_CL
-| where Log_s contains "Operation cannot be fulfilled on apps.k8se.microsoft.com" and TimeGenerated > ago (10min)
-| project Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s, Revision=RevisionName_s, Message=Log_s
-| sort by Time desc
-
-```
-
-
-
-Type and run the following Kusto query to see all in the inbound calls into Azure Container Apps:
-```sql
-ContainerAppConsoleLogs_CL
-| where Log_s contains "endpoints"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-```
-
-Type and run the following Kusto query to see application logs:
-```sql
-ContainerAppConsoleLogs_CL
-| where Log_s contains "start"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "Application Insights"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "applicationinsights-agent"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "Starting service"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "started on port"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "Connection refused"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "java.net.UnknownHostException"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
-ContainerAppConsoleLogs_CL
-| where Log_s contains "nested exception"
-| project Message=Log_s, Time=TimeGenerated, EnvName=EnvironmentName_s, AppName=ContainerAppName_s ,Revision=RevisionName_s
-| sort by Time desc
-| take 100
-| limit 500
-
+// https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-log-query
+let startTimestamp = ago(1h);
+KubePodInventory
+| where TimeGenerated > startTimestamp
+| project ContainerID, PodName=Name, Namespace
+| where PodName contains "name" and Namespace startswith "namespace"
+| distinct ContainerID, PodName
+| join
+(
+    ContainerLog
+    | where TimeGenerated > startTimestamp
+)
+on ContainerID
+// at this point before the next pipe, columns from both tables are available to be "projected". Due to both
+// tables having a "Name" column, we assign an alias as PodName to one column which we actually want
+| project TimeGenerated, PodName, LogEntry, LogEntrySource
+| summarize by TimeGenerated, LogEntry
+| order by TimeGenerated desc
 ```
 
 
@@ -1063,156 +729,6 @@ check with : mvn dependency:tree
 mvn dependency:tree | grep spring-boot-starter-web
 ```
 
-### ACA internal routing
-
-${} ${VETS_SVC_URL} ${}  , ${VISITS_SVC_URL} , ${CUSTOMERS_SVC_URL} Environment variables have been configured in :
-
--  [spring-petclinic-api-gateway/src/main/resources/application.yml](spring-petclinic-api-gateway/src/main/resources/application.yml)
-
-original code :
-```sh
-spring:
-  cloud:
-    gateway:
-      discovery:
-        # make sure a DiscoveryClient implementation (such as Netflix Eureka) is on the classpath and enabled
-        locator: # https://cloud.spring.io/spring-cloud-gateway/reference/html/#the-discoveryclient-route-definition-locator
-          enabled: true #  to configure Spring Cloud Gateway to use the Spring Cloud Service Registry to discover the available microservices.    
-      routes:
-        - id: vets-service
-          uri: http://vets-service
-          predicates:
-            - Path=/api/vet/**
-          filters:
-            - StripPrefix=2
-        - id: visits-service
-          uri: http://visits-service
-          predicates:
-            - Path=/api/visit/**
-          filters:
-            - StripPrefix=2
-        - id: customers-service
-          uri: http://customers-service
-          predicates:
-            - Path=/api/customer/**
-          filters:
-            - StripPrefix=2
-```
-
-code update required to deploy Petclinic to ACA :
-```sh
-spring:      
-  cloud:
-    gateway:
-      routes:
-        - id: vets-service
-          uri: https://${VETS_SVC_URL}
-          predicates:
-            - Path=/api/vet/**
-          filters:
-            - StripPrefix=2
-        - id: visits-service
-          uri: https://${VISITS_SVC_URL}
-          predicates:
-            - Path=/api/visit/**
-          filters:
-            - StripPrefix=2
-        - id: customers-service
-          uri: https://${CUSTOMERS_SVC_URL}
-          predicates:
-            - Path=/api/customer/**
-          filters:
-            - StripPrefix=2
-```
-
-- [spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/CustomersServiceClient.java](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/CustomersServiceClient.java)
-
-
-original code :
-```sh
-public Mono<OwnerDetails> getOwner(final int ownerId) {
-    return webClientBuilder.build().get()
-        .uri("http://customers-service/owners/{ownerId}", ownerId)
-        .retrieve()
-        .bodyToMono(OwnerDetails.class);
-}
-```
-
-code update required to deploy Petclinic to ACA :
-```sh
-    //String CUSTOMERS_SVC_URL = environment.getProperty("customers.svc.url");
-    String internalK8Ssvc2svcRoute = "http://" + System.getenv("CUSTOMERS_SVC_APP_NAME") + ".internal." + System.getenv("CONTAINER_APP_ENV_DNS_SUFFIX");
-
-    public Mono<OwnerDetails> getOwner(final int ownerId) {
-        return webClientBuilder.build().get()
-            .uri(internalK8Ssvc2svcRoute + "/owners/{ownerId}", ownerId)
-            .retrieve()
-            .bodyToMono(OwnerDetails.class);
-    }
-```
-
-- [spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/VisitsServiceClient.java](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/VisitsServiceClient.java)
-
-
-original code :
-```sh
-private String hostname = "http://visits-service/";
-```
-
-code update required to deploy Petclinic to ACA :
-```sh
-   //String VISITS_SVC_URL = environment.getProperty("visits.svc.url");
-    String internalK8Ssvc2svcRoute = "http://" + System.getenv("VISITS_SVC_APP_NAME") + ".internal." + System.getenv("CONTAINER_APP_ENV_DNS_SUFFIX");
-
-    private String hostname = internalK8Ssvc2svcRoute ; // "https://${VISITS_SVC_URL}/";
-
-    private final WebClient.Builder webClientBuilder;
-    public Mono<Visits> getVisitsForPets(final List<Integer> petIds) {
-        return webClientBuilder.build()
-            .get()
-            .uri(hostname + "/pets/visits?petId={petId}", joinIds(petIds))
-            .retrieve()
-            .bodyToMono(Visits.class);
-    }
-
-```
-
-Support of `http://<service-name>` as a route for service to service calls between the apps without using dapr is in ACA Roadmap
-
-see :
-- [https://github.com/ezYakaEagle442/aca-java-petclinic-mic-srv/issues/1](https://github.com/ezYakaEagle442/aca-java-petclinic-mic-srv/issues/1)
-- [https://github.com/microsoft/azure-container-apps/issues/473](https://github.com/microsoft/azure-container-apps/issues/473)
-    
-An alternate way of achieving this without getting the App FQDN is to use the internal Load Balancer:
-
-An environment variable: **CONTAINER_APP_ENV_DNS_SUFFIX** is auto-injected for every container running on the environment which describes the environments default domain.
-
-Note there are other vars auto-injected  like:
-KUBERNETES_SERVICE_HOST:10.0.0.1
-KUBERNETES_PORT:tcp://10.0.0.1:443
-
-This environment variable can help formulate the Internal FQDN of the app. e.g.:
-- https://<containerapp-name>.internal.<CONTAINER_APP_ENV_DNS_SUFFIX>
-- http://<containerapp-name>.internal.<CONTAINER_APP_ENV_DNS_SUFFIX>
-
-ex: https://myinternalapp.internal.icyforest-6dcfec24.regionname.azurecontainerapps.io
-
-```sh
-find / -name "*kube*"
-cat /var/run/secrets/kubernetes.io/serviceaccount/namespace
-```
-```console
-k8se-apps
-```
-
-```sh
-find / -name "*.io*"
-/run/secrets/kubernetes.io
-
-curl -k  https://kubernetes.default/api/v1/namespaces/k8se-apps/pods -H 'Accept: application/json' -H "Authorization: Bearer $token_secret_value"
-curl -k  https://10.0.0.1/api/v1/namespaces/k8se-apps/pods -H 'Accept: application/json' -H "Authorization: Bearer $token_secret_value"
-```
-
 About How to use Env. variable in Spring Boot, see :
 - [https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config)
 - [https://www.baeldung.com/spring-boot-properties-env-variables](https://www.baeldung.com/spring-boot-properties-env-variables)
@@ -1228,7 +744,7 @@ KeyVault integration runs easily when :
 - You use SYSTEM-Assigned MI, because then in the Config use by the Config-server you do NOT need to specify the client-id
 - When you use 1 & only 1 USER-Assigned MI for ALL your Apps/Micro-services, this is not a good practice from a security perspective as it is safer to assign 1 Identity to each App
 
-When you use USER-Assigned MI, assigning 1 Identity to each App , see one [App in Bicep](iac/bicep/modules/aca/apps/aca-svc.bicep#L141).
+When you use USER-Assigned MI, assigning 1 Identity to each App , see one [App in Bicep](iac/bicep/modules/aks/apps/aks-svc.bicep#L141).
 In the Config used by the Config-server if you declare as many property-sources as the number of micro-services setting the client-id with the App Id (using Env. Var. set in the GH Workflow)  :
 
       keyvault:
@@ -1286,19 +802,6 @@ spring:
   profiles:
     active: mysql    
 ```
-
-
-
-
-The OpenShift routing is configured in the Ingress resources at :
-- spring-petclinic-api-gateway\k8s\petclinic-ui-ingress.yaml
-- spring-petclinic-admin-server\k8s\petclinic-admin-server-ingress.yaml
-- spring-petclinic-config-server\k8s\petclinic-config-server-ingress.yaml
-- spring-petclinic-customers-service\k8s\petclinic-customer-ingress.yaml
-- spring-petclinic-vets-service\k8s\petclinic-vet-ingress.yaml
-- spring-petclinic-visits-service\k8s\petclinic-visits-ingress.yaml
-
-The Git repo URL used by Spring config is set in spring-petclinic-config-server\src\main\resources\application.yml
 
 
 
