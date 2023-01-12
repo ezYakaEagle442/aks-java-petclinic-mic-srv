@@ -16,8 +16,9 @@ env:
   AKS_SUBNET_CIDR: 172.16.1.0/24
   AKS_SUBNET_NAME: snet-aks
 
-  START_IP_ADRESS: 172.16.1.0
-  END_IP_ADRESS: 172.16.1.255
+  START_IP_ADDRESS: 172.16.1.0
+  END_IP_ADDRESS: 172.16.1.255
+  CLIENT_IP_ADDRESS: 42.42.42.42 #  not used
 
   MYSQL_SERVER_NAME: petcliaks
   MYSQL_DB_NAME: petclinic
@@ -46,12 +47,16 @@ env:
   # the specific secret value. For example, do not use a blob of JSON, XML, or YAML (or similar) to encapsulate a secret value, 
   # as this significantly reduces the probability the secrets will be properly redacted. Instead, create individual secrets for each sensitive value.
 
-  MYSQL_ADM_PWD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+  SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
 
   SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: ${{ secrets.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}
   SPRING_CLOUD_AZURE_TENANT_ID: ${{ secrets.SPRING_CLOUD_AZURE_TENANT_ID }}
   
   VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+
+  SSH_PRV_KEY: ${{ secrets.SSH_PRV_KEY }}
+  SSH_PUB_KEY: ${{ secrets.SSH_PUB_KEY }}
+  SSH_KEY: aksadm
 
   # https://learn.microsoft.com/en-us/azure/key-vault/secrets/secrets-best-practices#secrets-rotation
   # Because secrets are sensitive to leakage or exposure, it's important to rotate them often, at least every 60 days. 
@@ -100,19 +105,22 @@ jobs:
           echo "*                                                                                      *"
           echo "****************************************************************************************"
 
-          az deployment group create --name asa-petclinic-apps -f iac/bicep/main.bicep -g ${{ env.RG_APP }} \
+          az deployment group create --name aks-petclinic-main -f iac/bicep/main.bicep -g ${{ env.RG_APP }} \
             -p appName=${{ env.APP_NAME }} \
             -p location=${{ env.LOCATION }} \
             -p kvName=${{ env.KV_NAME }} \
             -p kvRGName=${{ env.RG_KV }} \
             -p publicNetworkAccess=enabled \
             -p kvSkuName=standard \
-            -p deployToVNet=${{ env.DEPLOY_TO_VNET }} \
-            -p clientIPAddress="10.0.0.0" \
-            -p startIpAddress="10.0.0.0" \
-            -p endIpAddress="10.0.0.255" \
+            -p startIpAddress=${{ env.START_IP_ADDRESS }} \
+            -p endIpAddress=${{ env.END_IP_ADDRESS }} \
+            -p clientIPAddress=${{ env.CLIENT_IP_ADDRESS }} \
             -p mySQLServerName=${{ env.MYSQL_SERVER_NAME }} \
-            -p mySQLadministratorLogin=${{ env.MYSQL_ADM_USR }}
+            -p mySQLadministratorLogin=${{ env.MYSQL_ADM_USR }} \
+            -p mySQLadministratorLoginPassword=${{ env.SPRING_DATASOURCE_PASSWORD }} \
+            -p acrName=${{ env.ACR_NAME }} \
+            -p sshPublicKey=${{ env.SSH_PUB_KEY }} \
+            -p deployToVNet=${{ env.DEPLOY_TO_VNET }}            
  
       shell: bash
 
@@ -135,9 +143,9 @@ jobs:
               -p vNetRules=[${{ env.xxx }}] \
               -p ipRules=[${{ env.xxx }}] \
               -p setFwRuleClient=false \
-              -p clientIPAddress="10.0.0.0" \
-              -p startIpAddress=${{ env.START_IP_ADRESS }} \
-              -p endIpAddress=${{ env.END_IP_ADRESS }}
+              -p startIpAddress=${{ env.START_IP_ADDRESS }} \
+              -p endIpAddress=${{ env.END_IP_ADDRESS }} \
+              -p clientIPAddress=${{ env.CLIENT_IP_ADDRESS }}
 
       shell: bash
 
