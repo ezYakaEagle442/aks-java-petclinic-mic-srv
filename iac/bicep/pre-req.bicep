@@ -59,6 +59,18 @@ param kvRGName string
 @description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
 param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
 
+@description('The Storage Account name')
+param azureStorageName string = 'stasa${appName}'
+
+@description('The BLOB Storage service name')
+param azureBlobServiceName string = 'default'
+
+@description('The BLOB Storage Container name')
+param blobContainerName string = '${appName}-blob'
+
+@description('The GitHub Runner Service Principal Id')
+param ghRunnerSpnPrincipalId string
+
 param dnsZone string = 'cloudapp.azure.com'
 param appDnsZone string = 'kissmyapp.${location}.${dnsZone}'
 param customDns string = 'javaonazurehandsonlabs.com'
@@ -186,6 +198,21 @@ module mysql './modules/mysql/mysql.bicep' = {
     startIpAddress: startIpAddress
     endIpAddress: endIpAddress
   }
+}
+
+module storage './modules/aks/storage.bicep' = {
+  name: 'storage'
+  params: {
+    location: location
+    appName: appName
+    blobContainerName: blobContainerName
+    azureBlobServiceName: azureBlobServiceName
+    azureStorageName: azureStorageName
+    ghRunnerSpnPrincipalId: ghRunnerSpnPrincipalId
+  }
+  dependsOn: [
+    identities
+  ] 
 }
 
 /*

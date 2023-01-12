@@ -18,7 +18,7 @@ param clusterName string = 'aks-${appName}'
 param tenantId string = subscription().tenantId
 
 @description('The Storage Account name')
-param azureStorageName string = 'stasa${appName}'
+param azureStorageName string = 'staks${appName}'
 
 @description('The BLOB Storage service name')
 param azureBlobServiceName string = 'default' // '${appName}-blob-svc'
@@ -56,12 +56,14 @@ resource storageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-
 output storageIdentityId string = storageIdentity.id
 output storageIdentityPrincipalId string = storageIdentity.properties.principalId
 
+/*
 resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' existing = {
   name: clusterName
 }
+*/
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?pivots=deployment-language-bicep
-resource azurestorage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
+resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: azureStorageName
   location: location
   tags: tags
@@ -108,20 +110,16 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
       ipRules: [
         {
           action: 'Allow'
-          value: azureSpringApps.properties.networkProfile.outboundIPs.publicIPs[0] // ASA
-        }
-        {
-          action: 'Allow'
-          value: azureSpringApps.properties.networkProfile.outboundIPs.publicIPs[1] // ASA
-        }        
+          value: aks.properties.networkProfile.loadBalancerProfile.outboundIPs.publicIPs[0]
+        }       
       ]
-      */
       resourceAccessRules: [
         {
           resourceId: aks.id
           tenantId: tenantId
         }
       ]
+      */
       /*
       virtualNetworkRules: [
         {
@@ -155,7 +153,7 @@ output azurestorageHttpEndpoint string = azurestorage.properties.primaryEndpoint
 output azurestorageFileEndpoint string = azurestorage.properties.primaryEndpoints.file
 
 
-resource azureblobservice 'Microsoft.Storage/storageAccounts/blobServices@2022-05-01' = {
+resource azureblobservice 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
   name: azureBlobServiceName
   parent: azurestorage
   properties: {
@@ -187,7 +185,7 @@ resource azureblobservice 'Microsoft.Storage/storageAccounts/blobServices@2022-0
 }
 output azureblobserviceId string = azureblobservice.id
 
-resource blobcontainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {
+resource blobcontainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
   name: blobContainerName
   parent: azureblobservice
   properties: {

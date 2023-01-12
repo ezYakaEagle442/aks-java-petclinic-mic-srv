@@ -40,8 +40,9 @@ env:
 
   # ==== Secrets ====
   # /!\ In Bicep : RBAC ==> GH Runner SPN must have "Storage Blob Data Contributor" Role on the storage Account"
-  # /!\ The SPN Id is NOT the App Registration Object ID, but the Enterprise Registration Object ID"
-  SPN_ID: ${{ secrets.SPN_ID }} # A Service Principal required for GitHub Action Runner
+  # /!\ The Id is NOT the App Registration Object ID, but the Enterprise Registration Object ID"
+  SPN_APP_ID: ${{ secrets.SPN_APP_ID }} # This the App clientID
+  SPN_OBJECT_ID: ${{ secrets.SPN_OBJECT_ID }}  # A Service Principal required for GitHub Action Runner
 
   # https://github.com/Azure/actions-workflow-samples/blob/master/assets/create-secrets-for-GitHub-workflows.md#consume-secrets-in-your-workflow
   # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-secrets
@@ -203,7 +204,7 @@ jobs:
             -p location=${{ env.LOCATION }} \
             -p kvName=${{ env.KV_NAME }} \
             -p kvRGName=${{ env.RG_KV }} \
-            -p ghRunnerSpnPrincipalId=${{ env.SPN_ID }} \
+            -p ghRunnerSpnPrincipalId=${{ env.SPN_OBJECT_ID }} \
             -p vnetName=${{ env.VNET_NAME }} \
             -p vnetCidr=${{ env.VNET_CIDR }} \
             -p aksSubnetCidr=${{ env.AKS_SUBNET_CIDR }} \

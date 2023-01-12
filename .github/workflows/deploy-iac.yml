@@ -88,7 +88,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
 
     - name: Checkout
-      uses: actions/checkout@v3.3.0 # https://github.com/actions/checkout
+      uses: actions/checkout@v3 # https://github.com/actions/checkout
 
     - name: Create AKS cluster
       run: |
@@ -153,6 +153,7 @@ jobs:
       
   call-db-init-workflow:
     name: Load Data to DB
+    needs: deploy-iac
     uses: ./.github/workflows/sql-load.yml
     secrets: inherit
 
@@ -235,7 +236,6 @@ jobs:
     secrets: inherit
 
   Logout:
-    name: Trigger UI Deployment
     needs: call-deploy-ui-workflow
     runs-on: ubuntu-latest
     steps:    
