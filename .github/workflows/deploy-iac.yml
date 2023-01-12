@@ -9,6 +9,16 @@ env:
   RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
+  ACR_NAME: acrpetcliaks
+
+  VNET_NAME: vnet-aks
+  VNET_CIDR: 172.16.0.0/16
+  AKS_SUBNET_CIDR: 172.16.1.0/24
+  AKS_SUBNET_NAME: snet-aks
+
+  START_IP_ADRESS: 172.16.1.0
+  END_IP_ADRESS: 172.16.1.255
+
   MYSQL_SERVER_NAME: petcliaks
   MYSQL_DB_NAME: petclinic
   MYSQL_ADM_USR: mys_adm
@@ -21,7 +31,7 @@ env:
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
   SET_KV_ACCESS_POLICIES: false # let it to false
 
-  GIT_CFG_URI: https://github.com/ezYakaEagle442/aks-cfg-srv
+  # GIT_CFG_URI: https://github.com/ezYakaEagle442/aks-cfg-srv
 
   VM_ADMIN_USER_NAME: adm_aks
   
@@ -67,7 +77,7 @@ jobs:
     uses: ./.github/workflows/deploy-iac-pre-req.yml
     secrets: inherit
 
-  deploy-iac-aks:
+  deploy-iac:
     needs: call-pre-req-workflow
     runs-on: ubuntu-latest
             
@@ -106,6 +116,31 @@ jobs:
  
       shell: bash
 
+    - name: Whitelist AKS OutboundIP
+      run: |
+            az config set extension.use_dynamic_install=yes_without_prompt
+
+            echo "About to Whitelist AKS OutboundIP in KV & MySQL"
+
+            var ipRules = aks.outputs.aksOutboundIPs[0]
+            var vNetRules = [vnet.properties.subnets[0].id]
+
+            az deployment group create --name aks-kv-mysql-set-ip-rules -f iac/bicep/set-ip-rules.bicep -g ${{ env.RG_APP }} \
+              -p appName=${{ env.APP_NAME }} \
+              -p location=${{ env.LOCATION }} \
+              -p kvName=${{ env.KV_NAME }} \
+              -p kvRGName=${{ env.RG_KV }} \
+              -p administratorLogin=${{ env.MYSQL_ADM_USR }} \
+              -p dbServerName=${{ env.MYSQL_SERVER_NAME }} \
+              -p vNetRules=[${{ env.xxx }}] \
+              -p ipRules=[${{ env.xxx }}] \
+              -p setFwRuleClient=false \
+              -p clientIPAddress="10.0.0.0" \
+              -p startIpAddress=${{ env.START_IP_ADRESS }} \
+              -p endIpAddress=${{ env.END_IP_ADRESS }}
+
+      shell: bash
+
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
     # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
@@ -120,3 +155,93 @@ jobs:
     name: Load Data to DB
     uses: ./.github/workflows/sql-load.yml
     secrets: inherit
+
+  call-maven-build-workflow:
+    name: Trigger Maven for backend services
+    needs: deploy-iac
+    uses: ./.github/workflows/maven-build.yml # .github/workflows/maven-build.yml@main ==> references to workflows must be prefixed with format 'owner/repository/' or './' for local workflows
+    secrets: inherit # pass all secrets
+      # envPAT: ${{ secrets.envPAT }} # pass just this secret
+
+  call-maven-build-ui-workflow:
+    name: Trigger Maven for the UI
+    needs: deploy-iac
+    uses: ./.github/workflows/maven-build-ui.yml
+    secrets: inherit
+
+  deploy-apps:
+    needs: [call-maven-build-workflow, call-maven-build-ui-workflow]
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Login with GHA Runner SP
+      uses: azure/login@v1.4.6 # fails https://github.com/marketplace/actions/azure-login
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
+        
+    - name: Checkout
+      uses: actions/checkout@v3 # https://github.com/actions/checkout
+
+    - name: Deploy Backend services
+      run: |
+          # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+          echo "Checking tag_id output ... : " ${{ needs.call-maven-build-workflow.outputs.tag_id }}
+          tag_id=${{ needs.call-maven-build-workflow.outputs.tag_id }}
+          echo "Image Build tag ID:"$tag_id
+
+          imageNameAdminServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.ADMIN_SERVER }}:$tag_id"
+          imageNameDiscoveryServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.DISCOVERY_SERVER }}:$tag_id"
+          imageNameConfigServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CONFIG_SERVER }}:$tag_id"
+         
+          imageNameVetsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VETS_SERVICE }}:$tag_id"
+          imageNameVisitsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id"
+          imageNameCustomersService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CUSTOMERS_SERVICE }}:$tag_id"
+
+          echo "imageNameConfigServer= " $imageNameConfigServer
+          echo "imageNameCustomersService= " $imageNameCustomersService
+          echo "imageNameVetsService= " $imageNameVetsService
+          echo "imageNameVisitsService= " $imageNameVisitsService
+
+          echo "TODO deploy Apps ..."
+
+      shell: bash
+
+    - name: Deploy UI
+      run: |
+          echo "Checking tag_id output for the UI ... : " ${{ needs.call-maven-build-ui-workflow.outputs.tag_id }}
+          tag_id=${{ needs.call-maven-build-ui-workflow.outputs.tag_id }}
+          echo "Image Build tag ID:"$tag_id
+
+          imageNameApiGateway="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.API_GATEWAY }}:$tag_id"
+          echo "imageNameApiGateway= " $imageNameApiGateway
+
+          echo "About to deploy the UI ..." 
+      shell: bash
+
+  call-deploy-apps-svc-workflow:
+    name: Trigger App Deployment for the Backend services
+    needs: deploy-iac
+    uses: ./.github/workflows/deploy-app-svc.yml
+    with:
+      tag_id: xxx
+    secrets: inherit
+
+  call-deploy-ui-workflow:
+    name: Trigger UI Deployment
+    needs: deploy-iac
+    uses: ./.github/workflows/deploy-app-ui.yml
+    with:
+      tag_id: xxx
+    secrets: inherit
+
+  Logout:
+    name: Trigger UI Deployment
+    needs: call-deploy-ui-workflow
+    runs-on: ubuntu-latest
+    steps:    
+    - name: Azure Logout security hardening
+      run: |
+          az logout
+          az cache purge
+          az account clear
+      shell: bash
