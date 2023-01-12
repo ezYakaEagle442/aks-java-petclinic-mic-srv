@@ -6,8 +6,7 @@ param appName string = 'iacdemo${uniqueString(resourceGroup().id)}'
 @description('The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters.')
 param kvName string = 'kv-${appName}'
 
-// see https://github.com/microsoft/azure-container-apps/issues/151
-@description('The KeyVault AccessPolicies for the AKS Identities wrapped into an object. See https://learn.microsoft.com/en-us/azure/aks/use-managed-identity')
+@description('The KeyVault AccessPolicies for the Identities  wrapped into an object.')
 param accessPoliciesObject object
 
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
@@ -32,7 +31,6 @@ resource kvAccessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' 
   }
 }
 
-// see ../../petclinic-apps.bicep
 output kvAccessPolicyObjectIdCustomersService string = kv.properties.accessPolicies[0].objectId
 output kvAccessPolicyAppIdCustomersService string = kv.properties.accessPolicies[0].applicationId
 output kvAccessPolicyPermissionGetsecretCustomersService array = kv.properties.accessPolicies[0].permissions.secrets
