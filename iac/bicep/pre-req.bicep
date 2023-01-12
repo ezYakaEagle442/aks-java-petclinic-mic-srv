@@ -60,7 +60,7 @@ param kvRGName string
 param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
 
 @description('The Storage Account name')
-param azureStorageName string = 'stasa${appName}'
+param azureStorageName string = 'staks${appName}'
 
 @description('The BLOB Storage service name')
 param azureBlobServiceName string = 'default'
