@@ -29,14 +29,16 @@ resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   
     networkRuleSet: {
       defaultAction: 'Deny'
+      /*
       ipRules: [
         {
           action: 'Allow'
-          value: networkRuleSetCidr // []
+          value: [] //  https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks#access-from-aks
         }
       ]
+      */
     }
-  
+    networkRuleBypassOptions: 'AzureServices'
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
   }
