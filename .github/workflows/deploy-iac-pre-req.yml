@@ -153,18 +153,22 @@ jobs:
             -p secretExpiryDate=${{ env.SECRET_EXPIRY_DATE }}
       shell: bash
 
+    # https://learn.microsoft.com/en-us/samples/azure/azure-quickstart-templates/deployment-script-ssh-key-gen/
+    # https://github.com/azure/azure-quickstart-templates/tree/master/quickstarts/microsoft.resources/deployment-script-ssh-key-gen
     - name: Create SSH-PRV-KEY secret in Azure Key Vault
       run: |
           # ERROR: Unable to parse parameter: OPENSSH
-          # woraround using --file: az keyvault secret set --name "SSH-PRV-KEY" --vault-name ${{ env.KV_NAME }} --file .\private.key
-          cat ${{ secrets.SSH_PRV_KEY }} > ${{ env.SSH_KEY }} 
-          az keyvault secret set --name "SSH-PRV-KEY" --vault-name ${{ env.KV_NAME }} --file .\${{ env.SSH_KEY }}
+          # woraround using --file: az keyvault secret set --name "SSH-PRV-KEY" --vault-name ${{ env.KV_NAME }} --file ./private.key
+          cat ${{ secrets.SSH_PRV_KEY }} > ${{ env.SSH_KEY }}
+          ls -al ${{ env.SSH_KEY }}
+          az keyvault secret set --name "SSH-PRV-KEY" --vault-name ${{ env.KV_NAME }} --file ${{ env.SSH_KEY }}
       shell: bash
 
     - name: Create SSH-PUB-KEY secret in Azure Key Vault
       run: |
           cat ${{ secrets.SSH_PUB_KEY }} > ${{ env.SSH_KEY }}.pub
-          az keyvault secret set --name "SSH-PUB-KEY" --vault-name ${{ env.KV_NAME }} --file .\${{ env.SSH_KEY }}.pub
+          ls -al ${{ env.SSH_KEY }}.pub
+          az keyvault secret set --name "SSH-PUB-KEY" --vault-name ${{ env.KV_NAME }} --file ${{ env.SSH_KEY }}.pub
       shell: bash
 
     - name: Disable local IP access to the Key Vault
