@@ -177,6 +177,9 @@ module roleAssignments './modules/aks/roleAssignments.bicep' = {
     vnetName: vnetName
     subnetName: aksSubnetName
   }
+  dependsOn: [
+    ACR
+  ]
 }
 
 module mysql './modules/mysql/mysql.bicep' = {
