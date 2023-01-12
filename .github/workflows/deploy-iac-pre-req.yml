@@ -58,6 +58,9 @@ env:
 
   VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
 
+  SSH_PRV_KEY: ${{ secrets.SSH_PRV_KEY }}
+  SSH_PUB_KEY: ${{ secrets.SSH_PUB_KEY }}
+
   # https://learn.microsoft.com/en-us/azure/key-vault/secrets/secrets-best-practices#secrets-rotation
   # Because secrets are sensitive to leakage or exposure, it's important to rotate them often, at least every 60 days. 
   # Expiry date in seconds since 1970-01-01T00:00:00Z. Ex: 1672444800 ==> 31/12/2022'
@@ -147,6 +150,28 @@ jobs:
             -p kvName=${{ env.KV_NAME }} \
             -p secretName="VM-ADMIN-PASSWORD" \
             -p secretValue=${{ secrets.VM_ADMIN_PASSWORD }} \
+            -p secretExpiryDate=${{ env.SECRET_EXPIRY_DATE }}
+      shell: bash
+
+    - name: Create SSH-PRV-KEY secret in Azure Key Vault
+      if: ${{ env.DEPLOY_TO_VNET }}
+      run: |
+          az deployment group create --name aks-petclinic-kv-ssh-prv-key -f iac/bicep/modules/kv/kv_sec_key.bicep -g ${{ env.RG_KV }} \
+            -p appName=${{ env.APP_NAME }} \
+            -p kvName=${{ env.KV_NAME }} \
+            -p secretName="SSH-PRV-KEY" \
+            -p secretValue=${{ secrets.SSH_PRV_KEY }} \
+            -p secretExpiryDate=${{ env.SECRET_EXPIRY_DATE }}
+      shell: bash
+
+    - name: Create SSH-PUB-KEY secret in Azure Key Vault
+      if: ${{ env.DEPLOY_TO_VNET }}
+      run: |
+          az deployment group create --name aks-petclinic-kv-ssh-pub-key -f iac/bicep/modules/kv/kv_sec_key.bicep -g ${{ env.RG_KV }} \
+            -p appName=${{ env.APP_NAME }} \
+            -p kvName=${{ env.KV_NAME }} \
+            -p secretName="SSH-PUB-KEY" \
+            -p secretValue=${{ secrets.SSH_PUB_KEY }} \
             -p secretExpiryDate=${{ env.SECRET_EXPIRY_DATE }}
       shell: bash
 
