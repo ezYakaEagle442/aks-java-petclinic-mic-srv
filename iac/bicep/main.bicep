@@ -112,6 +112,19 @@ module aks './modules/aks/aks.bicep' = {
   }
 }
 output controlPlaneFQDN string = aks.outputs.controlPlaneFQDN
+// https://github.com/Azure/azure-rest-api-specs/issues/17563
+output kubeletIdentity string = aks.outputs.kubeletIdentity
+output keyVaultAddOnIdentity string = aks.outputs.keyVaultAddOnIdentity
+output spnClientId string = aks.outputs.spnClientId
+output aksId string = aks.outputs.aksId
+output aksIdentityPrincipalId string = aks.outputs.aksIdentityPrincipalId
+output aksOutboundType string = aks.outputs.aksOutboundType
+output aksEffectiveOutboundIPs array = aks.outputs.aksEffectiveOutboundIPs
+output aksManagedOutboundIPsCount int = aks.outputs.aksManagedOutboundIPsCount
+
+// The default number of managed outbound public IPs is 1.
+// https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
+output aksOutboundIPs array = aks.outputs.aksOutboundIPs
 
 
 resource kvRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
@@ -124,7 +137,8 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   scope: kvRG
 }
 
-var ipRules = []
+/*
+var ipRules = aks.outputs.aksOutboundIPs[0]
 var vNetRules = [vnet.properties.subnets[0].id]
 module kvsetiprules './modules/kv/kv.bicep' = {
   name: 'kv-set-iprules'
@@ -139,3 +153,4 @@ module kvsetiprules './modules/kv/kv.bicep' = {
     aks
   ]  
 }
+*/
