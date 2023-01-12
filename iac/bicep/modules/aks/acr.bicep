@@ -27,18 +27,20 @@ resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
     adminUserEnabled: false
     dataEndpointEnabled: false // data endpoint rule is not supported for the SKU Basic
   
+    // VNet rule is not supported for the SKU Basic
+    /*
     networkRuleSet: {
       defaultAction: 'Deny'
-      /*
+      
       ipRules: [
         {
           action: 'Allow'
           value: [] //  https://learn.microsoft.com/en-us/azure/container-registry/container-registry-access-selected-networks#access-from-aks
         }
       ]
-      */
-    }
-    networkRuleBypassOptions: 'AzureServices'
+      
+    }*/
+    //networkRuleBypassOptions: 'AzureServices'
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
   }
