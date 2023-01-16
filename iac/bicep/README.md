@@ -32,7 +32,7 @@ az group create --name rg-iac-aks-petclinic-mic-srv --location westeurope
 # az deployment group create --name iac-101-kv -f ./modules/kv/kv.bicep -g rg-iac-kv \
 #    --parameters @./modules/kv/parameters-kv.json
 
-#az deployment group create --name iac-101-pre-req -f ./pre-req.bicep -g rg-iac-aks-petclinic-mic-srv \
+# az deployment group create --name iac-101-pre-req -f ./pre-req.bicep -g rg-iac-aks-petclinic-mic-srv \
 #    --parameters @./parameters-pre-req.json # --debug # --what-if to test like a dry-run
 
 ```
