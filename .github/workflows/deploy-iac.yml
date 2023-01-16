@@ -189,58 +189,10 @@ jobs:
     uses: ./.github/workflows/maven-build-ui.yml
     secrets: inherit
 
-  deploy-apps:
-    needs: [call-maven-build-workflow, call-maven-build-ui-workflow]
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Login with GHA Runner SP
-      uses: azure/login@v1.4.6 # fails https://github.com/marketplace/actions/azure-login
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
-        
-    - name: Checkout
-      uses: actions/checkout@v3 # https://github.com/actions/checkout
-
-    - name: Deploy Backend services
-      run: |
-          # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
-          echo "Checking tag_id output ... : " ${{ needs.call-maven-build-workflow.outputs.tag_id }}
-          tag_id=${{ needs.call-maven-build-workflow.outputs.tag_id }}
-          echo "Image Build tag ID:"$tag_id
-
-          imageNameAdminServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.ADMIN_SERVER }}:$tag_id"
-          imageNameDiscoveryServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.DISCOVERY_SERVER }}:$tag_id"
-          imageNameConfigServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CONFIG_SERVER }}:$tag_id"
-         
-          imageNameVetsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VETS_SERVICE }}:$tag_id"
-          imageNameVisitsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id"
-          imageNameCustomersService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CUSTOMERS_SERVICE }}:$tag_id"
-
-          echo "imageNameConfigServer= " $imageNameConfigServer
-          echo "imageNameCustomersService= " $imageNameCustomersService
-          echo "imageNameVetsService= " $imageNameVetsService
-          echo "imageNameVisitsService= " $imageNameVisitsService
-
-          echo "TODO deploy Apps ..."
-
-      shell: bash
-
-    - name: Deploy UI
-      run: |
-          echo "Checking tag_id output for the UI ... : " ${{ needs.call-maven-build-ui-workflow.outputs.tag_id }}
-          tag_id=${{ needs.call-maven-build-ui-workflow.outputs.tag_id }}
-          echo "Image Build tag ID:"$tag_id
-
-          imageNameApiGateway="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.API_GATEWAY }}:$tag_id"
-          echo "imageNameApiGateway= " $imageNameApiGateway
-
-          echo "About to deploy the UI ..." 
-      shell: bash
-
+  # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
   call-deploy-apps-svc-workflow:
     name: Trigger App Deployment for the Backend services
-    needs: [deploy-iac, call-maven-build-ui-workflow]
+    needs: [deploy-iac, call-maven-build-workflow]
     uses: ./.github/workflows/deploy-app-svc.yml
     with:
       tag_id: ${{ needs.call-maven-build-workflow.outputs.tag_id }}
@@ -254,8 +206,8 @@ jobs:
       tag_id: ${{ needs.call-maven-build-ui-workflow.outputs.tag_id }}
     secrets: inherit
 
-  Logout:
-    needs: call-deploy-ui-workflow
+  logout:
+    needs: [call-deploy-apps-svc-workflow, call-deploy-ui-workflow]
     runs-on: ubuntu-latest
     steps:    
     - name: Azure Logout security hardening

@@ -86,10 +86,13 @@ jobs:
           tag_id=${{ inputs.tag_id }}
           echo "Image Build tag ID:"$tag_id
 
+          imageNameConfigServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CONFIG_SERVER }}:$tag_id"
+
           imageNameCustomersService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CUSTOMERS_SERVICE }}:$tag_id"
           imageNameVetsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VETS_SERVICE }}:$tag_id"
           imageNameVisitsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id"
 
+          echo "imageNameConfigServer= " $imageNameConfigServer
           echo "imageNameCustomersService= " $imageNameCustomersService
           echo "imageNameVetsService= " $imageNameVetsService
           echo "imageNameVisitsService= " $imageNameVisitsService
@@ -106,20 +109,6 @@ jobs:
             -p imageNameVisitsService=$imageNameVisitsService \
             -p springCloudAzureKeyVaultEndpoint=${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }} \
             -p springCloudAzureTenantId=${{ env.SPRING_CLOUD_AZURE_TENANT_ID }} 
-
-      shell: bash
-
-    - name: Configure Diagnostic-Settings
-      run: |
-          echo "aks does not yet support diagnostic settings, see https://github.com/microsoft/azure-container-apps/issues/382" 
-          
-          # az deployment group create --name aks-petclinic-apps -f iac/bicep/modules/aks/diagnostic-settings.bicep -g ${{ env.RG_APP }} \
-      shell: bash
-
-    - name: Configure GitHub-Action-Settings
-      run: |   
-          echo "To be tested ..."       
-          # az deployment group create --name aks-petclinic-apps -f iac/bicep/modules/aks/gha-settings.bicep -g ${{ env.RG_APP }} \
 
       shell: bash
 

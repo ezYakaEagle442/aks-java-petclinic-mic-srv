@@ -220,6 +220,19 @@ To avoid to hit the error below :
 Read the [docs](https://learn.microsoft.com/en-us/azure/azure-resource-manager/troubleshooting/error-register-resource-provider?tabs=azure-cli)
 Just run :
 ```sh
+az feature list --output table --namespace Microsoft.ContainerService
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-GitOps"
+az feature register --namespace "Microsoft.ContainerService" --name "EnableWorkloadIdentityPreview"
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-Dapr"
+az feature register --namespace "Microsoft.ContainerService" --name "EnableAzureKeyvaultSecretsProvider"
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-AzureDefender"
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-PrometheusAddonPreview" 
+az feature register --namespace "Microsoft.ContainerService" --name "AutoUpgradePreview"
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-OMSAppMonitoring"
+az feature register --namespace "Microsoft.ContainerService" --name "ManagedCluster"
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-AzurePolicyAutoApprove"
+az feature register --namespace "Microsoft.ContainerService" --name "FleetResourcePreview"
+
 az provider list --output table
 az provider list --query "[?registrationState=='Registered']" --output table
 az provider list --query "[?namespace=='Microsoft.KeyVault']" --output table
@@ -235,10 +248,11 @@ az provider register --namespace Microsoft.AppConfiguration
 az provider register --namespace Microsoft.AppPlatform
 az provider register --namespace Microsoft.EventHub  
 az provider register --namespace Microsoft.Kubernetes 
-az provider register --namespace Microsoft.KubernetesConfiguration  
+az provider register --namespace Microsoft.KubernetesConfiguration
 az provider register --namespace Microsoft.Kusto  
 az provider register --namespace Microsoft.ManagedIdentity
-az provider register --namespace Microsoft.Monitor 
+az provider register --namespace Microsoft.Monitor
+az provider register --namespace Microsoft.OperationsManagement
 az provider register --namespace Microsoft.Network  
 az provider register --namespace Microsoft.RedHatOpenShift 
 az provider register --namespace Microsoft.ServiceBus

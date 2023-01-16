@@ -100,20 +100,6 @@ jobs:
 
       shell: bash
 
-    - name: Configure Diagnostic-Settings
-      run: |
-          echo "aks does not yet support diagnostic settings, see https://github.com/microsoft/azure-container-apps/issues/382" 
-          
-          # az deployment group create --name aks-petclinic-apps -f iac/bicep/modules/aks/diagnostic-settings.bicep -g ${{ env.RG_APP }} \
-      shell: bash
-
-    - name: Configure GitHub-Action-Settings
-      run: |   
-          echo "To be tested ..."       
-          # az deployment group create --name aks-petclinic-apps -f iac/bicep/modules/aks/gha-settings.bicep -g ${{ env.RG_APP }} \
-
-      shell: bash
-
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
     # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
