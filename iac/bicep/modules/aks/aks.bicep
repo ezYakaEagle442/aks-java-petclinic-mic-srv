@@ -243,7 +243,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         enabled: workloadIdentity
       }
       defender: {
-        logAnalyticsWorkspaceResourceId: defenderForContainers ? logAnalyticsWorkspace.id : ''  // ERROR caused If : AzureDefender is disabled but Log Analytics workspace resource ID is not empty
+        logAnalyticsWorkspaceResourceId: defenderForContainers ? logAnalyticsWorkspace.id : null  // ERROR caused If : AzureDefender is disabled but Log Analytics workspace resource ID is not empty
         securityMonitoring: {
           enabled: defenderForContainers
         }
