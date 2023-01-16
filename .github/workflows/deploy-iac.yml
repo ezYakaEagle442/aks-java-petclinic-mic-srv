@@ -126,8 +126,7 @@ jobs:
             -p mySQLadministratorLogin=${{ env.MYSQL_ADM_USR }} \
             -p mySQLadministratorLoginPassword=${{ env.SPRING_DATASOURCE_PASSWORD }} \
             -p acrName=${{ env.ACR_NAME }} \
-            -p sshPublicKey=${{ env.SSH_PUB_KEY }} \
-            -p deployToVNet=${{ env.DEPLOY_TO_VNET }}            
+            -p sshPublicKey="${{ env.SSH_PUB_KEY }}"
  
       shell: bash
 
