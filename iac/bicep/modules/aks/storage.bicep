@@ -34,6 +34,11 @@ param storageBlobRoleType string = 'StorageBlobDataContributor'
 
 param ghRunnerSpnPrincipalId string
 
+@description('The VNet rules to whitelist for the Strorage Account')
+param  vNetRules array = []
+@description('The IP rules to whitelist for the Strorage Account')
+param  ipRules array = []
+
 @description('The Identity Tags. See https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources?tabs=bicep#apply-an-object')
 param tags object = {
   Environment: 'Dev'
@@ -106,13 +111,11 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Deny'
+      ipRules:  [for ipRule in ipRules: {
+        action: 'Allow'
+        value: ipRule
+      }]
       /*
-      ipRules: [
-        {
-          action: 'Allow'
-          value: aks.properties.networkProfile.loadBalancerProfile.outboundIPs.publicIPs[0]
-        }       
-      ]
       resourceAccessRules: [
         {
           resourceId: aks.id
@@ -120,15 +123,10 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
         }
       ]
       */
-      /*
-      virtualNetworkRules: [
-        {
-          action: 'Allow'
-          id: 'string'
-          state: 'string'
-        }
-      ]
-      */
+      virtualNetworkRules:  [for vNetRule in vNetRules: {
+        action: 'Allow'
+        id: vNetRule.id
+      }]
     }
     publicNetworkAccess: 'Enabled'
     routingPreference: {
