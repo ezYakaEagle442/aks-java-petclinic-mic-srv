@@ -74,7 +74,7 @@ param workloadIdentity bool = true
 @description('Enable Microsoft Defender for Containers')
 param defenderForContainers bool = false
 
-resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: kvName
 }
 
@@ -88,7 +88,7 @@ resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-3
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=bicep
 // https://github.com/Azure/AKS-Construction/blob/main/bicep/main.bicep
-resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
+resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
   name: clusterName
   location: location
   sku: {
@@ -200,7 +200,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' = {
         }        
       }
       openServiceMesh: {
-        enabled: true
+        enabled: false
         config: {}
       }
 
@@ -329,7 +329,7 @@ resource AKSDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
 }
 
 
-resource fluxAddon 'Microsoft.KubernetesConfiguration/extensions@2022-04-02-preview' = if(fluxGitOpsAddon) {
+resource fluxAddon 'Microsoft.KubernetesConfiguration/extensions@2022-11-01' = if(fluxGitOpsAddon) {
   name: 'flux'
   scope: aks
   properties: {
@@ -347,7 +347,7 @@ resource fluxAddon 'Microsoft.KubernetesConfiguration/extensions@2022-04-02-prev
 }
 output fluxReleaseNamespace string = fluxGitOpsAddon ? fluxAddon.properties.scope.cluster.releaseNamespace : ''
 
-resource daprExtension 'Microsoft.KubernetesConfiguration/extensions@2022-04-02-preview' = if(daprAddon) {
+resource daprExtension 'Microsoft.KubernetesConfiguration/extensions@2022-11-01' = if(daprAddon) {
   name: 'dapr'
   scope: aks
   properties: {
