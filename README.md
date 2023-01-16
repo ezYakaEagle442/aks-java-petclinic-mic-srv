@@ -225,6 +225,8 @@ az provider list --query "[?registrationState=='Registered']" --output table
 az provider list --query "[?namespace=='Microsoft.KeyVault']" --output table
 
 az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace Microsoft.ContainerService
 az provider register --namespace Microsoft.OperationalInsights 
 az provider register --namespace Microsoft.DBforMySQL
 az provider register --namespace Microsoft.DBforPostgreSQL
@@ -242,6 +244,13 @@ az provider register --namespace Microsoft.RedHatOpenShift
 az provider register --namespace Microsoft.ServiceBus
 az provider register --namespace Microsoft.Storage
 az provider register --namespace Microsoft.Subscription
+
+# https://learn.microsoft.com/en-us/azure/aks/cluster-extensions
+az extension add --name k8s-extension
+az extension update --name k8s-extension
+
+# https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/tutorial-use-gitops-flux2?
+az extension add -n k8s-configuration
 
 ```
 
