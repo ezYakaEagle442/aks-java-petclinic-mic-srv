@@ -71,6 +71,9 @@ param kedaAddon bool = false
 @description('Installs Azure Workload Identity into the cluster')
 param workloadIdentity bool = true
 
+@description('Configures the AKS cluster as an OIDC issuer for use with Workload Identity')
+param oidcIssuer bool = true
+
 @description('Enable Microsoft Defender for Containers')
 param defenderForContainers bool = false
 
@@ -231,7 +234,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       outboundType: 'loadBalancer'
       serviceCidr: '10.42.0.0/24'
       dnsServiceIP: '10.42.0.10'         
-    }   
+    }
+    oidcIssuerProfile: {
+      enabled: oidcIssuer
+    }    
     securityProfile: {
       workloadIdentity: {
         enabled: workloadIdentity
@@ -252,6 +258,8 @@ output kubeletIdentity string = aks.properties.identityProfile.kubeletidentity.o
 output keyVaultAddOnIdentity string = aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.objectId
 output spnClientId string = aks.properties.servicePrincipalProfile.clientId
 output aksId string = aks.id
+output aksOidcIssuerUrl string = oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
+
 output aksIdentityPrincipalId string = aks.identity.principalId
 output aksOutboundType string = aks.properties.networkProfile.outboundType
 output aksEffectiveOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.effectiveOutboundIPs
@@ -262,6 +270,14 @@ output aksManagedOutboundIPsCount int = aks.properties.networkProfile.loadBalanc
 output aksOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.outboundIPs.publicIPs
 
 // output ingressIdentity string = aks.properties.addonProfiles.ingressApplicationGateway.identity.objectId
+
+
+@description('This output can be directly leveraged when creating a ManagedId Federated Identity')
+output aksOidcFedIdentityProperties object = {
+  issuer: oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
+  audiences: ['api://AzureADTokenExchange']
+  subject: 'system:serviceaccount:ns:svcaccount'
+}
 
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.management/managementgroups?pivots=deployment-language-bicep
