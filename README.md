@@ -507,7 +507,7 @@ see :
 - [https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/)
 
 
-The OpenShift routing is configured in the Ingress resources at :
+The K8S routing is configured in the Ingress resources at :
 - spring-petclinic-api-gateway\k8s\petclinic-ui-ingress.yaml
 - spring-petclinic-admin-server\k8s\petclinic-admin-server-ingress.yaml
 - spring-petclinic-config-server\k8s\petclinic-config-server-ingress.yaml
