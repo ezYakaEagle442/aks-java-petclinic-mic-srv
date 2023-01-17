@@ -117,15 +117,11 @@ output kubeletIdentity string = aks.outputs.kubeletIdentity
 output keyVaultAddOnIdentity string = aks.outputs.keyVaultAddOnIdentity
 output spnClientId string = aks.outputs.spnClientId
 output aksId string = aks.outputs.aksId
-output aksIdentityPrincipalId string = aks.outputs.aksIdentityPrincipalId
 output aksOutboundType string = aks.outputs.aksOutboundType
-output aksEffectiveOutboundIPs array = aks.outputs.aksEffectiveOutboundIPs
-output aksManagedOutboundIPsCount int = aks.outputs.aksManagedOutboundIPsCount
-
 // The default number of managed outbound public IPs is 1.
 // https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
-output aksOutboundIPs array = aks.outputs.aksOutboundIPs
-
+output aksEffectiveOutboundIPs array = aks.outputs.aksEffectiveOutboundIPs
+output aksManagedOutboundIPsCount int = aks.outputs.aksManagedOutboundIPsCount
 
 resource kvRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
   name: kvRGName

@@ -74,8 +74,19 @@ param workloadIdentity bool = true
 @description('Configures the AKS cluster as an OIDC issuer for use with Workload Identity')
 param oidcIssuer bool = true
 
+@description('Rotation poll interval for the AKS KV CSI provider')
+param keyVaultAksCSIPollInterval string = '2m'
+
 @description('Enable Microsoft Defender for Containers')
 param defenderForContainers bool = false
+
+@allowed([
+  ''
+  'audit'
+  'deny'
+])
+@description('Enable the Azure Policy addon')
+param azurepolicy string = ''
 
 resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: kvName
@@ -181,10 +192,11 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
         config: {          
         }
       }      
+      
       azurepolicy: {
-        enabled: false
+        enabled: !empty(azurepolicy)
         config: {
-          version: 'v2'
+          version: !empty(azurepolicy) ? 'v2' : json('null')
         }
       }
       /*
@@ -199,14 +211,14 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
       azureKeyvaultSecretsProvider: {
         enabled: true
         config: {
-          enableSecretRotation: 'true'
+          enableSecretRotation:  'true' // true
+          rotationPollInterval: keyVaultAksCSIPollInterval
         }        
       }
       openServiceMesh: {
         enabled: false
         config: {}
       }
-
     }
     azureMonitorProfile: {
       metrics: {
@@ -248,8 +260,8 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
           enabled: defenderForContainers
         }
       }      
-    }            
-  }
+    }              
+  }  
 }
 
 // https://github.com/Azure/azure-rest-api-specs/issues/17563
@@ -258,19 +270,17 @@ output kubeletIdentity string = aks.properties.identityProfile.kubeletidentity.o
 output keyVaultAddOnIdentity string = aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.objectId
 output spnClientId string = aks.properties.servicePrincipalProfile.clientId
 output aksId string = aks.id
-output aksOidcIssuerUrl string = oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
 
-output aksIdentityPrincipalId string = aks.identity.principalId
+// output aksIdentityPrincipalId string = aks.identity.principalId
 output aksOutboundType string = aks.properties.networkProfile.outboundType
 output aksEffectiveOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.effectiveOutboundIPs
 output aksManagedOutboundIPsCount int = aks.properties.networkProfile.loadBalancerProfile.managedOutboundIPs.count
 
 // The default number of managed outbound public IPs is 1.
 // https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
-output aksOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.outboundIPs.publicIPs
+// output aksOutboundIPs array = aks.properties.networkProfile.loadBalancerProfile.outboundIPs.publicIPs
 
 // output ingressIdentity string = aks.properties.addonProfiles.ingressApplicationGateway.identity.objectId
-
 
 @description('This output can be directly leveraged when creating a ManagedId Federated Identity')
 output aksOidcFedIdentityProperties object = {
@@ -280,21 +290,6 @@ output aksOidcFedIdentityProperties object = {
 }
 
 
-// https://learn.microsoft.com/en-us/azure/templates/microsoft.management/managementgroups?pivots=deployment-language-bicep
-/*
-resource managementGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'managementGroup'
-  scope: tenant()
-  properties: {
-    details: {
-      parent: {
-        id: managementGroupParentId
-      }
-    }
-    displayName: managementGroupDisplayName
-  }
-}
-*/
 
 resource AKSDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'AKSDiags'
