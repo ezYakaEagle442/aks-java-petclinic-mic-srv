@@ -198,7 +198,8 @@ jobs:
             kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
 
             ING_CTL_IP=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-            echo "ING_CTL_IP" >> $GITHUB_ENV
+            echo "ING_CTL_IP:" $ING_CTL_IP
+            echo "ING_CTL_IP=$ING_CTL_IP" >> $GITHUB_ENV
       shell: bash
 
     - name: setup DNS
