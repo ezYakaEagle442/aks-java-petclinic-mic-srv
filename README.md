@@ -163,6 +163,20 @@ az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCR
 
 az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_KV} --role b86a8fe4-44ce-4948-aee5-eccb2c155cd7
 
+# "DNS Zone Contributor"
+# https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#dns-zone-contributor
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID} --role befefa01-2a29-4197-83a8-272ff33ce314
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID} --role befefa01-2a29-4197-83a8-272ff33ce314
+
+# https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#virtual-machine-contributor
+# Virtual Machine Contributor has permission 'Microsoft.Network/publicIPAddresses/read'
+#az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID} --role 9980e02c-c2be-4d73-94e8-173b1dc7cf3c
+#az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID} --role 9980e02c-c2be-4d73-94e8-173b1dc7cf3c
+
+# Network-contributor: https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations#microsoftnetwork
+az role assignment create --assignee $SPN_APP_ID --scope /subscriptions/${SUBSCRIPTION_ID} --role 4d97b98b-1d4f-4787-a291-c67834d212e7
+az role assignment create --assignee $SPN_OBJECT_ID --scope /subscriptions/${SUBSCRIPTION_ID} --role 4d97b98b-1d4f-4787-a291-c67834d212e7
+
 # https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal#prerequisites
 # /!\ To assign Azure roles, you must have: requires to have Microsoft.Authorization/roleAssignments/write and Microsoft.Authorization/roleAssignments/delete permissions, 
 # such as User Access Administrator or Owner.
@@ -236,6 +250,7 @@ az feature register --namespace "Microsoft.ContainerService" --name "FleetResour
 az provider list --output table
 az provider list --query "[?registrationState=='Registered']" --output table
 az provider list --query "[?namespace=='Microsoft.KeyVault']" --output table
+az provider list --query "[?namespace=='Microsoft.OperationsManagement']" --output table
 
 az provider register --namespace Microsoft.KeyVault
 az provider register --namespace Microsoft.ContainerRegistry
@@ -395,6 +410,12 @@ You can read the [Bicep section](iac/bicep/README.md) but you do not have to run
 AKS has dependencies on services outside of that virtual network. For a list of these dependencies
 see the [AKS doc](https://learn.microsoft.com/en-us/azure/aks/limit-egress-traffic)
 
+Troubleshoot :
+If the AKS cluster was provisionned in a FAILED state, try : 
+```sh
+az resource update --name $ClusterName --resource-group $RgName --resource-type Microsoft.ContainerService/managedClusters --debug
+az resource show --name $ClusterName --resource-group $RgName --resource-type Microsoft.ContainerService/managedClusters --debug
+```
 
 
 ## Security
@@ -734,6 +755,12 @@ on ContainerID
 | project TimeGenerated, PodName, LogEntry, LogEntrySource
 | summarize by TimeGenerated, LogEntry
 | order by TimeGenerated desc
+
+
+let FindString = "error";//Please update term  you would like to find in LogEntry here
+ContainerLog 
+| where LogEntry has FindString 
+|take 100
 ```
 
 
