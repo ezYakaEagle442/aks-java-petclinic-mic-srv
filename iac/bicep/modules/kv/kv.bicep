@@ -63,8 +63,8 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
       ipRules:  [for ipRule in ipRules: {
           value: ipRule
       }]
-      virtualNetworkRules:  [for vNetRule in vNetRules: {
-        id: vNetRule.id
+      virtualNetworkRules:  [for vNetId in vNetRules: {
+        id: vNetId
       }]      
     }
     softDeleteRetentionInDays: 7 // 30 must be greater or equal than '7' but less or equal than '90'.

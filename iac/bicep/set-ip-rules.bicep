@@ -1,16 +1,10 @@
-// Check the REST API : https://docs.microsoft.com/en-us/rest/api/containerapps/
-
 @maxLength(20)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
-param appName string = 'petcliaca${uniqueString(resourceGroup().id)}'
+param appName string = 'petcliaks${uniqueString(resourceGroup().id)}'
 param location string = 'westeurope'
 
 @description('Should the service be deployed to a Corporate VNet ?')
 param deployToVNet bool = false
-
-@description('Resource ID of a subnet for infrastructure components. This subnet must be in the same VNET as the subnet defined in runtimeSubnetId. Must not overlap with any other provided IP ranges.')
-param infrastructureSubnetName string = 'snet-infra' // used for the AKS nodes
-param infrastructureSubnetCidr string = '10.42.2.0/23' // The CIDR prefix must be smaller than or equal to 23
 
 /*
 @description('The “runtime subnet” field is currently deprecated and not used. If you provide a value there during creation of your container apps environment it will be ignored. Only the infrastructure subnet is required if you wish to provide your own VNET. Resource ID of a subnet that Container App containers are injected into. This subnet must be in the same VNET as the subnet defined in infrastructureSubnetId. Must not overlap with any other provided IP ranges.')
@@ -45,9 +39,6 @@ param  vNetRules array = []
 @description('The IP rules to whitelist for the KV & MySQL')
 param  ipRules array = []
 
-@description('AKS Outbound Public IP')
-param k8sOutboundPubIP string
-
 @description('The MySQL DB Admin Login.')
 param mySQLadministratorLogin string = 'mys_adm'
 
@@ -61,8 +52,8 @@ resource kvRG 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
 
 
 // see https://github.com/microsoft/azure-container-apps/issues/469
-// Now KV must Allow azureContainerAppsOutboundPubIP in the IP rules ...
-// Must allow ACA to access Existing KV
+// Now KV must Allow AKS OutboundPubIP in the IP rules ...
+// Must allow AKS to access Existing KV
 
 module kvsetiprules './modules/kv/kv.bicep' = {
   name: 'kv-set-iprules'

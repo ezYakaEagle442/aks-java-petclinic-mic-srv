@@ -10,6 +10,11 @@ env:
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
   ACR_NAME: acrpetcliaks
+  DNS_ZONE: cloudapp.azure.com
+  APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
+  CUSTOM_DNS: javaonazurehandsonlabs.com
+
+  AKS_CLUSTER_NAME: aks-petcliaks
 
   VNET_NAME: vnet-aks
   VNET_CIDR: 172.16.0.0/16
@@ -17,6 +22,7 @@ env:
   AKS_SUBNET_NAME: snet-aks
 
   DNS_PREFIX: appinnojava
+  ING_NS: ingress # Namespace to use for the Ingress Controller
   AKS_IDENTITY_NAME: id-aks-cluster-dev-westeurope-101
 
   START_IP_ADDRESS: 172.16.1.0
@@ -128,6 +134,7 @@ jobs:
             -p acrName=${{ env.ACR_NAME }} \
             -p sshPublicKey="${{ env.SSH_PUB_KEY }}"
  
+
       shell: bash
 
     - name: Whitelist AKS OutboundIP
@@ -140,23 +147,56 @@ jobs:
               -g ${{ env.RG_APP }} \
               --query properties.outputs.aksSubnetId.value)
 
-            ipRules=$(az deployment group show --name aks-petclinic-main \
+            managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
+            echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+
+            aksOutboundIPResourceId=$(az deployment group show --name aks-petclinic-main \
               -g ${{ env.RG_APP }} \
-              --query properties.outputs.aksOutboundIPs[0].value)
+              --query properties.outputs.aksEffectiveOutboundIPs.value[0] | jq -r .id)
             
+            aksOutboundIP=$(az network public-ip show --ids $aksOutboundIPResourceId --query ipAddress)
+            echo "aksOutboundIP:" $aksOutboundIP
+
+            ipRules=[$aksOutboundIP]
+
             az deployment group create --name aks-kv-mysql-set-ip-rules -f iac/bicep/set-ip-rules.bicep -g ${{ env.RG_APP }} \
               -p appName=${{ env.APP_NAME }} \
               -p location=${{ env.LOCATION }} \
               -p kvName=${{ env.KV_NAME }} \
               -p kvRGName=${{ env.RG_KV }} \
-              -p administratorLogin=${{ env.MYSQL_ADM_USR }} \
-              -p dbServerName=${{ env.MYSQL_SERVER_NAME }} \
+              -p mySQLadministratorLogin=${{ env.MYSQL_ADM_USR }} \
+              -p mySQLServerName=${{ env.MYSQL_SERVER_NAME }} \
               -p vNetRules=[$vNetRules] \
               -p ipRules=$ipRules \
               -p setFwRuleClient=false \
               -p startIpAddress=${{ env.START_IP_ADDRESS }} \
               -p endIpAddress=${{ env.END_IP_ADDRESS }} \
               -p clientIPAddress=${{ env.CLIENT_IP_ADDRESS }}
+
+      shell: bash
+
+    # https://github.com/marketplace/actions/helm-tool-installer
+    - name: setup HELM
+      run: |
+            # https://github.com/kubernetes/ingress-nginx
+            # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
+            # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
+            # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
+
+            
+
+            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+            helm repo update
+
+            helm install ingress-nginx ingress-nginx/ingress-nginx \
+              --create-namespace \
+              --namespace ${{ env.ING_NS }} \
+              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
+
+            helm ls --namespace ${{ env.ING_NS }}
+            kubectl get deployments -n ${{ env.ING_NS }} -l app=ingress-nginx
+
+            ing_ctl_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
 
       shell: bash
 
