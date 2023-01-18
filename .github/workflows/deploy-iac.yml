@@ -195,9 +195,9 @@ jobs:
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
             
             helm ls --namespace ${{ env.ING_NS }}
-            kubectl get deployments -n ${{ env.ING_NS }} -l app=ingress-nginx
+            kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
 
-            ing_ctl_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+            ing_ctl_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
             echo ing_ctl_ip" >> $GITHUB_ENV
       shell: bash
 
