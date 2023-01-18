@@ -7,7 +7,7 @@ param vnetName string = 'vnet-aks'
 param aksSvcIp string
 
 param dnsZone string = 'cloudapp.azure.com'
-param appDnsZone string = 'kissmyapp.${location}.${dnsZone}'
+param appDnsZone string = 'petclinic.${location}.${dnsZone}'
 param customDns string = 'javaonazurehandsonlabs.com'
 param privateDnsZone string = 'privatelink.${location}.azmk8s.io' // API-server URL ex for public clusters: appinnojava-478b2e1b.hcp.westeurope.azmk8s.io
 
