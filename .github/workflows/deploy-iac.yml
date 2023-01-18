@@ -183,8 +183,9 @@ jobs:
             # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
             # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
 
+            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --admin
+            kubectl cluster-info
             
-
             helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
             helm repo update
 
@@ -192,9 +193,6 @@ jobs:
               --create-namespace \
               --namespace ${{ env.ING_NS }} \
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
-
-            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --admin
-            kubectl cluster-info
             
             helm ls --namespace ${{ env.ING_NS }}
             kubectl get deployments -n ${{ env.ING_NS }} -l app=ingress-nginx
