@@ -193,6 +193,9 @@ jobs:
               --namespace ${{ env.ING_NS }} \
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
 
+            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --admin
+            kubectl cluster-info
+            
             helm ls --namespace ${{ env.ING_NS }}
             kubectl get deployments -n ${{ env.ING_NS }} -l app=ingress-nginx
 
