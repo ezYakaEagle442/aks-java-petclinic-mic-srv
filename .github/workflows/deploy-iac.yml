@@ -197,17 +197,18 @@ jobs:
             helm ls --namespace ${{ env.ING_NS }}
             kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
 
-            ing_ctl_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-            echo ing_ctl_ip" >> $GITHUB_ENV
+            ING_CTL_IP=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+            echo "ING_CTL_IP" >> $GITHUB_ENV
       shell: bash
 
     - name: setup DNS
       run: |
+            echo "ING_CTL_IP:" $ING_CTL_IP
             az deployment group create --name aks-dns -f iac/bicep/modules/aks/dns.bicep -g ${{ env.RG_APP }} \
               -p appDnsZone=${{ env.APP_DNS_ZONE }} \
               -p location=${{ env.LOCATION }} \
               -p vnetName=${{ env.VNET_NAME }} \
-              -p aksSvcIp=$ing_ctl_ip
+              -p aksSvcIp=${{ env.VNET_NAME }}
 
       shell: bash
 
