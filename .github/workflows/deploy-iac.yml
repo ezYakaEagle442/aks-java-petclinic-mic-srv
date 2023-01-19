@@ -214,7 +214,7 @@ jobs:
               -p appDnsZone=${{ env.APP_DNS_ZONE }} \
               -p location=${{ env.LOCATION }} \
               -p vnetName=${{ env.VNET_NAME }} \
-              -p aksSvcIp=${{ env.VNET_NAME }}
+              -p aksSvcIp=$ING_CTL_IP
 
       shell: bash
 
