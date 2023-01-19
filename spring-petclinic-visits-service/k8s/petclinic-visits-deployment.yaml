@@ -15,7 +15,7 @@ spec:
       spec:
         containers:
         - name: visits-service
-          image: ${CONTAINER_REGISTRY}.azurecr.io/visits-service:${IMAGE_TAG}
+          image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/visits-service:${IMAGE_TAG}
           imagePullPolicy: Always
           startupProbe:
             initialDelaySeconds: 30

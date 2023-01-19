@@ -15,7 +15,7 @@ spec:
       spec:
         containers:
         - name: customers-service
-          image: ${CONTAINER_REGISTRY}.azurecr.io/customers-service:${IMAGE_TAG}
+          image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/customers-service:${IMAGE_TAG}
           imagePullPolicy: Always
           startupProbe:
             initialDelaySeconds: 30

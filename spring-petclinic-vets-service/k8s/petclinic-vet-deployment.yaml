@@ -15,7 +15,7 @@ spec:
       spec:
         containers:
         - name: vets-service
-          image: ${CONTAINER_REGISTRY}.azurecr.io/vets-service:${IMAGE_TAG}
+          image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/vets-service:${IMAGE_TAG}
           imagePullPolicy: Always
           startupProbe:
             initialDelaySeconds: 30
