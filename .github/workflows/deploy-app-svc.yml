@@ -151,20 +151,6 @@ jobs:
           echo "imageNameVetsService= " $imageNameVetsService
           echo "imageNameVisitsService= " $imageNameVisitsService
 
-          # ip addr show eth3 | grep inet
-          # ifconfig -a
-          # hostname -I
-          # host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has address"
-          # myip=$(curl icanhazip.com)
-          # myip=$(dig +short myip.opendns.com @resolver1.opendns.com)
-
-          # Get the LB Setings / Front-End IP Config / DNS name label 
-
-          # In the Azure portal, go to All services / Public IP addresses / kubernetes-xxxx - Configuration ( the Ingress Controller IP) , 
-          # you will also find this PIP in AKS rg-MC-petcliaks) then there is a field "DNS name label (optional)" 
-          # ==> An "A record" that starts with the specified label and resolves to this public IP address will be registered with the 
-          # Azure-provided DNS servers. Example: mylabel.westus.cloudapp.azure.com.
-
           managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
           echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
 
@@ -204,21 +190,6 @@ jobs:
           docker login ${{ env.REGISTRY_URL }} -u 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$refresh_token"
 
           az configure --defaults acr=${{ env.AZURE_CONTAINER_REGISTRY }}
-
-
-          kubectl apply -f deploy/petclinic-deployment.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
-          kubectl get deployments -n ${{ env.PETCLINIC_NAMESPACE }}
-
-          # Use the command below to retrieve the External-IP of the Service. Make sure to allow a couple of minutes for the Azure Load Balancer to assign a public IP.
-          # service_ip=$(kubectl get service petclinic-lb-service -n $target_namespace -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-          # public_ip_id=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$service_ip')].[id]" --output tsv)
-          # echo $public_ip_id
-
-          # az network public-ip update --ids $public_ip_id --dns-name ${{ env.APP_DNS_ZONE }} --subscription $subId --resource-group $managed_rg
-
-
-          
-          kubectl get endpoints petclinic-lb-service -n ${{ env.PETCLINIC_NAMESPACE }} -o json
 
       shell: bash
 
