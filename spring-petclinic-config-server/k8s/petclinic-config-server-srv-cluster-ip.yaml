@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: config-server
   #namespace: staging
-  annotations:
-        service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL
-  #      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  # annotations:
+    # service.beta.kubernetes.io/azure-dns-label-name: $DNS_LABEL
+    # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   ports:
   - protocol: TCP
