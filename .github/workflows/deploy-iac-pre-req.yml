@@ -96,6 +96,12 @@ jobs:
     # /!\ IMPORTANT: The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
+        # ip addr show eth3 | grep inet
+        # ifconfig -a
+        # hostname -I
+        # host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has address"
+        # myip=$(curl icanhazip.com)
+        # myip=$(dig +short myip.opendns.com @resolver1.opendns.com)      
         echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV     
       shell: bash
 
