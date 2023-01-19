@@ -11,6 +11,13 @@ env:
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
   SET_KV_ACCESS_POLICIES: false # let it to false
 
+  DNS_ZONE: cloudapp.azure.com
+  APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
+  CUSTOM_DNS: javaonazurehandsonlabs.com
+  AZURE_DNS_LABEL_NAME: petclinic
+  
+  PETCLINIC_NAMESPACE: petclinic
+  AKS_CLUSTER_NAME: aks-petcliaks
   AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
   REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
   REPOSITORY: petclinic                  # set this to your ACR repository
@@ -27,6 +34,9 @@ env:
   AZ_BLOB_TIMEOUT: 600
   
   # ==== APPS ====
+  CLOUD_PROVIDER_ENV: azure
+  PRJ_PREFIX: spring-petclinic
+
   API_GATEWAY: api-gateway
   ADMIN_SERVER: admin-server
   CUSTOMERS_SERVICE: customers-service
@@ -76,13 +86,57 @@ jobs:
       with:
         creds: ${{ env.credentials }}
 
-    # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
-    
+    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+    # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
+    - name: Set Base environment variables
+      run: |
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+        
+        echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
+
+        echo "API_GATEWAY_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CUSTOMERS_SERVICE }}" >> $GITHUB_ENV
+        echo "VETS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
+
+        echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+      shell: bash
+
+    - name: Display environment variables
+      run: |
+        echo "Checking GITHUB_ENV"
+        echo "LOCAL_IP=$LOCAL_IP
+        
+        echo "ADMIN_SERVER_FOLDER=$ADMIN_SERVER_FOLDER"
+        echo "DISCOVERY_SERVER_FOLDER=$DISCOVERY_SERVER_FOLDER"
+
+        echo "API_GATEWAY_FOLDER=$API_GATEWAY_FOLDER"
+        echo "CONFIG_SERVER_FOLDER=$CONFIG_SERVER_FOLDER"
+        echo "CUSTOMERS_SERVICE_FOLDER=$CUSTOMERS_SERVICE_FOLDER"
+        echo "VETS_SERVICE_FOLDER=$VETS_SERVICE_FOLDER"
+        echo "VISITS_SERVICE_FOLDER=$VISITS_SERVICE_FOLDER"
+
+        echo "GH_WORKSPACE=$GH_WORKSPACE"
+      shell: bash
+
+
+    # https://github.com/Azure/aks-set-context/tree/releases/v1
+    - name: AKS Set Context
+      uses: azure/aks-set-context@v1
+      with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
+          resource-group: ${{ env.RG_APP }} 
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      id: akslogin
+
+    # https://github.com/marketplace/actions/helm-tool-installer
 
     - name: Deploy Customers, Vets & Visits services to aks
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
-          echo "About to deploy the Customers, Vets & Visits services ..." 
+          echo "About to deploy the Config-Server, Customers, Vets & Visits services ..." 
           tag_id=${{ inputs.tag_id }}
           echo "Image Build tag ID:"$tag_id
 
@@ -97,20 +151,90 @@ jobs:
           echo "imageNameVetsService= " $imageNameVetsService
           echo "imageNameVisitsService= " $imageNameVisitsService
 
-          az deployment group create --name aks-petclinic-svc -f iac/bicep/modules/aks/apps/aks-svc.bicep -g ${{ env.RG_APP }} \
-            -p appName=${{ env.APP_NAME }} \
-            -p location=${{ env.LOCATION }} \
-            -p acrName=${{ env.AZURE_CONTAINER_REGISTRY }} \
-            -p XXX AKs CLUSTER =${{ env.XXXX }} \
-            -p kvName=${{ env.KV_NAME }} \
-            -p kvRGName=${{ env.RG_KV }} \
-            -p imageNameCustomersService=$imageNameCustomersService \
-            -p imageNameVetsService=$imageNameVetsService \
-            -p imageNameVisitsService=$imageNameVisitsService \
-            -p springCloudAzureKeyVaultEndpoint=${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }} \
-            -p springCloudAzureTenantId=${{ env.SPRING_CLOUD_AZURE_TENANT_ID }} 
+          # ip addr show eth3 | grep inet
+          # ifconfig -a
+          # hostname -I
+          # host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has address"
+          # myip=$(curl icanhazip.com)
+          # myip=$(dig +short myip.opendns.com @resolver1.opendns.com)
+
+          # Get the LB Setings / Front-End IP Config / DNS name label 
+
+          # In the Azure portal, go to All services / Public IP addresses / kubernetes-xxxx - Configuration ( the Ingress Controller IP) , 
+          # you will also find this PIP in AKS rg-MC-petcliaks) then there is a field "DNS name label (optional)" 
+          # ==> An "A record" that starts with the specified label and resolves to this public IP address will be registered with the 
+          # Azure-provided DNS servers. Example: mylabel.westus.cloudapp.azure.com.
+
+          managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
+          echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+
+          # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --admin
+
+          export CONTAINER_REGISTRY=${{ env.AZURE_CONTAINER_REGISTRY }}
+          export REPO=${{ env.REPOSITORY }} 
+          export IMAGE_TAG=$tag_id
+          export DNS_LABEL=${{ env.AZURE_DNS_LABEL_NAME }}
+
+          export ING_HOST=${{ env.APP_DNS_ZONE }}
+          echo "INGRESS HOST " $ING_HOST
+
+          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-deployment.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-deployment.yaml
+          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-ingress.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-ingress.yaml 
+          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-srv-cluster-ip.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-srv-cluster-ip.yaml 
+
+          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-deployment.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-deployment.yaml
+          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-ingress.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-ingress.yaml 
+          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-cluster-ip.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-cluster-ip.yaml 
+
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-deployment.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-deployment.yaml
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-srv-cluster-ip.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-srv-cluster-ip.yaml 
+
+          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-deployment.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-deployment.yaml
+          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
+          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-srv-cluster-ip.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-srv-cluster-ip.yaml 
+
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
+
+          set -euo pipefail
+          access_token=$(az account get-access-token --query accessToken -o tsv)
+          refresh_token=$(curl https://${{ env.REGISTRY_URL }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.REGISTRY_URL }}&access_token=$access_token" | jq -r .refresh_token)
+          docker login ${{ env.REGISTRY_URL }} -u 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$refresh_token"
+
+          az configure --defaults acr=${{ env.AZURE_CONTAINER_REGISTRY }}
+
+
+          kubectl apply -f deploy/petclinic-deployment.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+          kubectl get deployments -n ${{ env.PETCLINIC_NAMESPACE }}
+
+          # Use the command below to retrieve the External-IP of the Service. Make sure to allow a couple of minutes for the Azure Load Balancer to assign a public IP.
+          # service_ip=$(kubectl get service petclinic-lb-service -n $target_namespace -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+          # public_ip_id=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$service_ip')].[id]" --output tsv)
+          # echo $public_ip_id
+
+          # az network public-ip update --ids $public_ip_id --dns-name ${{ env.APP_DNS_ZONE }} --subscription $subId --resource-group $managed_rg
+
+
+          
+          kubectl get endpoints petclinic-lb-service -n ${{ env.PETCLINIC_NAMESPACE }} -o json
 
       shell: bash
+
+
+      # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
+    - name: Deploy Manifests to AKS
+      uses: Azure/k8s-deploy@v4
+      with:
+        namespace: ${{ env.PETCLINIC_NAMESPACE }}
+        manifests: |
+            $CONFIG_SERVER_FOLDER
+            $VETS_SERVICE_FOLDER
+            $CUSTOMERS_SERVICE_FOLDER
+            $VISITS_SERVICE_FOLDER
+            $API_GATEWAY_FOLDER
+          # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
