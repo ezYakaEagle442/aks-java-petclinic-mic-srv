@@ -14,6 +14,7 @@ env:
   APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
   CUSTOM_DNS: javaonazurehandsonlabs.com
 
+  PETCLINIC_NAMESPACE: petclinic
   AKS_CLUSTER_NAME: aks-petcliaks
 
   VNET_NAME: vnet-aks
@@ -195,11 +196,15 @@ jobs:
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
             
             helm ls --namespace ${{ env.ING_NS }}
+            sleep 30
             kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
 
-            ING_CTL_IP=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-            echo "ING_CTL_IP:" $ING_CTL_IP
-            echo "ING_CTL_IP=$ING_CTL_IP" >> $GITHUB_ENV
+            ingress_controller_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+            echo "ING_CTL_IP:" $ingress_controller_ip
+            echo "ING_CTL_IP=$ingress_controller_ip" >> $GITHUB_ENV
+
+            kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
+
       shell: bash
 
     - name: setup DNS
