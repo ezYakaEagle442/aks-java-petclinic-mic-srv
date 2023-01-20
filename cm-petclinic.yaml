@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: springcloudazure
+data:
+  SPRING_CLOUD_AZURE_TENANT_ID: "16b3c013-d300-468d-ac64-7eda0820b6d3"
+  SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: "https://kv-petcliaks33.vault.azure.net/"
+  CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID: "id-aks-petclinic-customers-service-dev-westeurope-101"
+  VETS_SVC_APP_IDENTITY_CLIENT_ID: "id-aks-petclinic-vets-service-dev-westeurope-101"
+  VISITS_SVC_APP_IDENTITY_CLIENT_ID: "id-aks-petclinic-visits-service-dev-westeurope-101"

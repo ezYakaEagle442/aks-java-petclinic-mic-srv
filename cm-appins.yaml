@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appins
+data:
+  APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=76a77fc0-6e56-4928-992c-0eed5b0f6921;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/"
+  APPLICATIONINSIGHTS_CONFIGURATION_FILE: "BOOT-INF/classes/applicationinsights.json"
