@@ -164,6 +164,12 @@ jobs:
           export ING_HOST=${{ env.APP_DNS_ZONE }}
           echo "INGRESS HOST " $ING_HOST
 
+          mkdir $API_GATEWAY_FOLDER/k8s/deploy
+          mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+          mkdir $VETS_SERVICE_FOLDER/k8s/deploy
+          mkdir $VISITS_SERVICE_FOLDER/k8s/deploy
+          mkdir $CONFIG_SERVER_FOLDER/k8s/deploy
+
           echo "Cheking folder " $API_GATEWAY_FOLDER
           ls -al $API_GATEWAY_FOLDER/k8s
           ls -al $API_GATEWAY_FOLDER/k8s/deploy
@@ -173,8 +179,8 @@ jobs:
           ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
 
           echo "Cheking folder " $VETS_SERVICE_FOLDER
-          ls -al  $VETS_SERVICE_FOLDER/k8s
-          ls -al  $VETS_SERVICE_FOLDER/k8s/deploy
+          ls -al $VETS_SERVICE_FOLDER/k8s
+          ls -al $VETS_SERVICE_FOLDER/k8s/deploy
 
           echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s
