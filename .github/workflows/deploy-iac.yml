@@ -9,7 +9,7 @@ env:
   RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
-  ACR_NAME: acrpetcliaks
+  ACR_NAME: acrpetcliaks # customize this
   DNS_ZONE: cloudapp.azure.com
   APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
   CUSTOM_DNS: javaonazurehandsonlabs.com
@@ -22,9 +22,17 @@ env:
   AKS_SUBNET_CIDR: 172.16.1.0/24
   AKS_SUBNET_NAME: snet-aks
 
-  DNS_PREFIX: appinnojava
+  DNS_PREFIX: appinnojava # customize this
   ING_NS: ingress # Namespace to use for the Ingress Controller
-  AKS_IDENTITY_NAME: id-aks-cluster-dev-westeurope-101
+  AKS_IDENTITY_NAME: id-aks-cluster-dev-westeurope-101 # customize this
+
+  # APPLICATION INSIGHTS
+  APPLICATIONINSIGHTS_CONFIGURATION_FILE: BOOT-INF/classes/applicationinsights.json
+
+  # ==== Identities ====:
+  CUSTOMERS_SVC_APP_ID_NAME: id-aks-petclinic-customers-service-dev-westeurope-101 # customize this
+  VETS_SVC_APP_ID_NAME: id-aks-petclinic-vets-service-dev-westeurope-101 # customize this
+  VISITS_SVC_APP_ID_NAME: id-aks-petclinic-visits-service-dev-westeurope-101 # customize this
 
   START_IP_ADDRESS: 172.16.1.0
   END_IP_ADDRESS: 172.16.1.255
@@ -203,7 +211,44 @@ jobs:
             echo "ING_CTL_IP:" $ingress_controller_ip
             echo "ING_CTL_IP=$ingress_controller_ip" >> $GITHUB_ENV
 
+      shell: bash
+
+    - name: setup Petclinic K8S Config
+      run: |
             kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
+
+            cat <<EOF >> cm-petclinic.yaml
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: springcloudazure
+            data:
+              SPRING_CLOUD_AZURE_TENANT_ID: "${{ env.SPRING_CLOUD_AZURE_TENANT_ID }}"
+              SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: "${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}"
+              CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID: "${{ env.CUSTOMERS_SVC_APP_ID_NAME }}"
+              VETS_SVC_APP_IDENTITY_CLIENT_ID: "${{ env.VETS_SVC_APP_ID_NAME }}"
+              VISITS_SVC_APP_IDENTITY_CLIENT_ID: "${{ env.VISITS_SVC_APP_ID_NAME }}"
+            EOF
+
+            cat cm-petclinic.yaml
+            kubectl apply-f cm-petclinic.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+
+            appins_cs=$(az deployment group show --name aks-petclinic-pre-req \
+              -g ${{ env.RG_APP }} \
+              --query properties.outputs.appInsightsConnectionString.value)
+
+            cat <<EOF >> cm-appins.yaml
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: appins
+            data:
+              APPLICATIONINSIGHTS_CONNECTION_STRING: $appins_cs
+              APPLICATIONINSIGHTS_CONFIGURATION_FILE: "${{ env.APPLICATIONINSIGHTS_CONFIGURATION_FILE }}"
+            EOF
+
+            cat cm-appins.yaml
+            kubectl apply-f cm-appins.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
       shell: bash
 
