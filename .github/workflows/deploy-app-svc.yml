@@ -107,7 +107,7 @@ jobs:
     - name: Display environment variables
       run: |
         echo "Checking GITHUB_ENV"
-        echo "LOCAL_IP=$LOCAL_IP
+        echo "LOCAL_IP=$LOCAL_IP"
         
         echo "ADMIN_SERVER_FOLDER=$ADMIN_SERVER_FOLDER"
         echo "DISCOVERY_SERVER_FOLDER=$DISCOVERY_SERVER_FOLDER"
@@ -184,6 +184,11 @@ jobs:
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
+
+          ls -al $API_GATEWAY_FOLDER/k8s/deploy
+          ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+          ls -al  $VETS_SERVICE_FOLDER/k8s/deploy
+          ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
 
           set -euo pipefail
           access_token=$(az account get-access-token --query accessToken -o tsv)
