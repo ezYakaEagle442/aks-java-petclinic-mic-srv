@@ -33,7 +33,9 @@ ENV SPRING_PROFILES_ACTIVE = "docker,mysql"
 COPY --from=builder ${APP_INSIGHTS_AGENT_JAR_FILE_PATH}/ ./
 COPY --from=builder /tmp/app/dependencies/ ./
 COPY --from=builder /tmp/app/snapshot-dependencies/ ./
+RUN true
 COPY --from=builder /tmp/app/spring-boot-loader/ ./
+RUN true
 COPY --from=builder /tmp/app/application/ ./
 EXPOSE 80 8080 8081 8082 8083 8084 8888 9090
 

@@ -84,7 +84,9 @@ RUN ls -al /tmp/app
 COPY --from=builder ${APP_INSIGHTS_AGENT_JAR_FILE_PATH}/ ./
 COPY --from=builder /tmp/app/dependencies/ ./
 COPY --from=builder /tmp/app/snapshot-dependencies/ ./
+RUN true
 COPY --from=builder /tmp/app/spring-boot-loader/ ./
+RUN true
 COPY --from=builder /tmp/app/application/ ./
 # COPY --from=builder /tmp/app/target/*.jar app.jar
 # COPY target/*.jar app.jar
