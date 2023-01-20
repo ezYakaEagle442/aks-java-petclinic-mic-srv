@@ -164,6 +164,7 @@ jobs:
           export ING_HOST=${{ env.APP_DNS_ZONE }}
           echo "INGRESS HOST " $ING_HOST
 
+          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-cm.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-cm.yaml
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-deployment.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-deployment.yaml
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-ingress.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-ingress.yaml 
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-srv-cluster-ip.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-srv-cluster-ip.yaml 

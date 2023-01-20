@@ -17,6 +17,12 @@ spec:
         - name: customers-service
           image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/customers-service:${IMAGE_TAG}
           imagePullPolicy: Always
+          env:
+          - name: "CONFIG_SERVER_URL"
+            valueFrom:
+              configMapKeyRef:
+                name: config-server
+                key: CONFIG_SERVER_URL
           startupProbe:
             initialDelaySeconds: 30
             timeoutSeconds: 30
