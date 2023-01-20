@@ -232,23 +232,21 @@ jobs:
 
 
       # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
-    - name: Deploy Manifests to AKS
-      uses: Azure/k8s-deploy@v4
-      with:
-        namespace: ${{ env.PETCLINIC_NAMESPACE }}
-        manifests: |
             # https://github.com/Azure/k8s-deploy/issues/278
             # $CONFIG_SERVER_FOLDER/k8s/deploy
             # $VETS_SERVICE_FOLDER/k8s/deploy
             # $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
             # $VISITS_SERVICE_FOLDER/k8s/deploy
             # $API_GATEWAY_FOLDER/k8s/deploy
-
+    - name: Deploy Manifests to AKS
+      uses: Azure/k8s-deploy@v4
+      with:
+        namespace: ${{ env.PETCLINIC_NAMESPACE }}
+        manifests: |
             spring-petclinic-config-server/k8s/deploy
             spring-petclinic-vets-service/k8s/deploy
             spring-petclinic-customers-service/k8s/deploy
             spring-petclinic-visits-service/k8s/deploy
-            # spring-petclinic-api-gateway/k8s/deploy
 
           # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
 
