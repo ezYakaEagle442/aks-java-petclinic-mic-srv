@@ -231,7 +231,7 @@ jobs:
             EOF
 
             cat cm-petclinic.yaml
-            kubectl apply-f cm-petclinic.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+            kubectl apply -f cm-petclinic.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
             appins_cs=$(az deployment group show --name aks-petclinic-pre-req \
               -g ${{ env.RG_APP }} \
@@ -248,7 +248,7 @@ jobs:
             EOF
 
             cat cm-appins.yaml
-            kubectl apply-f cm-appins.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+            kubectl apply -f cm-appins.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
       shell: bash
 
