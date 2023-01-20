@@ -237,11 +237,19 @@ jobs:
       with:
         namespace: ${{ env.PETCLINIC_NAMESPACE }}
         manifests: |
-            $CONFIG_SERVER_FOLDER/k8s/deploy
-            $VETS_SERVICE_FOLDER/k8s/deploy
-            $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
-            $VISITS_SERVICE_FOLDER/k8s/deploy
-            $API_GATEWAY_FOLDER/k8s/deploy
+            # https://github.com/Azure/k8s-deploy/issues/278
+            # $CONFIG_SERVER_FOLDER/k8s/deploy
+            # $VETS_SERVICE_FOLDER/k8s/deploy
+            # $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+            # $VISITS_SERVICE_FOLDER/k8s/deploy
+            # $API_GATEWAY_FOLDER/k8s/deploy
+
+            spring-petclinic-config-server/k8s/deploy
+            spring-petclinic-vets-service/k8s/deploy
+            spring-petclinic-customers-service/k8s/deploy
+            spring-petclinic-visits-service/k8s/deploy
+            # spring-petclinic-api-gateway/k8s/deploy
+
           # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
