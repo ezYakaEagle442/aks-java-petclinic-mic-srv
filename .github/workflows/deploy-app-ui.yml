@@ -1,5 +1,4 @@
 name: Deploy API-Gateway
-
 env:
   APP_NAME: petcliaks
   LOCATION: westeurope # francecentral
@@ -11,6 +10,13 @@ env:
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
   SET_KV_ACCESS_POLICIES: false # let it to false
 
+  DNS_ZONE: cloudapp.azure.com
+  APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
+  CUSTOM_DNS: javaonazurehandsonlabs.com
+  AZURE_DNS_LABEL_NAME: petclinic
+  
+  PETCLINIC_NAMESPACE: petclinic
+  AKS_CLUSTER_NAME: aks-petcliaks
   AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
   REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
   REPOSITORY: petclinic                  # set this to your ACR repository
@@ -25,8 +31,11 @@ env:
   AZ_BLOB_MAX_CONNECTIONS: 5
   AZ_BLOB_MAXSIZE_CONDITION: 104857600
   AZ_BLOB_TIMEOUT: 600
-
+  
   # ==== APPS ====
+  CLOUD_PROVIDER_ENV: azure
+  PRJ_PREFIX: spring-petclinic
+
   API_GATEWAY: api-gateway
   ADMIN_SERVER: admin-server
   CUSTOMERS_SERVICE: customers-service
@@ -63,6 +72,7 @@ on:
         required: true
         type: string
 
+
 jobs:
   deploy-ui:
     runs-on: ubuntu-latest
@@ -76,29 +86,85 @@ jobs:
       with:
         creds: ${{ env.credentials }}
 
+    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+    # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
+    - name: Set Base environment variables
+      run: |
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+        echo "API_GATEWAY_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
+        echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+      shell: bash
+
+    - name: Display environment variables
+      run: |
+        echo "Checking GITHUB_ENV"
+        echo "LOCAL_IP=$LOCAL_IP"
+        echo "API_GATEWAY_FOLDER=$API_GATEWAY_FOLDER"
+        echo "GH_WORKSPACE=$GH_WORKSPACE"
+      shell: bash
+
+
+    # https://github.com/Azure/aks-set-context/tree/releases/v1
+    - name: AKS Set Context
+      uses: azure/aks-set-context@v1
+      with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
+          resource-group: ${{ env.RG_APP }} 
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      id: akslogin
+
     - name: Deploy UI + API Gateway to aks
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
-          echo "About to deploy the UI + API Gateway ..." 
+          echo "About to deploy the API-Gateway UI ..." 
           tag_id=${{ inputs.tag_id }}
           echo "Image Build tag ID:"$tag_id
 
-          imageNameApiGateway="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.API_GATEWAY }}:$tag_id"
-          echo "imageNameApiGateway= " $imageNameApiGateway
+          managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
+          echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
 
-          az deployment group create --name aks-petclinic-ui -f iac/bicep/modules/aks/apps/aks-ui.bicep -g ${{ env.RG_APP }} \
-            -p appName=${{ env.APP_NAME }} \
-            -p location=${{ env.LOCATION }} \
-            -p acrName=${{ env.AZURE_CONTAINER_REGISTRY }} \
-            -p azureContainerAppEnvName=${{ env.aks_ENV_NAME }} \
-            -p kvName=${{ env.KV_NAME }} \
-            -p kvRGName=${{ env.RG_KV }} \
-            -p imageNameApiGateway=$imageNameApiGateway \
-            -p springCloudAzureKeyVaultEndpoint=${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }} \
-            -p springCloudAzureTenantId=${{ env.SPRING_CLOUD_AZURE_TENANT_ID }} 
+          # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --admin
 
+          export CONTAINER_REGISTRY=${{ env.AZURE_CONTAINER_REGISTRY }}
+          export REPO=${{ env.REPOSITORY }} 
+          export IMAGE_TAG=$tag_id
+          export DNS_LABEL=${{ env.AZURE_DNS_LABEL_NAME }}
+
+          export ING_HOST=${{ env.APP_DNS_ZONE }}
+          echo "INGRESS HOST " $ING_HOST
+
+          mkdir $API_GATEWAY_FOLDER/k8s/deploy
+
+          echo "Cheking folder " $API_GATEWAY_FOLDER
+          ls -al $API_GATEWAY_FOLDER/k8s
+
+          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-deployment.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-deployment.yaml
+          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-ingress.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-ingress.yaml 
+          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-cluster-ip.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-cluster-ip.yaml 
+
+          echo "Cheking folder " $API_GATEWAY_FOLDER
+          ls -al $API_GATEWAY_FOLDER/k8s/deploy
+
+          set -euo pipefail
+          access_token=$(az account get-access-token --query accessToken -o tsv)
+          refresh_token=$(curl https://${{ env.REGISTRY_URL }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.REGISTRY_URL }}&access_token=$access_token" | jq -r .refresh_token)
+          docker login ${{ env.REGISTRY_URL }} -u 00000000-0000-0000-0000-000000000000 --password-stdin <<< "$refresh_token"
+
+          az configure --defaults acr=${{ env.AZURE_CONTAINER_REGISTRY }}
 
       shell: bash
+
+
+      # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
+            # https://github.com/Azure/k8s-deploy/issues/278
+            # $API_GATEWAY_FOLDER/k8s/deploy
+    - name: Deploy Manifests to AKS
+      uses: Azure/k8s-deploy@v4
+      with:
+        namespace: ${{ env.PETCLINIC_NAMESPACE }}
+        manifests: |
+            spring-petclinic-api-gateway/k8s/deploy
+          # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
