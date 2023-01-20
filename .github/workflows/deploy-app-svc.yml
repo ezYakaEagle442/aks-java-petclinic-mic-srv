@@ -1,4 +1,4 @@
-name: Deploy Customers, Vets & Visits Apps
+name: Deploy Config-Server, Customers, Vets & Visits Apps
 
 env:
   APP_NAME: petcliaks
