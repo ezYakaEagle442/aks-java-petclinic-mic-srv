@@ -22,7 +22,34 @@ spec:
             valueFrom:
               configMapKeyRef:
                 name: config-server
-                key: CONFIG_SERVER_URL          
+                key: CONFIG_SERVER_URL
+          - name: "SPRING_CLOUD_AZURE_TENANT_ID"
+            valueFrom:
+              configMapKeyRef:
+                name: springcloudazure
+                key: SPRING_CLOUD_AZURE_TENANT_ID
+          - name: "SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT"
+            valueFrom:
+              configMapKeyRef:
+                name: springcloudazure
+                key: SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT
+          - name: "VETS_SVC_APP_IDENTITY_CLIENT_ID"
+            valueFrom:
+              configMapKeyRef:
+                name: springcloudazure
+                key: VETS_SVC_APP_IDENTITY_CLIENT_ID
+          - name: "APPLICATIONINSIGHTS_CONNECTION_STRING"
+            valueFrom:
+              configMapKeyRef:
+                name: appins
+                key: APPLICATIONINSIGHTS_CONNECTION_STRING
+          - name: "APPLICATIONINSIGHTS_CONFIGURATION_FILE"
+            valueFrom:
+              configMapKeyRef:
+                name: appins
+                key: APPLICATIONINSIGHTS_CONFIGURATION_FILE
+          - name: "SPRING_PROFILES_ACTIVE"
+            value: docker,mysql                    
           startupProbe:
             initialDelaySeconds: 30
             timeoutSeconds: 30
