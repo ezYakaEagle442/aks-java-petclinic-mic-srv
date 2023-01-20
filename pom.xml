@@ -44,6 +44,7 @@
         -->
         <spring-cloud.version>2021.0.4</spring-cloud.version>
         <spring-cloud-azure.version>4.4.0</spring-cloud-azure.version>
+        <spring.jmx.enabled>true</spring.jmx.enabled>
 
         <!-- 
         https://googlecloudplatform.github.io/spring-cloud-gcp/reference/html/index.html#compatibility-with-spring-project-versions
@@ -246,6 +247,15 @@
                 </file>
             </activation>
             <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-deploy-plugin</artifactId>
+                            <version>3.0.0-M2</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>            
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -258,6 +268,13 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <fork>true</fork>
+                            <!-- Layered jars optimizes Docker images -->
+                            <layers>
+                                <enabled>true</enabled>
+                            </layers>
+                        </configuration>                        
                         <executions>
                             <execution>
                                 <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
@@ -302,6 +319,11 @@
                             <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                         </configuration>
                     </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>3.0.0-M2</version>
+                    </plugin>                    
                 </plugins>
             </build>
         </profile>
