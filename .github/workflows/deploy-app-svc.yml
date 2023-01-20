@@ -172,23 +172,18 @@ jobs:
 
           echo "Cheking folder " $API_GATEWAY_FOLDER
           ls -al $API_GATEWAY_FOLDER/k8s
-          ls -al $API_GATEWAY_FOLDER/k8s/deploy
 
           echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
           ls -al $CUSTOMERS_SERVICE_FOLDER/k8s
-          ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
 
           echo "Cheking folder " $VETS_SERVICE_FOLDER
           ls -al $VETS_SERVICE_FOLDER/k8s
-          ls -al $VETS_SERVICE_FOLDER/k8s/deploy
 
           echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s
-          ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
 
           echo "Cheking folder " $CONFIG_SERVER_FOLDER
           ls -al $CONFIG_SERVER_FOLDER/k8s
-          ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
 
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-cm.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-cm.yaml
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-deployment.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-deployment.yaml
@@ -211,10 +206,19 @@ jobs:
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
 
+          echo "Cheking folder " $API_GATEWAY_FOLDER
           ls -al $API_GATEWAY_FOLDER/k8s/deploy
+
+          echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
           ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+          
+          echo "Cheking folder " $VETS_SERVICE_FOLDER
           ls -al $VETS_SERVICE_FOLDER/k8s/deploy
+
+          echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
+          
+          echo "Cheking folder " $CONFIG_SERVER_FOLDER
           ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
 
           set -euo pipefail
@@ -233,11 +237,11 @@ jobs:
       with:
         namespace: ${{ env.PETCLINIC_NAMESPACE }}
         manifests: |
-            $CONFIG_SERVER_FOLDER
-            $VETS_SERVICE_FOLDER
-            $CUSTOMERS_SERVICE_FOLDER
-            $VISITS_SERVICE_FOLDER
-            $API_GATEWAY_FOLDER
+            $CONFIG_SERVER_FOLDER/k8s/deploy
+            $VETS_SERVICE_FOLDER/k8s/deploy
+            $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+            $VISITS_SERVICE_FOLDER/k8s/deploy
+            $API_GATEWAY_FOLDER/k8s/deploy
           # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
