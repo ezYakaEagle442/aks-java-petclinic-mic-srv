@@ -17,11 +17,16 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' existing =  {
 }
 output vnetId string = vnet.id
 
+// https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones?pivots=deployment-language-bicep
 resource aksDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
   name: appDnsZone
   location: 'global'  // /!\ 'global' instead of '${location}'. This is because Azure DNS is a global service. otherwise you will hit this error:"MissingRegistrationForLocation. "The subscription is not registered for the resource type 'privateDnsZones' in the location 'westeurope' 
+  properties: {
+    zoneType: 'Public'
+  }
 }
 
+// https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/a?pivots=deployment-language-bicep
 resource aksAppsRecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
   name: 'www'
   parent: aksDnsZone
@@ -35,13 +40,15 @@ resource aksAppsRecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
   }
 }
 
+// https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/cname?pivots=deployment-language-bicep
 resource aksAppsRecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
-  name: 'www'
+  name: 'home'
   parent: aksDnsZone
   properties: {
     CNAMERecord: {
       cname: 'www.${appDnsZone}'
     }
+    TTL: 360    
   }
 }
 
