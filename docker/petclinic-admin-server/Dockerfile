@@ -94,6 +94,6 @@ COPY --from=builder /tmp/app/application/ ./
 EXPOSE 80 8080 8081 8082 8083 8084 8888 9090
 
 # https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-spring-boot
-ENTRYPOINT ["java", "-javaagent:/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar", "org.springframework.boot.loader.JarLauncher", "--server.port=9090"]
+ENTRYPOINT ["java", "-javaagent:/tmp/app/applicationinsights-agent-3.4.7.jar", "org.springframework.boot.loader.JarLauncher", "--server.port=9090"]
 # ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/tmp/app/app.jar"]
 #ENTRYPOINT ["java", "-javaagent:"{$APP_INSIGHTS_AGENT_JAR_FILE_PATH}, "-jar", "/tmp/app/app.jar" , "--server.port=9090", "--spring.profiles.active=docker,mysql"]

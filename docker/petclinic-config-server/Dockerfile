@@ -39,4 +39,4 @@ RUN true
 COPY --from=builder /tmp/app/application/ ./
 EXPOSE 80 8080 8081 8082 8083 8084 8888 9090
 
-ENTRYPOINT ["java", "-javaagent:/tmp/app/applicationinsights-agent-${APPI_VERSION}.jar", "org.springframework.boot.loader.JarLauncher", "--server.port=8888"]
+ENTRYPOINT ["java", "-javaagent:/tmp/app/applicationinsights-agent-3.4.7.jar", "org.springframework.boot.loader.JarLauncher", "--server.port=8888"]
