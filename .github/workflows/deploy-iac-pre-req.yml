@@ -26,7 +26,7 @@ env:
   CLIENT_IP_ADDRESS: 42.42.42.42 #  not used
 
   DNS_ZONE: cloudapp.azure.com
-  APP_DNS_ZONE: kissmyapp.westeurope.cloudapp.azure.com
+  APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
 
   MYSQL_SERVER_NAME: petcliaks
   MYSQL_DB_NAME: petclinic
@@ -37,6 +37,7 @@ env:
 
   DEPLOY_TO_VNET: false
 
+  SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: https://kv-petcliaks33.vault.azure.net/
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
   SET_KV_ACCESS_POLICIES: false # let it to false
 
@@ -60,7 +61,6 @@ env:
   # as this significantly reduces the probability the secrets will be properly redacted. Instead, create individual secrets for each sensitive value.
 
   SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-  SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: ${{ secrets.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}
   SPRING_CLOUD_AZURE_TENANT_ID: ${{ secrets.SPRING_CLOUD_AZURE_TENANT_ID }}
 
   VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
