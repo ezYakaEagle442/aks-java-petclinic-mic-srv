@@ -127,7 +127,7 @@ jobs:
             -p appName=${{ env.APP_NAME }} \
             -p kvName=${{ env.KV_NAME }} \
             -p location=${{ env.LOCATION }}
-
+    
     # Allow GH Runner to access KV
     # When Public access is disabled on KV, you need to add a network rule in the KV Firewall
     - name: Authorize local IP to access the Azure Key Vault
@@ -228,6 +228,32 @@ jobs:
             -p appDnsZone=${{ env.APP_DNS_ZONE }} \
             -p acrName=${{ env.ACR_NAME }} \
             -p deployToVNet=${{ env.DEPLOY_TO_VNET }}
+
+          aksVetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} \
+              --query properties.outputs.vetsServicePrincipalId.value)
+
+          aksVisitsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} \
+              --query properties.outputs.visitsServicePrincipalId.value)
+
+          aksConfigServerPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} \
+              --query properties.outputs.configServerPrincipalId.value)
+
+          aksCustomersServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} \
+              --query properties.outputs.customersServicePrincipalId.value)
+
+          aksClusterPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} \
+              --query properties.outputs.aksIdentityPrincipalId.value)
+          
+          az deployment group create --name kv-role-assignments -f iac/bicep/modules/aks/kvRoleAssignments.bicep -g ${{ env.RG_KV }} \
+            -p kvRGName=${{ env.RG_KV }} \
+            -p kvName=${{ env.KV_NAME }} \
+            -p aksVetsServicePrincipalId=$aksVetsServicePrincipalId \
+            -p aksVisitsServicePrincipalId=$aksVisitsServicePrincipalId \
+            -p aksConfigServerPrincipalId=$aksConfigServerPrincipalId \
+            -p aksCustomersServicePrincipalId=$aksCustomersServicePrincipalId \
+            -p aksClusterPrincipalId=$aksClusterPrincipalId \
+            -p kvRoleType=KeyVaultSecretsUser   
+
 
       shell: bash
 
