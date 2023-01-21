@@ -88,6 +88,9 @@ resource AKSClusterRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-
 }
 
  // acrpull role to assign to the AKS identity: az role assignment create --assignee $sp_id --role acrpull --scope $acr_registry_id
+ // /!\ This will be implemented later on through ACR Attachment to AKS using AKS Cluster Kubelet Identity
+ // see ../../../../../.github/workflows/deploy-iac.yml
+ /*
 resource ACRRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(acr.id, acrRoleType , aksClusterPrincipalId)
   scope: acr
@@ -97,3 +100,4 @@ resource ACRRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' 
     principalType: 'ServicePrincipal'
   }
 }
+*/
