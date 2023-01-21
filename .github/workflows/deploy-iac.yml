@@ -262,6 +262,25 @@ jobs:
 
       shell: bash
 
+    - name: Integrate AKS with ACR
+      run: |
+            echo "About to configure AKS to be allowed to pull image from ACR"
+            # aks_client_id=$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query identityProfile.kubeletidentity.clientId -o tsv)
+
+            aks_client_id=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} \
+              --query properties.outputs.kubeletIdentity.value)
+
+            echo "AKS Cluster Kubelet Identity " $aks_client_id
+
+            acr_registry_id=$(az deployment group show --name acrpetcliaks -g ${{ env.RG_APP }} \
+              --query properties.outputs.acrId.value -o tsv)
+
+            echo "ACR  ID " $acr_registry_id
+            az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
+            echo "ACR is now attached to AKS Cluster"
+
+      shell: bash
+
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
     # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
