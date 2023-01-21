@@ -72,7 +72,7 @@ param blobContainerName string = '${appName}-blob'
 param ghRunnerSpnPrincipalId string
 
 param dnsZone string = 'cloudapp.azure.com'
-param appDnsZone string = 'kissmyapp.${location}.${dnsZone}'
+param appDnsZone string = 'petclinic.${location}.${dnsZone}'
 param customDns string = 'javaonazurehandsonlabs.com'
 param privateDnsZone string = 'privatelink.${location}.azmk8s.io'
 
