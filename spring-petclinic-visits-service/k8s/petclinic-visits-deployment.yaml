@@ -12,8 +12,35 @@ spec:
       metadata:
         labels:
             app: visits-service
+            azure.workload.identity/use: "true"
       spec:
+        serviceAccountName: sa-aad-wi-visits
+        initContainers:
+        - name: init-networking
+          image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.15.0
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
+              drop:
+              - ALL
+            privileged: true
+            runAsUser: 0
+          env:
+          - name: PROXY_PORT
+            value: "8008"      
         containers:
+        - name: proxy
+          image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.15.0
+          resources:
+            requests:
+              memory: "180Mi"
+              cpu: "100m"
+            limits:
+              memory: "360Mi"
+              cpu: "300m"          
+          ports:
+          - containerPort: 8008
         - name: visits-service
           image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/visits-service:${IMAGE_TAG}
           imagePullPolicy: Always

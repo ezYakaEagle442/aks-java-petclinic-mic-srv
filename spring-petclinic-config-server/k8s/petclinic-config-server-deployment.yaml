@@ -12,8 +12,35 @@ spec:
       metadata:
         labels:
             app: config-server
+            azure.workload.identity/use: "true" # https://github.com/MicrosoftDocs/azure-docs/issues/104157
       spec:
+        serviceAccountName: sa-aad-wi-cfg
+        initContainers:
+        - name: init-networking
+          image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.15.0
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
+              drop:
+              - ALL
+            privileged: true
+            runAsUser: 0
+          env:
+          - name: PROXY_PORT
+            value: "8008"      
         containers:
+        - name: proxy
+          image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.15.0
+          resources:
+            requests:
+              memory: "180Mi"
+              cpu: "100m"
+            limits:
+              memory: "360Mi"
+              cpu: "300m"          
+          ports:
+          - containerPort: 8008      
         - name: config-server
           image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/config-server:${IMAGE_TAG}
           imagePullPolicy: Always
@@ -95,4 +122,4 @@ spec:
           - containerPort: 8888
             name: server
           - containerPort: 8081
-            name: management
+            name: management            

@@ -33,6 +33,7 @@ env:
   CUSTOMERS_SVC_APP_ID_NAME: id-aks-petclinic-customers-service-dev-westeurope-101 # customize this
   VETS_SVC_APP_ID_NAME: id-aks-petclinic-vets-service-dev-westeurope-101 # customize this
   VISITS_SVC_APP_ID_NAME: id-aks-petclinic-visits-service-dev-westeurope-101 # customize this
+  CONFIG_SERVER_APP_ID_NAME: id-aks-petclinic-config-server-dev-westeurope-101 # customize this
 
   START_IP_ADDRESS: 172.16.1.0
   END_IP_ADDRESS: 172.16.1.255
@@ -55,6 +56,19 @@ env:
 
   VM_ADMIN_USER_NAME: adm_aks
   
+  # ==== APPS ====
+  CLOUD_PROVIDER_ENV: azure
+  PRJ_PREFIX: spring-petclinic
+
+  API_GATEWAY: api-gateway
+  ADMIN_SERVER: admin-server
+  CUSTOMERS_SERVICE: customers-service
+  VETS_SERVICE: vets-service
+  VISITS_SERVICE: visits-service
+
+  CONFIG_SERVER: config-server
+  DISCOVERY_SERVER: discovery-server
+
   # https://github.com/Azure/actions-workflow-samples/blob/master/assets/create-secrets-for-GitHub-workflows.md#consume-secrets-in-your-workflow
   # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-secrets
 
@@ -104,6 +118,39 @@ jobs:
     runs-on: ubuntu-latest
             
     steps:
+    - name: Set Base environment variables
+      run: |
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+        
+        echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
+        echo "DISCOVERY_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
+
+        echo "API_GATEWAY_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
+        echo "CONFIG_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}" >> $GITHUB_ENV
+        echo "CUSTOMERS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CUSTOMERS_SERVICE }}" >> $GITHUB_ENV
+        echo "VETS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}" >> $GITHUB_ENV
+        echo "VISITS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
+
+        echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+      shell: bash
+
+    - name: Display environment variables
+      run: |
+        echo "Checking GITHUB_ENV"
+        echo "LOCAL_IP=$LOCAL_IP"
+        
+        echo "ADMIN_SERVER_FOLDER=$ADMIN_SERVER_FOLDER"
+        echo "DISCOVERY_SERVER_FOLDER=$DISCOVERY_SERVER_FOLDER"
+
+        echo "API_GATEWAY_FOLDER=$API_GATEWAY_FOLDER"
+        echo "CONFIG_SERVER_FOLDER=$CONFIG_SERVER_FOLDER"
+        echo "CUSTOMERS_SERVICE_FOLDER=$CUSTOMERS_SERVICE_FOLDER"
+        echo "VETS_SERVICE_FOLDER=$VETS_SERVICE_FOLDER"
+        echo "VISITS_SERVICE_FOLDER=$VISITS_SERVICE_FOLDER"
+
+        echo "GH_WORKSPACE=$GH_WORKSPACE"
+      shell: bash
+
     - name: Login with GHA Runner SP
       uses: azure/login@v1.4.6 # fails https://github.com/marketplace/actions/azure-login
       with:
@@ -191,15 +238,14 @@ jobs:
             # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
             # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
 
-            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --admin
+            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
             kubectl cluster-info
             
             helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
             helm repo update
 
             helm install ingress-nginx ingress-nginx/ingress-nginx \
-              --create-namespace \
-              --namespace ${{ env.ING_NS }} \
+              --create-namespace --namespace ${{ env.ING_NS }} \
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
             
             helm ls --namespace ${{ env.ING_NS }}
@@ -212,9 +258,82 @@ jobs:
 
       shell: bash
 
+    - name: Get Apps Identity Id
+      run: |
+          # vetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServicePrincipalId.value)
+          vetsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServiceClientId.value)
+
+          # visitsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServicePrincipalId.value)
+          visitsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServiceClientId.value)
+
+          # configServerPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.configServerPrincipalId.value)
+          configServerClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.c.value)
+
+          # customersServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServicePrincipalId.value)
+          customersServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServiceClientId.value)
+
+          # aksClusterPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.aksIdentityPrincipalId.value)
+          aksClusterClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.aksIdentityClientId.value)
+
+          echo "vetsServiceClientId=$vetsServiceClientId" >> $GITHUB_ENV
+          echo "visitsServiceClientId=$visitsServiceClientId" >> $GITHUB_ENV
+          echo "customersServiceClientId=$customersServiceClientId" >> $GITHUB_ENV
+          echo "configServerClientId=$configServerClientId" >> $GITHUB_ENV
+          echo "aksClusterClientId=$aksClusterClientId" >> $GITHUB_ENV
+
+    # https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster
+    # https://blog.identitydigest.com/azuread-federate-mi/
+    - name: Configure AAD WI
+      run: |
+            # "$(az identity show --resource-group "${RG_NAME}" --name "${{ env.xxx }}" --query 'clientId' -o tsv)"
+
+            export AKS_OIDC_ISSUER="$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query "oidcIssuerProfile.issuerUrl" -o tsv)"
+            export PETCLINIC_NS=${{ env.PETCLINIC_NAMESPACE }}
+            export AUDIENCES="api://AzureADTokenExchange"
+
+            export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
+            export SERVICE_ACCOUNT_NAME="sa-aad-wi-customers"
+            envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/sa-petclinic.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/sa-customers.yaml
+            echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
+            ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+            cat $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/sa-customers.yaml
+            kubectl apply -f $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/sa-customers.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+            az identity federated-credential create --name customersServiceFedIdentity --identity-name "${{ env.CUSTOMERS_SVC_APP_ID_NAME }}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${{ env.PETCLINIC_NAMESPACE }}":"${SERVICE_ACCOUNT_NAME}" -g "${{ env.RG_APP }}"
+            
+            export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
+            export SERVICE_ACCOUNT_NAME="sa-aad-wi-vets"
+            envsubst < $VETS_SERVICE_FOLDER/k8ssa-petclinic.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml
+            echo "Cheking folder " $VETS_SERVICE_FOLDER
+            ls -al $VETS_SERVICE_FOLDER/k8s/deploy
+            cat $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml
+            kubectl apply -f $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+            az identity federated-credential create --name vetsServiceFedIdentity --identity-name "${{ env.VETS_SVC_APP_ID_NAME }}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${{ env.PETCLINIC_NAMESPACE }}":"${SERVICE_ACCOUNT_NAME}" -g "${{ env.RG_APP }}"
+
+            export USER_ASSIGNED_CLIENT_ID=$visitsServiceClientId
+            export SERVICE_ACCOUNT_NAME="sa-aad-wi-visits"
+            envsubst < $VISITS_SERVICE_FOLDER/k8s/sa-petclinic.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/sa-visits.yaml
+            echo "Cheking folder " $VISITS_SERVICE_FOLDER
+            ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
+            cat $VISITS_SERVICE_FOLDER/k8s/deploy/sa-visits.yaml
+            kubectl apply -f $VISITS_SERVICE_FOLDER/k8s/deploy/sa-visits.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+            az identity federated-credential create --name visitsServiceFedIdentity --identity-name "${{ env.VISITS_SVC_APP_ID_NAME }}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${{ env.PETCLINIC_NAMESPACE }}":"${SERVICE_ACCOUNT_NAME}" -g "${{ env.RG_APP }}"
+
+            export USER_ASSIGNED_CLIENT_ID=$configServerClientId
+            export SERVICE_ACCOUNT_NAME="sa-aad-wi-cfg"
+            envsubst < $CONFIG_SERVER_FOLDER/k8s/sa-petclinic.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/sa-cfg.yaml
+            echo "Cheking folder " $CONFIG_SERVER_FOLDER
+            ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
+            cat $CONFIG_SERVER_FOLDER/k8s/deploy/sa-cfg.yaml
+            kubectl apply -f $CONFIG_SERVER_FOLDER/k8s/deploy/sa-cfg.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+            az identity federated-credential create --name configServerFedIdentity --identity-name "${{ env.CONFIG_SERVER_APP_ID_NAME }}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${{ env.PETCLINIC_NAMESPACE }}":"${SERVICE_ACCOUNT_NAME}" -g "${{ env.RG_APP }}"
+
+            # az aks pod-identity list --cluster-name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
+      shell: bash
     - name: setup Petclinic K8S Config
       run: |
-            kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
+            # kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
+            kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }} --dry-run=client -o yaml > ns-petclinic.yaml
+            kubectl apply -f ns-petclinic.yaml
 
             cat <<EOF >> cm-petclinic.yaml
             apiVersion: v1
@@ -224,9 +343,10 @@ jobs:
             data:
               SPRING_CLOUD_AZURE_TENANT_ID: "${{ env.SPRING_CLOUD_AZURE_TENANT_ID }}"
               SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: "${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}"
-              CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID: "${{ env.CUSTOMERS_SVC_APP_ID_NAME }}"
-              VETS_SVC_APP_IDENTITY_CLIENT_ID: "${{ env.VETS_SVC_APP_ID_NAME }}"
-              VISITS_SVC_APP_IDENTITY_CLIENT_ID: "${{ env.VISITS_SVC_APP_ID_NAME }}"
+              CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID: "$customersServiceClientId"
+              VETS_SVC_APP_IDENTITY_CLIENT_ID: "$vetsServiceClientId"
+              VISITS_SVC_APP_IDENTITY_CLIENT_ID: "$visitsServiceClientId"
+              CONFIG_SERVER_APP_IDENTITY_CLIENT_ID: "$configServerClientId"
             EOF
 
             cat cm-petclinic.yaml
@@ -265,16 +385,12 @@ jobs:
     - name: Integrate AKS with ACR
       run: |
             echo "About to configure AKS to be allowed to pull image from ACR"
+
             # aks_client_id=$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query identityProfile.kubeletidentity.clientId -o tsv)
-
-            aks_client_id=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} \
-              --query properties.outputs.kubeletIdentity.value)
-
+            aks_client_id=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} --query properties.outputs.kubeletIdentity.value)
             echo "AKS Cluster Kubelet Identity " $aks_client_id
 
-            acr_registry_id=$(az deployment group show --name acrpetcliaks -g ${{ env.RG_APP }} \
-              --query properties.outputs.acrId.value -o tsv)
-
+            acr_registry_id=$(az deployment group show --name acrpetcliaks -g ${{ env.RG_APP }} --query properties.outputs.acrId.value -o tsv)
             echo "ACR  ID " $acr_registry_id
             az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
             echo "ACR is now attached to AKS Cluster"
