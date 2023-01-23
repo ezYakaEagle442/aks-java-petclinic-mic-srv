@@ -58,6 +58,7 @@ env:
   DEPLOYMENT_VERSION: 2.6.13
   AZ_CLI_VERSION: 2.40.0
   JAVA_VERSION: 11
+  WI_VERSION: 0.15.0 # Azure AD Workload Identity version: https://github.com/Azure/azure-workload-identity/releases
 
 on:
   workflow_call:
@@ -163,6 +164,9 @@ jobs:
 
           export ING_HOST=${{ env.APP_DNS_ZONE }}
           echo "INGRESS HOST " $ING_HOST
+
+          export AAD_WI_VERSION=${{ env.WI_VERSION }}
+          echo "AAD_WI_VERSION HOST " $AAD_WI_VERSION
 
           mkdir $API_GATEWAY_FOLDER/k8s/deploy
           mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
