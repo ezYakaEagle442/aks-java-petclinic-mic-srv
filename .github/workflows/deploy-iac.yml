@@ -279,7 +279,7 @@ jobs:
           visitsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServiceClientId.value)
 
           # configServerPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.configServerPrincipalId.value)
-          configServerClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.c.value)
+          configServerClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.configServerClientId.value)
 
           # customersServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServicePrincipalId.value)
           customersServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServiceClientId.value)
