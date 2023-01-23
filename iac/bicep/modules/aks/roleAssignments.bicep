@@ -2,11 +2,6 @@ param acrName string
 
 param aksClusterPrincipalId string
 
-param aksCustomersServicePrincipalId string
-param aksVetsServicePrincipalId string
-param aksVisitsServicePrincipalId string
-param aksConfigServerPrincipalId string
-
 @allowed([
   'Owner'
   'Contributor'
@@ -64,15 +59,20 @@ var role = {
 }
 
 // You need Key Vault Administrator permission to be able to see the Keys/Secrets/Certificates in the Azure Portal
-
+/*
 resource KVAdminRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(kv.id, kvRoleType , subscription().subscriptionId)
+  scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
     principalId: aksClusterPrincipalId
     principalType: 'ServicePrincipal'
   }
 }
+output kvAdminRoleAssignmentUpdatedOn string = KVAdminRoleAssignment.properties.updatedOn
+output kvAdminRoleAssignmentId string = KVAdminRoleAssignment.id
+output kvAdminRoleAssignmentName string = KVAdminRoleAssignment.name
+*/
 
 // https://github.com/Azure/azure-quickstart-templates/blob/master/modules/Microsoft.ManagedIdentity/user-assigned-identity-role-assignment/1.0/main.bicep
 // https://github.com/Azure/bicep/discussions/5276
