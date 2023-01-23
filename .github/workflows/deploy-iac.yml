@@ -279,7 +279,7 @@ jobs:
             kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }} --dry-run=client -o yaml > ns-petclinic.yaml
             kubectl apply -f ns-petclinic.yaml
       shell: bash
-      
+
     # https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster
     # https://blog.identitydigest.com/azuread-federate-mi/
     - name: Configure AAD WI
@@ -324,7 +324,7 @@ jobs:
             export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-vets"
             ls -al $VETS_SERVICE_FOLDER/k8s
-            envsubst < $VETS_SERVICE_FOLDER/k8ssa-petclinic.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml
+            envsubst < $VETS_SERVICE_FOLDER/k8s/sa-petclinic.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml
             echo "Cheking folder " $VETS_SERVICE_FOLDER
             ls -al $VETS_SERVICE_FOLDER/k8s/deploy
             cat $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml
