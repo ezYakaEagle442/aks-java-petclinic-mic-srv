@@ -6,7 +6,7 @@ az deployment group create --name aks-petclinic-storage -f iac/bicep/modules/aks
 */
 @description('A UNIQUE name')
 @maxLength(20)
-param appName string = '101-${uniqueString(deployment().name)}'
+param appName string = '101${uniqueString(deployment().name)}'
 
 @description('The location of the Azure resources.')
 param location string = resourceGroup().location
@@ -201,7 +201,6 @@ resource blobcontainer 'Microsoft.Storage/storageAccounts/blobServices/container
   }
 }
 output blobcontainerId string = blobcontainer.id
-
 
 // https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
 var role = {
