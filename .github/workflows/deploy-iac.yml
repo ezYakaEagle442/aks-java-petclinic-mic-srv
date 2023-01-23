@@ -275,6 +275,7 @@ jobs:
 
     - name: Create Petclinic Namespace
       run: |
+            kubectl cluster-info
             # kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
             kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }} --dry-run=client -o yaml > ns-petclinic.yaml
             kubectl apply -f ns-petclinic.yaml
@@ -399,8 +400,7 @@ jobs:
             # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
             # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
 
-            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
-            kubectl cluster-info
+            # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
             
             helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
             helm repo update
