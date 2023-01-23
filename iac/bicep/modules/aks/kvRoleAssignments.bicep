@@ -35,7 +35,7 @@ var role = {
 // You need Key Vault Administrator permission to be able to see the Keys/Secrets/Certificates in the Azure Portal
 
 resource vetsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId)
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'vets')
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
@@ -48,7 +48,7 @@ output vetsRoleAssignmentId string = vetsRoleAssignment.id
 output vetsRoleAssignmentName string = vetsRoleAssignment.name
 
 resource visitsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId)
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'visits')
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
@@ -62,7 +62,7 @@ output visitsRoleAssignmentName string = visitsRoleAssignment.name
 
 
 resource configServerRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId)
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'cfg')
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
@@ -75,7 +75,7 @@ output configServerRoleAssignmentId string = configServerRoleAssignment.id
 output configServerRoleAssignmentName string = configServerRoleAssignment.name
 
 resource customersRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId)
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'customers')
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
