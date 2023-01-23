@@ -133,7 +133,7 @@ jobs:
 
     # https://github.com/marketplace/actions/helm-tool-installer
 
-    - name: Deploy Customers, Vets & Visits services to aks
+    - name: Prepare Manifests to deploy Config-server, Customers, Vets & Visits services to aks
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
           echo "About to deploy the Config-Server, Customers, Vets & Visits services ..." 
