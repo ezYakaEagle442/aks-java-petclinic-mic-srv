@@ -362,12 +362,12 @@ jobs:
             metadata:
               name: springcloudazure
             data:
-              SPRING_CLOUD_AZURE_TENANT_ID: "${{ env.SPRING_CLOUD_AZURE_TENANT_ID }}"
+              SPRING_CLOUD_AZURE_TENANT_ID: ${{ env.SPRING_CLOUD_AZURE_TENANT_ID }}
               SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: "${{ env.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}"
-              CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID: "$customersServiceClientId"
-              VETS_SVC_APP_IDENTITY_CLIENT_ID: "$vetsServiceClientId"
-              VISITS_SVC_APP_IDENTITY_CLIENT_ID: "$visitsServiceClientId"
-              CONFIG_SERVER_APP_IDENTITY_CLIENT_ID: "$configServerClientId"
+              CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID: $customersServiceClientId
+              VETS_SVC_APP_IDENTITY_CLIENT_ID: $vetsServiceClientId
+              VISITS_SVC_APP_IDENTITY_CLIENT_ID: $visitsServiceClientId
+              CONFIG_SERVER_APP_IDENTITY_CLIENT_ID: $configServerClientId
             EOF
 
             cat cm-petclinic.yaml
