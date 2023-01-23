@@ -212,8 +212,7 @@ jobs:
 
             echo "About to Whitelist AKS OutboundIP in KV & MySQL"
 
-            vNetRules=$(az deployment group show --name vnet-aks -g ${{ env.RG_APP }} \
-              --query properties.outputs.aksSubnetId.value)
+            vNetRules=$(az deployment group show --name vnet-aks -g ${{ env.RG_APP }} --query properties.outputs.aksSubnetId.value)
 
             managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
             echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
@@ -239,34 +238,6 @@ jobs:
               -p startIpAddress=${{ env.START_IP_ADDRESS }} \
               -p endIpAddress=${{ env.END_IP_ADDRESS }} \
               -p clientIPAddress=${{ env.CLIENT_IP_ADDRESS }}
-
-      shell: bash
-
-    # https://github.com/marketplace/actions/helm-tool-installer
-    - name: setup HELM
-      run: |
-            # https://github.com/kubernetes/ingress-nginx
-            # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
-            # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
-            # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
-
-            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
-            kubectl cluster-info
-            
-            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-            helm repo update
-
-            helm install ingress-nginx ingress-nginx/ingress-nginx \
-              --create-namespace --namespace ${{ env.ING_NS }} \
-              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
-            
-            helm ls --namespace ${{ env.ING_NS }}
-            sleep 30
-            kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
-
-            ingress_controller_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-            echo "ING_CTL_IP:" $ingress_controller_ip
-            echo "ING_CTL_IP=$ingress_controller_ip" >> $GITHUB_ENV
 
       shell: bash
 
@@ -299,12 +270,32 @@ jobs:
       run: |
             # "$(az identity show --resource-group "${RG_NAME}" --name "${{ env.xxx }}" --query 'clientId' -o tsv)"
 
+            mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+            mkdir $VETS_SERVICE_FOLDER/k8s/deploy
+            mkdir $VISITS_SERVICE_FOLDER/k8s/deploy
+            mkdir $CONFIG_SERVER_FOLDER/k8s/deploy
+
+            echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
+            ls -al $CUSTOMERS_SERVICE_FOLDER/k8s
+
+            echo "Cheking folder " $VETS_SERVICE_FOLDER
+            ls -al $VETS_SERVICE_FOLDER/k8s
+
+            echo "Cheking folder " $VISITS_SERVICE_FOLDER
+            ls -al $VISITS_SERVICE_FOLDER/k8s
+
+            echo "Cheking folder " $CONFIG_SERVER_FOLDER
+            ls -al $CONFIG_SERVER_FOLDER/k8s
+
             export AKS_OIDC_ISSUER="$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query "oidcIssuerProfile.issuerUrl" -o tsv)"
             export PETCLINIC_NS=${{ env.PETCLINIC_NAMESPACE }}
             export AUDIENCES="api://AzureADTokenExchange"
 
+            echo "AKS_OIDC_ISSUER:" $AKS_OIDC_ISSUER
+
             export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-customers"
+            ls -al $CUSTOMERS_SERVICE_FOLDER/k8s
             envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/sa-petclinic.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/sa-customers.yaml
             echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
             ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
@@ -314,6 +305,7 @@ jobs:
             
             export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-vets"
+            ls -al $VETS_SERVICE_FOLDER/k8s
             envsubst < $VETS_SERVICE_FOLDER/k8ssa-petclinic.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/sa-vets.yaml
             echo "Cheking folder " $VETS_SERVICE_FOLDER
             ls -al $VETS_SERVICE_FOLDER/k8s/deploy
@@ -323,6 +315,7 @@ jobs:
 
             export USER_ASSIGNED_CLIENT_ID=$visitsServiceClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-visits"
+            ls -al $VISITS_SERVICE_FOLDER/k8s
             envsubst < $VISITS_SERVICE_FOLDER/k8s/sa-petclinic.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/sa-visits.yaml
             echo "Cheking folder " $VISITS_SERVICE_FOLDER
             ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
@@ -332,6 +325,7 @@ jobs:
 
             export USER_ASSIGNED_CLIENT_ID=$configServerClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-cfg"
+             ls -al $CONFIG_SERVER_FOLDER/k8s
             envsubst < $CONFIG_SERVER_FOLDER/k8s/sa-petclinic.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/sa-cfg.yaml
             echo "Cheking folder " $CONFIG_SERVER_FOLDER
             ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
@@ -380,6 +374,34 @@ jobs:
 
             cat cm-appins.yaml
             kubectl apply -f cm-appins.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
+
+      shell: bash
+
+    # https://github.com/marketplace/actions/helm-tool-installer
+    - name: setup HELM
+      run: |
+            # https://github.com/kubernetes/ingress-nginx
+            # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
+            # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
+            # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
+
+            az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
+            kubectl cluster-info
+            
+            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+            helm repo update
+
+            helm install ingress-nginx ingress-nginx/ingress-nginx \
+              --create-namespace --namespace ${{ env.ING_NS }} \
+              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
+            
+            helm ls --namespace ${{ env.ING_NS }}
+            sleep 30
+            kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
+
+            ingress_controller_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+            echo "ING_CTL_IP:" $ingress_controller_ip
+            echo "ING_CTL_IP=$ingress_controller_ip" >> $GITHUB_ENV
 
       shell: bash
 
