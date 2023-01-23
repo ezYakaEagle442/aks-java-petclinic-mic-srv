@@ -17,7 +17,7 @@ spec:
         serviceAccountName: sa-aad-wi-vets
         initContainers:
         - name: init-networking
-          image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.15.0
+          image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v${AAD_WI_VERSION}
           securityContext:
             capabilities:
               add:
@@ -31,7 +31,7 @@ spec:
             value: "8008"      
         containers:
         - name: proxy
-          image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.15.0
+          image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v${AAD_WI_VERSION}
           resources:
             requests:
               memory: "180Mi"
