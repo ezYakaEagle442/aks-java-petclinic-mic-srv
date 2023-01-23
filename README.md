@@ -283,6 +283,19 @@ az extension add -n k8s-configuration
 
 ```
 
+Read [https://azure.github.io/azure-workload-identity/docs/installation/azwi.html](https://azure.github.io/azure-workload-identity/docs/installation/azwi.html)
+
+Install Azure AD Workload Identity CLI
+```sh
+AAD_WI_CLI_VERSION=0.15.0
+wget https://github.com/Azure/azure-workload-identity/releases/download/v$AAD_WI_CLI_VERSION/azwi-v$AAD_WI_CLI_VERSION-linux-amd64.tar.gz
+gunzip azwi-v$AAD_WI_CLI_VERSION-linux-amd64.tar.gz
+tar -xvf azwi-v$AAD_WI_CLI_VERSION-linux-amd64.tar
+./azwi version
+
+```
+
+
 ## Pipelines
 
 See GitHub Actions :
@@ -426,7 +439,6 @@ Read :
 
 - [https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault](https://learn.microsoft.com/en-us/azure/developer/java/spring-framework/configure-spring-boot-starter-java-app-with-azure-key-vault)
 - [https://microsoft.github.io/spring-cloud-azure/current/reference/html/index.html#advanced-usage]https://microsoft.github.io/spring-cloud-azure/current/reference/html/index.html#advanced-usage)
-- [https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets?tabs=arm-template](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets?tabs=arm-template)
 - [https://github.com/Azure/azure-sdk-for-java/issues/28310](https://github.com/Azure/azure-sdk-for-java/issues/28310)
 - [Maven Project parent pom.xml](pom.xml#L168)
 
