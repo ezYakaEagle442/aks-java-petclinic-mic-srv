@@ -189,6 +189,20 @@ jobs:
             -p acrName=${{ env.ACR_NAME }} \
             -p sshPublicKey="${{ env.SSH_PUB_KEY }}"
  
+      shell: bash
+
+    - name: Integrate AKS with ACR
+      run: |
+            echo "About to configure AKS to be allowed to pull image from ACR"
+
+            # aks_client_id=$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query identityProfile.kubeletidentity.clientId -o tsv)
+            aks_client_id=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} --query properties.outputs.kubeletIdentity.value)
+            echo "AKS Cluster Kubelet Identity " $aks_client_id
+
+            acr_registry_id=$(az deployment group show --name acrpetcliaks -g ${{ env.RG_APP }} --query properties.outputs.acrId.value -o tsv)
+            echo "ACR  ID " $acr_registry_id
+            az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
+            echo "ACR is now attached to AKS Cluster"
 
       shell: bash
 
@@ -198,15 +212,13 @@ jobs:
 
             echo "About to Whitelist AKS OutboundIP in KV & MySQL"
 
-            vNetRules=$(az deployment group show --name vnet-aks \
-              -g ${{ env.RG_APP }} \
+            vNetRules=$(az deployment group show --name vnet-aks -g ${{ env.RG_APP }} \
               --query properties.outputs.aksSubnetId.value)
 
             managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
             echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
 
-            aksOutboundIPResourceId=$(az deployment group show --name aks-petclinic-main \
-              -g ${{ env.RG_APP }} \
+            aksOutboundIPResourceId=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} \
               --query properties.outputs.aksEffectiveOutboundIPs.value[0] | jq -r .id)
             
             aksOutboundIP=$(az network public-ip show --ids $aksOutboundIPResourceId --query ipAddress)
@@ -329,6 +341,7 @@ jobs:
 
             # az aks pod-identity list --cluster-name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
       shell: bash
+
     - name: setup Petclinic K8S Config
       run: |
             # kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
@@ -352,8 +365,7 @@ jobs:
             cat cm-petclinic.yaml
             kubectl apply -f cm-petclinic.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
-            appins_cs=$(az deployment group show --name aks-petclinic-pre-req \
-              -g ${{ env.RG_APP }} \
+            appins_cs=$(az deployment group show --name aks-petclinic-pre-req -g ${{ env.RG_APP }} \
               --query properties.outputs.appInsightsConnectionString.value)
 
             cat <<EOF >> cm-appins.yaml
@@ -379,21 +391,6 @@ jobs:
               -p location=${{ env.LOCATION }} \
               -p vnetName=${{ env.VNET_NAME }} \
               -p aksSvcIp=$ING_CTL_IP
-
-      shell: bash
-
-    - name: Integrate AKS with ACR
-      run: |
-            echo "About to configure AKS to be allowed to pull image from ACR"
-
-            # aks_client_id=$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query identityProfile.kubeletidentity.clientId -o tsv)
-            aks_client_id=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} --query properties.outputs.kubeletIdentity.value)
-            echo "AKS Cluster Kubelet Identity " $aks_client_id
-
-            acr_registry_id=$(az deployment group show --name acrpetcliaks -g ${{ env.RG_APP }} --query properties.outputs.acrId.value -o tsv)
-            echo "ACR  ID " $acr_registry_id
-            az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
-            echo "ACR is now attached to AKS Cluster"
 
       shell: bash
 
