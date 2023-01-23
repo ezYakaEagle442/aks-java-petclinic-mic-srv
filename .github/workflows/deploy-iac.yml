@@ -264,6 +264,15 @@ jobs:
           echo "configServerClientId=$configServerClientId" >> $GITHUB_ENV
           echo "aksClusterClientId=$aksClusterClientId" >> $GITHUB_ENV
 
+    # https://github.com/Azure/aks-set-context/tree/releases/v1
+    - name: AKS Set Context
+      uses: azure/aks-set-context@v1
+      with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
+          resource-group: ${{ env.RG_APP }} 
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      id: akslogin
+
     # https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster
     # https://blog.identitydigest.com/azuread-federate-mi/
     - name: Configure AAD WI
@@ -291,8 +300,10 @@ jobs:
             export PETCLINIC_NS=${{ env.PETCLINIC_NAMESPACE }}
             export AUDIENCES="api://AzureADTokenExchange"
 
+            echo ""
             echo "AKS_OIDC_ISSUER:" $AKS_OIDC_ISSUER
-
+            echo ""
+            
             export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-customers"
             ls -al $CUSTOMERS_SERVICE_FOLDER/k8s
