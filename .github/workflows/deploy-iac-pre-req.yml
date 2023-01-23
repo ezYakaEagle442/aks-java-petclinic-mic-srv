@@ -229,20 +229,20 @@ jobs:
             -p acrName=${{ env.ACR_NAME }} \
             -p deployToVNet=${{ env.DEPLOY_TO_VNET }}
 
-          # vetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServicePrincipalId.value)
-          vetsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServiceClientId.value)
+          # vetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServicePrincipalId.value -o tsv)
+          vetsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServiceClientId.value -o tsv)
 
-          # visitsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServicePrincipalId.value)
-          visitsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServiceClientId.value)
+          # visitsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServicePrincipalId.value -o tsv)
+          visitsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServiceClientId.value -o tsv)
 
-          # configServerPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.configServerPrincipalId.value)
-          configServerClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.c.value)
+          # configServerPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.configServerPrincipalId.value -o tsv)
+          configServerClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.c.value -o tsv)
 
-          # customersServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServicePrincipalId.value)
-          customersServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServiceClientId.value)
+          # customersServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServicePrincipalId.value -o tsv)
+          customersServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServiceClientId.value -o tsv)
 
-          # aksClusterPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.aksIdentityPrincipalId.value)
-          aksClusterClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.aksIdentityClientId.value)
+          # aksClusterPrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.aksIdentityPrincipalId.value -o tsv)
+          aksClusterClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.aksIdentityClientId.value -o tsv)
 
           az deployment group create --name kv-role-assignments -f iac/bicep/modules/aks/kvRoleAssignments.bicep -g ${{ env.RG_KV }} \
             -p kvName=${{ env.KV_NAME }} \
