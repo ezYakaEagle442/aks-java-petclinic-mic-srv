@@ -282,6 +282,7 @@ output aksManagedOutboundIPsCount int = aks.properties.networkProfile.loadBalanc
 
 // output ingressIdentity string = aks.properties.addonProfiles.ingressApplicationGateway.identity.objectId
 
+/*
 @description('This output can be directly leveraged when creating a ManagedId Federated Identity')
 output aksOidcFedIdentityProperties object = {
   issuer: oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
@@ -289,6 +290,23 @@ output aksOidcFedIdentityProperties object = {
   subject: 'system:serviceaccount:ns:svcaccount'
 }
 
+var customersServiceAppIdentityName = 'id-aks-petclinic-customers-service-dev-westeurope-101'
+resource customersServicedentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
+  name: customersServiceAppIdentityName
+}
+
+resource federatedCredentials 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2022-01-31-preview' = {
+  name: 'customersServiceFedIdentity'
+  parent: customersServicedentity
+  properties: {
+    audiences: [
+      'api://AzureADTokenExchange'
+    ]
+    issuer: 'https://token.actions.githubusercontent.com'
+    subject: 'system:serviceaccount:petclinic:sa-aad-wi-customers'
+  }
+}
+*/
 
 
 resource AKSDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
