@@ -165,10 +165,6 @@ module roleAssignments './modules/aks/roleAssignments.bicep' = {
   params: {
     acrName: acrName
     acrRoleType: 'AcrPull'
-    aksVetsServicePrincipalId: identities.outputs.vetsServicePrincipalId
-    aksVisitsServicePrincipalId: identities.outputs.visitsServicePrincipalId
-    aksConfigServerPrincipalId: identities.outputs.configServerPrincipalId
-    aksCustomersServicePrincipalId: identities.outputs.customersServicePrincipalId
     aksClusterPrincipalId: identities.outputs.aksIdentityPrincipalId
     kvName: kvName
     kvRGName: kvRGName
