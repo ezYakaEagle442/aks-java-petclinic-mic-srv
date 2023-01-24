@@ -23,3 +23,4 @@ target/
 
 # Branch switching
 generated/
+setenv.bat
