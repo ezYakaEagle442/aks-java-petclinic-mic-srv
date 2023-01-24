@@ -115,6 +115,10 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
         action: 'Allow'
         value: ipRule
       }]
+      virtualNetworkRules:  [for vNetId in vNetRules: {
+        action: 'Allow'
+        id: vNetId
+      }]
       /*
       resourceAccessRules: [
         {
@@ -123,10 +127,6 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
         }
       ]
       */
-      virtualNetworkRules:  [for vNetId in vNetRules: {
-        action: 'Allow'
-        id: vNetId
-      }]
     }
     publicNetworkAccess: 'Enabled'
     routingPreference: {
@@ -148,8 +148,8 @@ output azurestorageId string = azurestorage.id
 // output azurestorageKey0 string = azurestorage.listKeys().keys[0].value
 // output azurestorageKey1 string = azurestorage.listKeys().keys[1].value
 
-// output azurestorageHttpEndpoint string = azurestorage.properties.primaryEndpoints.blob
-// output azurestorageFileEndpoint string = azurestorage.properties.primaryEndpoints.file
+output azurestorageHttpEndpoint string = azurestorage.properties.primaryEndpoints.blob
+output azurestorageFileEndpoint string = azurestorage.properties.primaryEndpoints.file
 
 
 resource azureblobservice 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
