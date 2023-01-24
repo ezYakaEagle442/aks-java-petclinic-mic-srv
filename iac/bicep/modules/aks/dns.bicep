@@ -27,6 +27,7 @@ resource aksDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
 }
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/a?pivots=deployment-language-bicep
+/*
 resource aksAppsRecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
   name: 'www'
   parent: aksDnsZone
@@ -51,7 +52,7 @@ resource aksAppsRecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
     TTL: 360    
   }
 }
-
+*/
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.network/publicipaddresses?tabs=bicep#publicipaddresssku
 // /!\ The Ingress Controller Public IP is created in the Managed RG
