@@ -5,9 +5,6 @@ spring:
   #  import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
   cache:
     cache-names: vets
-  profiles:
-    active: production
-
 ---
 spring:
   config:
@@ -40,9 +37,7 @@ spring:
                 client-id: ${VETS_SVC_APP_IDENTITY_CLIENT_ID}
               #  client-secret: ${AZURE_CLIENT_SECRET} for SPN not for MI
               # profile:
-              #  tenant-id: ${SPRING_CLOUD_AZURE_TENANT_ID}
-  profiles:
-    active: mysql    
+              #  tenant-id: ${SPRING_CLOUD_AZURE_TENANT_ID} 
 ---
 management:
   health:

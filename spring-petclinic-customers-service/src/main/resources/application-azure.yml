@@ -33,9 +33,7 @@ spring:
               endpoint: ${SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT}
               credential:
                 managed-identity-enabled: true
-                client-id: ${CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID}
-  profiles:
-    active: mysql  
+                client-id: ${CUSTOMERS_SVC_APP_IDENTITY_CLIENT_ID} 
 ---
 management:
   health:
