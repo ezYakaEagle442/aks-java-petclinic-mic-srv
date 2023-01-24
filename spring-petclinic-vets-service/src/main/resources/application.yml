@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: vets-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+  cache:
+    cache-names: vets
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: configserver:http://config-server:8888
+---
+management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: "/manage"
+      exposure: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.exposing
+        include: "health,info,startup,env,mappings,metrics" # "*"
+        exclude: "beans"    
+  endpoint:
+    health:
+      enabled: true
+      status:
+        http-mapping:
+          down: 503
+          fatal: 503
+          out-of-service: 503
+      group:
+        readiness:
+          include: "readinessState"
+        liveness:
+          include: "livenessState"
+    startup: # https://docs.spring.io/spring-boot/docs/2.6.6/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
+      enabled: true           
+    probes:
+        enabled: true      
+    info:
+      enabled: true
+    env:
+      enabled: true
+    mappings:
+      enabled: true            
+  server:
+    port: 8081
+---
