@@ -122,7 +122,8 @@ jobs:
       run: |
           pwd
           ls -al
-          
+           echo "LOCAL_IP=$LOCAL_IP"
+
           az deployment group create --name aks-petclinic-kv -f iac/bicep/modules/kv/kv.bicep -g ${{ env.RG_KV }} \
             -p appName=${{ env.APP_NAME }} \
             -p kvName=${{ env.KV_NAME }} \
@@ -210,7 +211,8 @@ jobs:
     - name: Deploy the pre-req
       run: |
           # --debug # --what-if to test like a dry-run
-          
+           echo "LOCAL_IP=$LOCAL_IP"
+           
           az deployment group create --name aks-petclinic-pre-req -f iac/bicep/pre-req.bicep -g ${{ env.RG_APP }} \
             -p appName=${{ env.APP_NAME }} \
             -p location=${{ env.LOCATION }} \
