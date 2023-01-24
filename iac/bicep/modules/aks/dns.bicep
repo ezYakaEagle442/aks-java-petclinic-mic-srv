@@ -52,6 +52,31 @@ resource aksAppsRecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
   }
 }
 
+
+// https://docs.microsoft.com/en-us/azure/templates/microsoft.network/publicipaddresses?tabs=bicep#publicipaddresssku
+// /!\ The Ingress Controller Public IP is created in the Managed RG
+/*
+resource pip 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
+  name: 'kubernetes-a98d45b5e0e944693bee66077c873e5f'
+  location: location
+  sku: {
+    name: 'Standard' // https://docs.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses
+    tier: 'Regional'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static' // Standard IP must be STATIC
+    deleteOption: 'Delete'
+    dnsSettings: {
+      domainNameLabel: 'petclinic'
+      fqdn: appDnsZone
+    }
+  }
+}
+output pipId string = pip.id
+output pipGUID string = pip.properties.resourceGuid
+output pipAddress string = pip.properties.ipAddress
+*/
+
 /*
 resource aksPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   name: privateDnsZone
