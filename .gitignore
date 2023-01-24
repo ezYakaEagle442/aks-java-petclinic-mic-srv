@@ -1,6 +1,7 @@
 prv/*
 deploy/*
 cnf/*
+setenv.bat
 
 # Maven
 target/
@@ -23,4 +24,3 @@ target/
 
 # Branch switching
 generated/
-setenv.bat
