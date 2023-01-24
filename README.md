@@ -11,16 +11,16 @@ urlFragment: "spring-petclinic-microservices"
 ---
 
 
-[![Build Status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml)
+[![Build Status](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/maven-build.yml/badge.svg)](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/maven-build.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-[![UI Build Status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build-ui.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build-ui.yml)
+[![UI Build Status](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/maven-build-ui.yml/badge.svg)](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/maven-build-ui.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-[![Pre-req Deployment status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/deploy-iac-pre-req.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/deploy-iac-pre-req.yml)
+[![Pre-req Deployment status](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/deploy-iac-pre-req.yml/badge.svg)](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/deploy-iac-pre-req.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-[![IaC Deployment status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/deploy-iac.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/deploy-iac.yml)
+[![IaC Deployment status](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/deploy-iac.yml/badge.svg)](https://github.com/ezYakaEagle442/aks-java-petclinic-mic-srv/actions/workflows/deploy-iac.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
