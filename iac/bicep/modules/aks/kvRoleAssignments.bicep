@@ -1,5 +1,3 @@
-
-param aksClusterIdentityId string
 param vetsIdentityId string
 param visitsIdentityId string
 param customersIdentityId string
