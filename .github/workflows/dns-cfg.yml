@@ -50,7 +50,7 @@ env:
 on:
   workflow_dispatch:
   workflow_call:
-  
+
 jobs:
  
   setup:
@@ -108,11 +108,11 @@ jobs:
     - name: setup DNS
       run: |
             echo "ING_CTL_IP:" $ING_CTL_IP
-            az deployment group create --name aks-dns -f iac/bicep/modules/aks/dns.bicep -g ${{ env.RG_APP }} \
-              -p appDnsZone=${{ env.APP_DNS_ZONE }} \
-              -p location=${{ env.LOCATION }} \
-              -p vnetName=${{ env.VNET_NAME }} \
-              -p aksSvcIp=$ING_CTL_IP
+            #az deployment group create --name aks-dns -f iac/bicep/modules/aks/dns.bicep -g ${{ env.RG_APP }} \
+            #  -p appDnsZone=${{ env.APP_DNS_ZONE }} \
+            #  -p location=${{ env.LOCATION }} \
+            #  -p vnetName=${{ env.VNET_NAME }} \
+            #  -p aksSvcIp=$ING_CTL_IP
 
               echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
               ingControllerPublicIpId=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$ING_CTL_IP')].[id]" --output tsv)
