@@ -250,7 +250,6 @@ jobs:
             -p vetsIdentityId=$vetsServiceClientId \
             -p visitsIdentityId=$visitsServiceClientId \
             -p customersIdentityId=$customersServiceClientId \
-            -p aksClusterIdentityId=$aksClusterClientId \
             -p kvRoleType=KeyVaultSecretsUser
 
       shell: bash
