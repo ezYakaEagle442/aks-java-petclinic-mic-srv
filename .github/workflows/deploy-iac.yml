@@ -13,6 +13,7 @@ env:
   DNS_ZONE: cloudapp.azure.com
   APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
   CUSTOM_DNS: javaonazurehandsonlabs.com
+  AZURE_DNS_LABEL_NAME: petclinic
 
   PETCLINIC_NAMESPACE: petclinic
   AKS_CLUSTER_NAME: aks-petcliaks
@@ -189,6 +190,10 @@ jobs:
             -p acrName=${{ env.ACR_NAME }} \
             -p sshPublicKey="${{ env.SSH_PUB_KEY }}"
  
+            managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
+            echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+            echo "managed_rg=$managed_rg" >> $GITHUB_ENV
+
       shell: bash
 
     - name: Integrate AKS with ACR
@@ -213,9 +218,6 @@ jobs:
             echo "About to Whitelist AKS OutboundIP in KV & MySQL"
 
             vNetRules=$(az deployment group show --name vnet-aks -g ${{ env.RG_APP }} --query properties.outputs.aksSubnetId.value)
-
-            managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
-            echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
 
             aksOutboundIPResourceId=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} \
               --query properties.outputs.aksEffectiveOutboundIPs.value[0] | jq -r .id)
@@ -427,6 +429,12 @@ jobs:
               -p location=${{ env.LOCATION }} \
               -p vnetName=${{ env.VNET_NAME }} \
               -p aksSvcIp=$ING_CTL_IP
+
+              echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+              ingControllerPublicIpId=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$ING_CTL_IP')].[id]" --output tsv)
+              echo $ingControllerPublicIpId
+              
+              az network public-ip update --ids $ingControllerPublicIpId --dns-name ${{ env.AZURE_DNS_LABEL_NAME }} -g $managed_rg
 
       shell: bash
 

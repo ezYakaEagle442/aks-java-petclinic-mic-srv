@@ -453,13 +453,13 @@ Quick local test just to verify that the jar files can be run (the routing will 
 <span style="color:red">**/!\ IMPORTANT WARNING: projects must be built with -Denv=cloud  EXCEPT for api-gateway**</span>
 
 ```sh
- mvn clean package -DskipTests -Denv=cloud
-java -jar spring-petclinic-config-server\target\aks-spring-petclinic-config-server-2.6.13.jar --server.port=8888
-java -jar spring-petclinic-admin-server\target\aks-spring-petclinic-admin-server-2.6.13.jar --server.port=9090
-java -jar spring-petclinic-visits-service\target\aks-spring-petclinic-visits-service-2.6.13.jar --server.port=8082 # --spring.profiles.active=docker
-java -jar spring-petclinic-vets-service\target\aks-spring-petclinic-vets-service-2.6.13.jar --server.port=8083
-java -jar spring-petclinic-customers-service\target\aks-spring-petclinic-customers-service-2.6.13.jar --server.port=8084
-java -jar spring-petclinic-api-gateway\target\aks-spring-petclinic-api-gateway-2.6.13.jar --server.port=8085
+ mvn clean package -DskipTests -Denv=azure
+java -jar spring-petclinic-config-server\target\spring-petclinic-config-server-2.6.13.jar --server.port=8888
+java -jar spring-petclinic-admin-server\target\spring-petclinic-admin-server-2.6.13.jar --server.port=9090
+java -jar spring-petclinic-visits-service\target\spring-petclinic-visits-service-2.6.13.jar --server.port=8082 # --spring.profiles.active=docker
+java -jar spring-petclinic-vets-service\target\spring-petclinic-vets-service-2.6.13.jar --server.port=8083
+java -jar spring-petclinic-customers-service\target\spring-petclinic-customers-service-2.6.13.jar --server.port=8084
+java -jar spring-petclinic-api-gateway\target\spring-petclinic-api-gateway-2.6.13.jar --server.port=8085
 ```
 
 Note: tip to verify the dependencies
