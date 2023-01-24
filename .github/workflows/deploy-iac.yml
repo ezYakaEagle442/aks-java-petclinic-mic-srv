@@ -153,7 +153,7 @@ jobs:
       shell: bash
 
     - name: Login with GHA Runner SP
-      uses: azure/login@v1.4.6 # fails https://github.com/marketplace/actions/azure-login
+      uses: azure/login@v1.4.6 # https://github.com/marketplace/actions/azure-login
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
 
@@ -354,7 +354,6 @@ jobs:
             kubectl apply -f $CONFIG_SERVER_FOLDER/k8s/deploy/sa-cfg.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
             az identity federated-credential create --name configServerFedIdentity --identity-name "${{ env.CONFIG_SERVER_APP_ID_NAME }}" --issuer "${AKS_OIDC_ISSUER}" --subject system:serviceaccount:"${{ env.PETCLINIC_NAMESPACE }}":"${SERVICE_ACCOUNT_NAME}" -g "${{ env.RG_APP }}"
 
-            # az aks pod-identity list --cluster-name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
       shell: bash
 
     - name: setup Petclinic K8S Config
@@ -394,50 +393,6 @@ jobs:
 
       shell: bash
 
-    # https://github.com/marketplace/actions/helm-tool-installer
-    - name: setup HELM
-      run: |
-            # https://github.com/kubernetes/ingress-nginx
-            # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
-            # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
-            # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
-
-            # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
-            
-            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-            helm repo update
-
-            helm install ingress-nginx ingress-nginx/ingress-nginx \
-              --create-namespace --namespace ${{ env.ING_NS }} \
-              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
-            
-            helm ls --namespace ${{ env.ING_NS }}
-            sleep 30
-            kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
-
-            ingress_controller_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-            echo "ING_CTL_IP:" $ingress_controller_ip
-            echo "ING_CTL_IP=$ingress_controller_ip" >> $GITHUB_ENV
-
-      shell: bash
-
-    - name: setup DNS
-      run: |
-            echo "ING_CTL_IP:" $ING_CTL_IP
-            az deployment group create --name aks-dns -f iac/bicep/modules/aks/dns.bicep -g ${{ env.RG_APP }} \
-              -p appDnsZone=${{ env.APP_DNS_ZONE }} \
-              -p location=${{ env.LOCATION }} \
-              -p vnetName=${{ env.VNET_NAME }} \
-              -p aksSvcIp=$ING_CTL_IP
-
-              echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
-              ingControllerPublicIpId=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$ING_CTL_IP')].[id]" --output tsv)
-              echo $ingControllerPublicIpId
-              
-              az network public-ip update --ids $ingControllerPublicIpId --dns-name ${{ env.AZURE_DNS_LABEL_NAME }} -g $managed_rg
-
-      shell: bash
-
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
     # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
@@ -447,7 +402,13 @@ jobs:
           az cache purge
           az account clear
       shell: bash
-      
+
+  call-dns-cfg-workflow:
+    name: Configure DNS
+    needs: deploy-iac
+    uses: ./.github/workflows/dns-cfg.yml
+    secrets: inherit
+
   call-db-init-workflow:
     name: Load Data to DB
     needs: deploy-iac
@@ -456,14 +417,12 @@ jobs:
 
   call-maven-build-workflow:
     name: Trigger Maven for backend services
-    needs: deploy-iac
     uses: ./.github/workflows/maven-build.yml # .github/workflows/maven-build.yml@main ==> references to workflows must be prefixed with format 'owner/repository/' or './' for local workflows
     secrets: inherit # pass all secrets
       # envPAT: ${{ secrets.envPAT }} # pass just this secret
 
   call-maven-build-ui-workflow:
     name: Trigger Maven for the UI
-    needs: deploy-iac
     uses: ./.github/workflows/maven-build-ui.yml
     secrets: inherit
 
