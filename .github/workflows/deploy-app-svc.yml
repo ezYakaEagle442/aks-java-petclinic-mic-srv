@@ -186,14 +186,9 @@ jobs:
           export KEYVAULT_NAME=${{ env.KV_NAME }}
           export IDENTITY_TENANT=${{ env.SPRING_CLOUD_AZURE_TENANT_ID }}
 
-          mkdir $API_GATEWAY_FOLDER/k8s/deploy
           mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
           mkdir $VETS_SERVICE_FOLDER/k8s/deploy
           mkdir $VISITS_SERVICE_FOLDER/k8s/deploy
-          mkdir $CONFIG_SERVER_FOLDER/k8s/deploy
-
-          echo "Cheking folder " $API_GATEWAY_FOLDER
-          ls -al $API_GATEWAY_FOLDER/k8s
 
           echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
           ls -al $CUSTOMERS_SERVICE_FOLDER/k8s
@@ -203,18 +198,6 @@ jobs:
 
           echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s
-
-          echo "Cheking folder " $CONFIG_SERVER_FOLDER
-          ls -al $CONFIG_SERVER_FOLDER/k8s
-
-          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-cm.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-cm.yaml
-          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-deployment.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-deployment.yaml
-          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-ingress.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-ingress.yaml 
-          envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-srv-cluster-ip.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-srv-cluster-ip.yaml 
-
-          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-deployment.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-deployment.yaml
-          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-ingress.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-ingress.yaml 
-          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-cluster-ip.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-cluster-ip.yaml 
 
           export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-customers"
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
@@ -243,21 +226,18 @@ jobs:
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
 
-          echo "Cheking folder " $API_GATEWAY_FOLDER
-          ls -al $API_GATEWAY_FOLDER/k8s/deploy
-
           echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
           ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
+          cat $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
           
           echo "Cheking folder " $VETS_SERVICE_FOLDER
           ls -al $VETS_SERVICE_FOLDER/k8s/deploy
+          cat $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
 
           echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
+          cat $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
           
-          echo "Cheking folder " $CONFIG_SERVER_FOLDER
-          ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
-
           set -euo pipefail
           access_token=$(az account get-access-token --query accessToken -o tsv)
           refresh_token=$(curl https://${{ env.REGISTRY_URL }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.REGISTRY_URL }}&access_token=$access_token" | jq -r .refresh_token)
@@ -285,6 +265,9 @@ jobs:
             spring-petclinic-visits-service/k8s/deploy
 
           # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
+
+    # verify
+    # kubectl get SecretProviderClass -n petclinic
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
