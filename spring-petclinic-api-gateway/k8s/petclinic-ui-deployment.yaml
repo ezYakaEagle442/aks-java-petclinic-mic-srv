@@ -18,11 +18,11 @@ spec:
           image: ${CONTAINER_REGISTRY}.azurecr.io/${REPO}/api-gateway:${IMAGE_TAG}
           imagePullPolicy: Always
           startupProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             timeoutSeconds: 30
-            failureThreshold: 6
+            failureThreshold: 5
             successThreshold: 1
-            periodSeconds: 60
+            periodSeconds: 30
             httpGet:
               path: "/manage/health"
               port: 8081           
@@ -37,11 +37,11 @@ spec:
               port: 8081
               scheme: HTTP
           readinessProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             timeoutSeconds: 30
             failureThreshold: 5
             successThreshold: 1
-            periodSeconds: 60
+            periodSeconds: 30
             httpGet:
               path: "/manage/health/readiness"
               port: 8081           

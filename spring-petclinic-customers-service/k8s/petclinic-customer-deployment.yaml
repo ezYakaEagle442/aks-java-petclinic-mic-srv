@@ -87,11 +87,11 @@ spec:
               path: "/manage/health"
               port: 8081           
           livenessProbe: # https://docs.spring.io/spring-boot/docs/2.6.3/reference/html/actuator.html#actuator.endpoints.kubernetes-probes
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             timeoutSeconds: 30
             failureThreshold: 5
             successThreshold: 1
-            periodSeconds: 60
+            periodSeconds: 30
             httpGet:
               # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
               # management.endpoints.web.base-path=/actuator
@@ -100,11 +100,11 @@ spec:
               port: 8081
               scheme: HTTP
           readinessProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             timeoutSeconds: 30
             failureThreshold: 5
             successThreshold: 1
-            periodSeconds: 60
+            periodSeconds: 30
             httpGet:
               path: "/manage/health/readiness"
               port: 8081           
