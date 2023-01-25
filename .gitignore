@@ -2,6 +2,7 @@ prv/*
 deploy/*
 cnf/*
 setenv.*
+.env
 
 # Maven
 target/
