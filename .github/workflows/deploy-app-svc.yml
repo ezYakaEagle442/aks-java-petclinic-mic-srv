@@ -134,6 +134,21 @@ jobs:
 
     # https://github.com/marketplace/actions/helm-tool-installer
 
+    - name: Get Apps Identity Id
+      run: |
+          # vetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServicePrincipalId.value)
+          vetsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServiceClientId.value)
+
+          # visitsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServicePrincipalId.value)
+          visitsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.visitsServiceClientId.value)
+
+          # customersServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServicePrincipalId.value)
+          customersServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.customersServiceClientId.value)
+
+          echo "vetsServiceClientId=$vetsServiceClientId" >> $GITHUB_ENV
+          echo "visitsServiceClientId=$visitsServiceClientId" >> $GITHUB_ENV
+          echo "customersServiceClientId=$customersServiceClientId" >> $GITHUB_ENV
+
     - name: Prepare Manifests to deploy Customers, Vets & Visits services to AKS
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
@@ -165,8 +180,11 @@ jobs:
           export ING_HOST=${{ env.APP_DNS_ZONE }}
           echo "INGRESS HOST " $ING_HOST
 
+          # AAD WI
           export AAD_WI_VERSION=${{ env.WI_VERSION }}
-          echo "AAD_WI_VERSION HOST " $AAD_WI_VERSION
+          echo "AAD_WI_VERSION " $AAD_WI_VERSION          
+          export KEYVAULT_NAME=${{ env.KV_NAME }}
+          export IDENTITY_TENANT=${{ env.SPRING_CLOUD_AZURE_TENANT_ID }}
 
           mkdir $API_GATEWAY_FOLDER/k8s/deploy
           mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
@@ -202,13 +220,28 @@ jobs:
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-srv-cluster-ip.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-srv-cluster-ip.yaml 
 
+          export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-customers"
+          echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
+          export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-deployment.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-deployment.yaml
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-srv-cluster-ip.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-srv-cluster-ip.yaml 
 
+          export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-vets"
+          echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
+          export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
+          envsubst < $VETS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
+
+          export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-visits"
+          echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
+          export USER_ASSIGNED_CLIENT_ID=$visitsServiceClientId
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
 
           echo "Cheking folder " $API_GATEWAY_FOLDER
           ls -al $API_GATEWAY_FOLDER/k8s/deploy
