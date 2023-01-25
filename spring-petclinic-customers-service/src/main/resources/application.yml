@@ -1,15 +1,16 @@
 spring:
   application:
     name: customers-service
-  config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+# https://docs.spring.io/spring-cloud-config/docs/3.0.0/reference/html/#config-data-import
+#config:
+#    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
 
 ---
 spring:
   config:
     activate:
       on-profile: docker
-    import: configserver:http://config-server:8888
+    import: configserver:http://CONFIG_SERVER_URL:8888
 ---
 management:
   health:

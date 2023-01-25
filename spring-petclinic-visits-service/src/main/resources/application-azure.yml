@@ -10,7 +10,7 @@ spring:
   config:
     activate:
       on-profile: docker
-    import: configserver:http://config-server:8888
+    import: configserver:http://CONFIG_SERVER_URL:8888
 ---
 # https://microsoft.github.io/spring-cloud-azure/current/reference/html/index.html#configuration-17
 # https://github.com/Azure/azure-sdk-for-java/issues/28128
