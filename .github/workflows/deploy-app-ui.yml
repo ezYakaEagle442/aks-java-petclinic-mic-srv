@@ -113,7 +113,7 @@ jobs:
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
       id: akslogin
 
-    - name: Deploy UI + API Gateway to aks
+    - name: Prepare Manifests to deploy UI + API Gateway to aks
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
           echo "About to deploy the API-Gateway UI ..." 
