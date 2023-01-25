@@ -10,7 +10,7 @@ spring:
   config:
     activate:
       on-profile: docker
-    import: configserver:http://CONFIG_SERVER_URL:8888
+    import: configserver:http://${CONFIG_SERVER_URL}:8888
 ---
 management:
   health:
