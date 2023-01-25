@@ -1,4 +1,4 @@
-name: Deploy Customers, Vets & Visits Services
+name: Deploy Config-Server
 
 env:
   APP_NAME: petcliaks
@@ -75,7 +75,7 @@ on:
         type: string
 
 jobs:
-  deploy-services:
+  deploy-config-server:
     runs-on: ubuntu-latest
     steps:
 
@@ -93,14 +93,7 @@ jobs:
       run: |
         echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
         
-        echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
-        echo "DISCOVERY_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
-
-        echo "API_GATEWAY_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
         echo "CONFIG_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}" >> $GITHUB_ENV
-        echo "CUSTOMERS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CUSTOMERS_SERVICE }}" >> $GITHUB_ENV
-        echo "VETS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}" >> $GITHUB_ENV
-        echo "VISITS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
 
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
       shell: bash
@@ -108,20 +101,10 @@ jobs:
     - name: Display environment variables
       run: |
         echo "Checking GITHUB_ENV"
-        echo "LOCAL_IP=$LOCAL_IP"
-        
-        echo "ADMIN_SERVER_FOLDER=$ADMIN_SERVER_FOLDER"
-        echo "DISCOVERY_SERVER_FOLDER=$DISCOVERY_SERVER_FOLDER"
-
-        echo "API_GATEWAY_FOLDER=$API_GATEWAY_FOLDER"
+        echo "LOCAL_IP=$LOCAL_IP"        
         echo "CONFIG_SERVER_FOLDER=$CONFIG_SERVER_FOLDER"
-        echo "CUSTOMERS_SERVICE_FOLDER=$CUSTOMERS_SERVICE_FOLDER"
-        echo "VETS_SERVICE_FOLDER=$VETS_SERVICE_FOLDER"
-        echo "VISITS_SERVICE_FOLDER=$VISITS_SERVICE_FOLDER"
-
         echo "GH_WORKSPACE=$GH_WORKSPACE"
       shell: bash
-
 
     # https://github.com/Azure/aks-set-context/tree/releases/v1
     - name: AKS Set Context
@@ -134,23 +117,15 @@ jobs:
 
     # https://github.com/marketplace/actions/helm-tool-installer
 
-    - name: Prepare Manifests to deploy Customers, Vets & Visits services to AKS
+    - name: Prepare Manifests to deploy Config-server
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
-          echo "About to deploy the Config-Server, Customers, Vets & Visits services ..." 
+          echo "About to deploy the Config-Server ..." 
           tag_id=${{ inputs.tag_id }}
           echo "Image Build tag ID:"$tag_id
 
           imageNameConfigServer="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CONFIG_SERVER }}:$tag_id"
-
-          imageNameCustomersService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.CUSTOMERS_SERVICE }}:$tag_id"
-          imageNameVetsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VETS_SERVICE }}:$tag_id"
-          imageNameVisitsService="${{ env.REGISTRY_URL }}/${{ env.REPOSITORY }}/${{ env.VISITS_SERVICE }}:$tag_id"
-
           echo "imageNameConfigServer="$imageNameConfigServer
-          echo "imageNameCustomersService="$imageNameCustomersService
-          echo "imageNameVetsService="$imageNameVetsService
-          echo "imageNameVisitsService="$imageNameVisitsService
 
           managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
           echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
@@ -168,23 +143,7 @@ jobs:
           export AAD_WI_VERSION=${{ env.WI_VERSION }}
           echo "AAD_WI_VERSION HOST " $AAD_WI_VERSION
 
-          mkdir $API_GATEWAY_FOLDER/k8s/deploy
-          mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
-          mkdir $VETS_SERVICE_FOLDER/k8s/deploy
-          mkdir $VISITS_SERVICE_FOLDER/k8s/deploy
           mkdir $CONFIG_SERVER_FOLDER/k8s/deploy
-
-          echo "Cheking folder " $API_GATEWAY_FOLDER
-          ls -al $API_GATEWAY_FOLDER/k8s
-
-          echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
-          ls -al $CUSTOMERS_SERVICE_FOLDER/k8s
-
-          echo "Cheking folder " $VETS_SERVICE_FOLDER
-          ls -al $VETS_SERVICE_FOLDER/k8s
-
-          echo "Cheking folder " $VISITS_SERVICE_FOLDER
-          ls -al $VISITS_SERVICE_FOLDER/k8s
 
           echo "Cheking folder " $CONFIG_SERVER_FOLDER
           ls -al $CONFIG_SERVER_FOLDER/k8s
@@ -194,34 +153,6 @@ jobs:
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-ingress.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-ingress.yaml 
           envsubst < $CONFIG_SERVER_FOLDER/k8s/petclinic-config-server-srv-cluster-ip.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/petclinic-config-server-srv-cluster-ip.yaml 
 
-          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-deployment.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-deployment.yaml
-          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-ingress.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-ingress.yaml 
-          envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-cluster-ip.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-cluster-ip.yaml 
-
-          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-deployment.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-deployment.yaml
-          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
-          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-srv-cluster-ip.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-srv-cluster-ip.yaml 
-
-          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-deployment.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-deployment.yaml
-          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
-          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-srv-cluster-ip.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-srv-cluster-ip.yaml 
-
-          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
-          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
-          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
-
-          echo "Cheking folder " $API_GATEWAY_FOLDER
-          ls -al $API_GATEWAY_FOLDER/k8s/deploy
-
-          echo "Cheking folder " $CUSTOMERS_SERVICE_FOLDER
-          ls -al $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
-          
-          echo "Cheking folder " $VETS_SERVICE_FOLDER
-          ls -al $VETS_SERVICE_FOLDER/k8s/deploy
-
-          echo "Cheking folder " $VISITS_SERVICE_FOLDER
-          ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
-          
           echo "Cheking folder " $CONFIG_SERVER_FOLDER
           ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
 
@@ -234,24 +165,12 @@ jobs:
 
       shell: bash
 
-
-      # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
-            # https://github.com/Azure/k8s-deploy/issues/278
-            # $CONFIG_SERVER_FOLDER/k8s/deploy
-            # $VETS_SERVICE_FOLDER/k8s/deploy
-            # $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
-            # $VISITS_SERVICE_FOLDER/k8s/deploy
-            # $API_GATEWAY_FOLDER/k8s/deploy
     - name: Deploy Manifests to AKS
       uses: Azure/k8s-deploy@v4
       with:
         namespace: ${{ env.PETCLINIC_NAMESPACE }}
         manifests: |
-            spring-petclinic-vets-service/k8s/deploy
-            spring-petclinic-customers-service/k8s/deploy
-            spring-petclinic-visits-service/k8s/deploy
-
-          # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
+            spring-petclinic-config-server/k8s/deploy
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
