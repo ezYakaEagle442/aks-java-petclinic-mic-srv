@@ -429,9 +429,17 @@ jobs:
     secrets: inherit
 
   # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+  call-deploy-cfg-srv-workflow:
+    name: Trigger Deployment for the Config-Server
+    needs: [deploy-iac, call-maven-build-workflow]
+    uses: ./.github/workflows/deploy-cfg-srv.yml
+    with:
+      tag_id: ${{ needs.call-maven-build-workflow.outputs.tag_id }}
+    secrets: inherit
+
   call-deploy-apps-svc-workflow:
     name: Trigger App Deployment for the Backend services
-    needs: [deploy-iac, call-maven-build-workflow]
+    needs: [deploy-iac, call-maven-build-workflow, call-deploy-cfg-srv-workflow]
     uses: ./.github/workflows/deploy-app-svc.yml
     with:
       tag_id: ${{ needs.call-maven-build-workflow.outputs.tag_id }}
