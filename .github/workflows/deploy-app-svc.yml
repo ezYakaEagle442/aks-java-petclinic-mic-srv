@@ -216,32 +216,32 @@ jobs:
           envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-ingress.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-ingress.yaml 
           envsubst < $API_GATEWAY_FOLDER/k8s/petclinic-ui-cluster-ip.yaml > $API_GATEWAY_FOLDER/k8s/deploy/petclinic-ui-cluster-ip.yaml 
 
-          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-deployment.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-deployment.yaml
-          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
-          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-srv-cluster-ip.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-srv-cluster-ip.yaml 
-
           export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-customers"
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
 
-          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-deployment.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-deployment.yaml
-          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
-          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-srv-cluster-ip.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-srv-cluster-ip.yaml 
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-deployment.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-deployment.yaml
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
+          envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-srv-cluster-ip.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-srv-cluster-ip.yaml 
 
           export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-vets"
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
           envsubst < $VETS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
 
-          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
-          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
-          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
+          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-deployment.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-deployment.yaml
+          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
+          envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-srv-cluster-ip.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-srv-cluster-ip.yaml 
 
           export SECRET_PROVIDER_CLASS_NAME="azure-kv-wi-visits"
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$visitsServiceClientId
           envsubst < $VISITS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
+          envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-srv-cluster-ip.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-srv-cluster-ip.yaml 
 
           echo "Cheking folder " $API_GATEWAY_FOLDER
           ls -al $API_GATEWAY_FOLDER/k8s/deploy
