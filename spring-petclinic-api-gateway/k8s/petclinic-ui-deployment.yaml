@@ -50,11 +50,11 @@ spec:
           resources:
             # https://github.com/kubernetes/kubernetes/issues/63396
             requests:
-              memory: "180Mi"
-              cpu: "100m"
+              memory: "256Mi"
+              cpu: "200m"
             limits:
-              memory: "360Mi"
-              cpu: "300m"
+              memory: "512Mi"
+              cpu: "500m"
           ports:
           - containerPort: 8080
             name: server
