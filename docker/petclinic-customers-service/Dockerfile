@@ -4,6 +4,7 @@
 # docker pull acrpetcliaks.azurecr.io/petclinic/petclinic-customers-service
 # docker image ls
 # docker run -p 8080:8080 -p 8081:8081 -p 8888:8888 -p 9090:9090 petclinic-customers-service
+# docker run --env SPRING_PROFILES_ACTIVE=toto -p 8080:8080 -p 8081:8081 -p 8888:8888 -p 9090:9090 petclinic-customers-service
 # docker container ls
 # docker ps
 # docker exec -it <container-id> /bin/sh
