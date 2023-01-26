@@ -346,7 +346,7 @@ jobs:
 
             export USER_ASSIGNED_CLIENT_ID=$configServerClientId
             export SERVICE_ACCOUNT_NAME="sa-aad-wi-cfg"
-             ls -al $CONFIG_SERVER_FOLDER/k8s
+            ls -al $CONFIG_SERVER_FOLDER/k8s
             envsubst < $CONFIG_SERVER_FOLDER/k8s/sa-petclinic.yaml > $CONFIG_SERVER_FOLDER/k8s/deploy/sa-cfg.yaml
             echo "Cheking folder " $CONFIG_SERVER_FOLDER
             ls -al $CONFIG_SERVER_FOLDER/k8s/deploy
