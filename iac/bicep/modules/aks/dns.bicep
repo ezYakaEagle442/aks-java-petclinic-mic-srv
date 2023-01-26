@@ -6,6 +6,7 @@ param vnetName string = 'vnet-aks'
 @description('Petclinic service LB IP')
 param aksSvcIp string
 
+param recordSetA string = 'petclinic'
 param dnsZone string = 'cloudapp.azure.com'
 param appDnsZone string = 'petclinic.${location}.${dnsZone}'
 param customDns string = 'javaonazurehandsonlabs.com'
@@ -19,7 +20,7 @@ output vnetId string = vnet.id
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones?pivots=deployment-language-bicep
 resource aksDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
-  name: appDnsZone
+  name: dnsZone
   location: 'global'  // /!\ 'global' instead of '${location}'. This is because Azure DNS is a global service. otherwise you will hit this error:"MissingRegistrationForLocation. "The subscription is not registered for the resource type 'privateDnsZones' in the location 'westeurope' 
   properties: {
     zoneType: 'Public'
@@ -28,8 +29,8 @@ resource aksDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/a?pivots=deployment-language-bicep
 
-resource aksAppsRecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
-  name: 'www'
+resource RecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
+  name: recordSetA
   parent: aksDnsZone
   properties: {
     ARecords: [
@@ -43,7 +44,7 @@ resource aksAppsRecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/cname?pivots=deployment-language-bicep
 resource aksAppsRecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
-  name: 'home'
+  name: 'www'
   parent: aksDnsZone
   properties: {
     CNAMERecord: {
