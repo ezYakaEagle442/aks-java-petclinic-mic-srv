@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: ing-petclinic-ui
 spec:
+  ingressClassName: nginx
   rules:
   - host: $ING_HOST
     http:
