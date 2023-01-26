@@ -11,6 +11,11 @@ env:
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
   SET_KV_ACCESS_POLICIES: false # let it to false
 
+  # AAD WI
+  SECRET_PROVIDER_CUSTOMERS: azure-kv-wi-customers
+  SECRET_PROVIDER_VETS: azure-kv-wi-vets
+  SECRET_PROVIDER_VISITS: azure-kv-wi-visits
+
   DNS_ZONE: cloudapp.azure.com
   APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
   CUSTOM_DNS: javaonazurehandsonlabs.com
@@ -199,7 +204,7 @@ jobs:
           echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s
 
-          export SECRET_PROVIDER_CLASS_NAME=azure-kv-wi-customers
+          export SECRET_PROVIDER_CLASS_NAME=${{ env.SECRET_PROVIDER_CUSTOMERS }}
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
@@ -208,7 +213,7 @@ jobs:
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-srv-cluster-ip.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-srv-cluster-ip.yaml 
 
-          SECRET_PROVIDER_CLASS_NAME=azure-kv-wi-vets
+          SECRET_PROVIDER_CLASS_NAME=${{ env.SECRET_PROVIDER_VETS }}
           export SECRET_PROVIDER_CLASS_NAME
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
@@ -218,7 +223,7 @@ jobs:
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-srv-cluster-ip.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-srv-cluster-ip.yaml 
 
-          SECRET_PROVIDER_CLASS_NAME=azure-kv-wi-visits
+          SECRET_PROVIDER_CLASS_NAME=${{ env.SECRET_PROVIDER_VISITS }}
           export SECRET_PROVIDER_CLASS_NAME
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$visitsServiceClientId
