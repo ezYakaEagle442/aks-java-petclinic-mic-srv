@@ -34,6 +34,10 @@ See :
 
 # Pre-req
 
+To get an Azure subscription:
+- If you have a Visual studio subscription then you can activate your free credits [here](https://learn.microsoft.com/en-us/azure/devtest/offer/quickstart-individual-credit)  
+- If you do not currently have one, you can sign up for a free trial subscription [here](https://azure.com/free)
+
 To install Azure Bicep locally, read [https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
 
 # CI/CD
