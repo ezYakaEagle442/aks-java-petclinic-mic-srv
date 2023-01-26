@@ -287,7 +287,7 @@ jobs:
     # https://blog.identitydigest.com/azuread-federate-mi/
     - name: Configure AAD WI
       run: |
-            # "$(az identity show --resource-group "${RG_NAME}" --name "${{ env.xxx }}" --query 'clientId' -o tsv)"
+            # "$(az identity show --resource-group "${RG_NAME}" --name "${{ env.RG_APP }}" --query 'clientId' -o tsv)"
 
             mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
             mkdir $VETS_SERVICE_FOLDER/k8s/deploy
