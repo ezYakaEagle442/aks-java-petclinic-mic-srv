@@ -123,3 +123,17 @@ spec:
             name: server
           - containerPort: 8081
             name: management
+          volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets-store"
+            readOnly: true            
+        # https://learn.microsoft.com/en-us/azure/aks/csi-secrets-store-identity-access
+        # https://azure.github.io/secrets-store-csi-driver-provider-azure/docs/getting-started/usage/
+        # https://github.com/Azure/secrets-store-csi-driver-provider-azure/blob/master/examples/keyvault-secrets/v1alpha1_secretproviderclass_secrets.yaml
+        volumes:
+          - name: secrets-store-inline
+            csi:
+              driver: secrets-store.csi.k8s.io
+              readOnly: true
+              volumeAttributes:
+                secretProviderClass: "azure-kv-wi-visits"  
