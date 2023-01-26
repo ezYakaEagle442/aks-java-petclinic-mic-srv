@@ -81,7 +81,7 @@ jobs:
             # https://github.com/kubernetes/ingress-nginx
             # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
             # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
-            # https://docs.microsoft.com/en-us/azure/aks/ingress-basic#create-an-ingress-controller 
+            # https://learn.microsoft.com/en-us/azure/aks/ingress-basic?tabs=azure-cli#create-an-ingress-controller
 
             # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
             managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
