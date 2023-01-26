@@ -208,6 +208,7 @@ jobs:
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$customersServiceClientId
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+          kubectl apply -f $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-deployment.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-deployment.yaml
           envsubst < $CUSTOMERS_SERVICE_FOLDER/k8s/petclinic-customer-ingress.yaml > $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/petclinic-customer-ingress.yaml 
@@ -218,6 +219,7 @@ jobs:
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$vetsServiceClientId
           envsubst < $VETS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+          kubectl apply -f $VETS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-deployment.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-deployment.yaml
           envsubst < $VETS_SERVICE_FOLDER/k8s/petclinic-vet-ingress.yaml > $VETS_SERVICE_FOLDER/k8s/deploy/petclinic-vet-ingress.yaml 
@@ -228,6 +230,7 @@ jobs:
           echo "SECRET_PROVIDER_CLASS_NAME " $SECRET_PROVIDER_CLASS_NAME
           export USER_ASSIGNED_CLIENT_ID=$visitsServiceClientId
           envsubst < $VISITS_SERVICE_FOLDER/k8s/secret-provider-class.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+          kubectl apply -f $VISITS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml -n ${{ env.PETCLINIC_NAMESPACE }}
 
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-deployment.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-deployment.yaml
           envsubst < $VISITS_SERVICE_FOLDER/k8s/petclinic-visits-ingress.yaml > $VISITS_SERVICE_FOLDER/k8s/deploy/petclinic-visits-ingress.yaml 
@@ -254,14 +257,6 @@ jobs:
 
       shell: bash
 
-    - name: Deploy Secret Provider Class Manifests to AKS
-      uses: Azure/k8s-deploy@v4
-      with:
-        namespace: ${{ env.PETCLINIC_NAMESPACE }}
-        manifests: |
-            spring-petclinic-vets-service/k8s/deploy/secret-provider-class.yaml
-            spring-petclinic-customers-service/k8s/deploy/secret-provider-class.yaml
-            spring-petclinic-visits-service/k8s/deploy/secret-provider-class.yaml
 
       # https://github.com/marketplace/actions/deploy-to-kubernetes-cluster#build-container-image-and-deploy-to-any-azure-kubernetes-service-cluster
             # https://github.com/Azure/k8s-deploy/issues/278
