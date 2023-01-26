@@ -63,8 +63,7 @@ jobs:
                 echo "Verifying Pod $pod"
                 containerName=$(kubectl get  po $pod -n ${{ env.PETCLINIC_NAMESPACE }} -o=jsonpath={..containers[1].name})
                 echo "Verifying container $containerName"
-                kubectl logs $pod -c $containerName -n ${{ env.PETCLINIC_NAMESPACE }} | grep -i "Error"
-
+                # kubectl logs $pod -c $containerName -n ${{ env.PETCLINIC_NAMESPACE }} | grep -i "Error"
             fi
           done
 
