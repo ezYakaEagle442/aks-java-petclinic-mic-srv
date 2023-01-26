@@ -242,11 +242,11 @@ jobs:
           
           echo "Cheking folder " $VETS_SERVICE_FOLDER
           ls -al $VETS_SERVICE_FOLDER/k8s/deploy
-          cat $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+          cat $VETS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
 
           echo "Cheking folder " $VISITS_SERVICE_FOLDER
           ls -al $VISITS_SERVICE_FOLDER/k8s/deploy
-          cat $CUSTOMERS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
+          cat $VISITS_SERVICE_FOLDER/k8s/deploy/secret-provider-class.yaml 
           
           set -euo pipefail
           access_token=$(az account get-access-token --query accessToken -o tsv)
