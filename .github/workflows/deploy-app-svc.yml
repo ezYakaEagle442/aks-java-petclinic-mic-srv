@@ -274,10 +274,11 @@ jobs:
             spring-petclinic-customers-service/k8s/deploy
             spring-petclinic-visits-service/k8s/deploy
 
-          # images: 'contoso.azurecr.io/myapp:${{ event.run_id }}'
-
-    # verify
-    # kubectl get SecretProviderClass -n petclinic
+    - name: Verify SecretProviderClass and Ingress
+      run: |
+            kubectl get SecretProviderClass -n  ${{ env.PETCLINIC_NAMESPACE }}
+            kubectl get ingress -n ${{ env.PETCLINIC_NAMESPACE }}
+      shell: bash
 
     # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
