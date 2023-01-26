@@ -3,6 +3,12 @@ param visitsIdentityId string
 param customersIdentityId string
 param configServerIdentityId string
 
+// To get a UniqueID : https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-date#utcnow
+/* You can only use this function within an expression for the default value of a parameter. 
+Using this function anywhere else in a Bicep file returns an error. 
+The function isn't allowed in other parts of the Bicep file because it returns a different value each time it's called.
+*/
+param utcValue string = utcNow()
 
 @allowed([
   'KeyVaultAdministrator'
@@ -33,7 +39,7 @@ var role = {
 // You need Key Vault Administrator permission to be able to see the Keys/Secrets/Certificates in the Azure Portal
 
 resource vetsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'vets')
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'vets', utcValue, uniqueString(resourceGroup().id, deployment().name))
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
@@ -46,7 +52,7 @@ output vetsRoleAssignmentId string = vetsRoleAssignment.id
 output vetsRoleAssignmentName string = vetsRoleAssignment.name
 
 resource visitsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'visits')
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'visits', utcValue, uniqueString(resourceGroup().id, deployment().name))
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
@@ -60,7 +66,7 @@ output visitsRoleAssignmentName string = visitsRoleAssignment.name
 
 
 resource configServerRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'cfg')
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'cfg', utcValue, uniqueString(resourceGroup().id, deployment().name))
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
@@ -73,7 +79,7 @@ output configServerRoleAssignmentId string = configServerRoleAssignment.id
 output configServerRoleAssignmentName string = configServerRoleAssignment.name
 
 resource customersRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'customers')
+  name: guid(kv.id, kvRoleType , subscription().subscriptionId, 'customers', utcValue, uniqueString(resourceGroup().id, deployment().name))
   scope: kv
   properties: {
     roleDefinitionId: role[kvRoleType]
