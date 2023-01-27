@@ -1,3 +1,25 @@
+/*
+# https://docs.microsoft.com/en-us/azure/dns/dns-delegate-domain-azure-dns#delegate-the-domain
+# In the registrar's DNS management page, edit the NS records and replace the NS records with the Azure DNS name servers.
+
+ns_server=$(az network dns record-set ns show --resource-group $rg_name --zone-name $app_dns_zone --name @ --query nsRecords[0] --output tsv)
+ns_server_length=$(echo -n $ns_server | wc -c)
+ns_server="${ns_server:0:$ns_server_length-1}"
+echo "Name Server" $ns_server
+
+To test DNS resolution:
+# /!\ On your windows station , flush DNS ... : ipconfig /flushdns
+# Mac: sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder; say cache flushed
+# on WSL : sudo apt-get install dbus
+# /etc/init.d/dbus start
+# Ubuntu : sudo /etc/init.d/dns-clean restart or sudo systemd-resolve --flush-caches
+# ps ax | grep dnsmasq
+# sudo /etc/init.d/dnsmasq restart
+nslookup $app_dns_zone $ns_server
+
+*/
+
+
 @description('The location of the Azure resources.')
 param location string = resourceGroup().location
 
@@ -6,9 +28,15 @@ param vnetName string = 'vnet-aks'
 @description('Petclinic service LB IP')
 param aksSvcIp string
 
-param recordSetA string = 'petclinic'
-param dnsZone string = 'cloudapp.azure.com'
-param appDnsZone string = 'petclinic.${location}.${dnsZone}'
+@allowed([
+  'azure'
+  'custom'
+])
+param dnsZoneType string = 'azure'
+
+param recordSetA string = '@'
+param cloudappDnsZone string = 'cloudapp.azure.com'
+param appDnsZone string = 'petclinic.${location}.${cloudappDnsZone}'
 param customDns string = 'javaonazurehandsonlabs.com'
 param privateDnsZone string = 'privatelink.${location}.azmk8s.io' // API-server URL ex for public clusters: appinnojava-478b2e1b.hcp.westeurope.azmk8s.io
 
@@ -19,8 +47,15 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' existing =  {
 output vnetId string = vnet.id
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones?pivots=deployment-language-bicep
-resource aksDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
-  name: dnsZone
+resource azureDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = if(dnsZoneType=='azure') {
+  name: appDnsZone
+  location: 'global'  // /!\ 'global' instead of '${location}'. This is because Azure DNS is a global service. otherwise you will hit this error:"MissingRegistrationForLocation. "The subscription is not registered for the resource type 'privateDnsZones' in the location 'westeurope' 
+  properties: {
+    zoneType: 'Public'
+  }
+}
+resource cutomDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = if(dnsZoneType=='custom') {
+  name: customDns
   location: 'global'  // /!\ 'global' instead of '${location}'. This is because Azure DNS is a global service. otherwise you will hit this error:"MissingRegistrationForLocation. "The subscription is not registered for the resource type 'privateDnsZones' in the location 'westeurope' 
   properties: {
     zoneType: 'Public'
@@ -29,9 +64,22 @@ resource aksDnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/a?pivots=deployment-language-bicep
 
-resource RecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
+resource RecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = if(dnsZoneType=='azure') {
   name: recordSetA
-  parent: aksDnsZone
+  parent: azureDnsZone
+  properties: {
+    ARecords: [
+      {
+        ipv4Address: aksSvcIp
+      }
+    ]
+    TTL: 360
+  }
+}
+
+resource RecordSetAForCustomDNS 'Microsoft.Network/dnsZones/A@2018-05-01' = if(dnsZoneType=='custom') {
+  name: recordSetA
+  parent: cutomDnsZone
   properties: {
     ARecords: [
       {
@@ -43,12 +91,23 @@ resource RecordSetA 'Microsoft.Network/dnsZones/A@2018-05-01' = {
 }
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/cname?pivots=deployment-language-bicep
-resource aksAppsRecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
-  name: 'www'
-  parent: aksDnsZone
+resource RecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = if(dnsZoneType=='azure') {
+  name: 'home'
+  parent: azureDnsZone
   properties: {
     CNAMERecord: {
       cname: 'www.${appDnsZone}'
+    }
+    TTL: 360    
+  }
+}
+
+resource RecordSetCnameForCustomDNS 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = if(dnsZoneType=='custom') {
+  name: 'home'
+  parent: cutomDnsZone
+  properties: {
+    CNAMERecord: {
+      cname: 'www.${customDns}'
     }
     TTL: 360    
   }
