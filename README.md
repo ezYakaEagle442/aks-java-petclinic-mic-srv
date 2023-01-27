@@ -679,7 +679,7 @@ Open the Petclinic application and try out a few tasks - view pet owners and the
 vets, and schedule pet visits:
 
 ```bash
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/
+open http://petclinic.westeurope.cloudapp.azure.com//
 ```
 
 You can also use your browser or  `curl` the REST API exposed by the Petclinic application. 
@@ -687,22 +687,22 @@ The admin REST API allows you to create/update/remove items in Pet Owners, Pets,
 You can run the following curl commands:
 
 URL ex:
-- https://aks-petcliaks-api-gateway.francecentral.<AKS_DNS_SUFFIX>/
-- http://aks-petcliaks-customers-service.francecentral.<AKS_DNS_SUFFIX>/owners/3/pets/4
-- https://aks-petcliaks-visits-service.francecentral.<AKS_DNS_SUFFIX>/owners/6/pets/8/visits
-- https://aks-petcliaks-vets-service.francecentral.<AKS_DNS_SUFFIX>/vets
+- https://<petclinic>.<location>.<cloudapp.azure.com>
+- http://petclinic.westeurope.cloudapp.azure.com/owners/3/pets/4
+- http://petclinic.westeurope.cloudapp.azure.com/owners/6/pets/8/visits
+- http://petclinic.westeurope.cloudapp.azure.com/vets
 
 
 ```bash
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/4
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/ 
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/petTypes
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/3/pets/4
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/owners/6/pets/8/
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/vet/vets
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/visit/owners/6/pets/8/visits
-curl -X GET https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/visit/owners/6/pets/8/visits
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/owners
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/owners/4
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/owners/ 
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/petTypes
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/owners/3/pets/4
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/owners/6/pets/8/
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/vet/vets
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/visit/owners/6/pets/8/visits
+curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/visit/owners/6/pets/8/visits
 ```
 
 ### Open Actuator endpoints for API Gateway and Customers Service apps
@@ -714,15 +714,15 @@ Actuator endpoints let you monitor and interact with your application. By defaul
 You can try them out by opening the following app actuator endpoints in a browser:
 
 ```bash
-https://aks-petcliaks-api-gateway.francecentral.<AKS_DNS_SUFFIX>/
+http://petclinic.westeurope.cloudapp.azure.com
 
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/manage/
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/manage/env
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/manage/configprops
+open http://petclinic.westeurope.cloudapp.azure.com/manage/
+open http://petclinic.westeurope.cloudapp.azure.com/manage/env
+open http://petclinic.westeurope.cloudapp.azure.com/manage/configprops
 
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/manage
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/manage/env
-open https://aks-petcliaks-api-gateway-<AKS_DNS_SUFFIX>/api/customer/manage/configprops
+open http://petclinic.westeurope.cloudapp.azure.com/api/customer/manage
+open http://petclinic.westeurope.cloudapp.azure.com/api/customer/manage/env
+open http://petclinic.westeurope.cloudapp.azure.com/api/customer/manage/configprops
 
 ### Monitor Petclinic logs and metrics in Azure Log Analytics
 
@@ -732,14 +732,8 @@ LOG_ANALYTICS_WORKSPACE_CLIENT_ID=`az monitor log-analytics workspace show -n $L
 
 az monitor log-analytics query \
   --workspace $LOG_ANALYTICS_WORKSPACE_CLIENT_ID \
-  --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s == '$appName'  | where TimeGenerated > ago(1d) | project ContainerAppName_s, Log_s, Time | take 3" \
+  --analytics-query "ContainerLog | where LogEntry has 'error' |take 100" \
   --out table
-
-az monitor log-analytics query \
---workspace $LOG_ANALYTICS_WORKSPACE_CLIENT_ID \
---analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s contains 'api' | where RevisionName_s == 'aks-petcliaks-api-gateway--2nstmem' | where TimeGenerated > ago(5m) | where Log_s  contains 'api' | project Time=TimeGenerated, Message=Log_s | sort by Time desc" \
---out table > aks-petcliaks-api-gateway--2nstmem_ROUTING_ERROR500.log
-
 
 ```
 
@@ -758,7 +752,7 @@ let startTimestamp = ago(1h);
 KubePodInventory
 | where TimeGenerated > startTimestamp
 | project ContainerID, PodName=Name, Namespace
-| where PodName contains "name" and Namespace startswith "namespace"
+| where PodName contains "service" and Namespace startswith "petclinic"
 | distinct ContainerID, PodName
 | join
 (
@@ -768,7 +762,7 @@ KubePodInventory
 on ContainerID
 // at this point before the next pipe, columns from both tables are available to be "projected". Due to both
 // tables having a "Name" column, we assign an alias as PodName to one column which we actually want
-| project TimeGenerated, PodName, LogEntry, LogEntrySource
+| project TimeGenerated, PodName, LogEntrySource, LogEntry
 | summarize by TimeGenerated, LogEntry
 | order by TimeGenerated desc
 
@@ -776,7 +770,7 @@ on ContainerID
 let FindString = "error";//Please update term  you would like to find in LogEntry here
 ContainerLog 
 | where LogEntry has FindString 
-|take 100
+| take 100
 ```
 
 
