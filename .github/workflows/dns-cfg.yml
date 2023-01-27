@@ -91,6 +91,7 @@ jobs:
             helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
             helm repo update
 
+            # https://learn.microsoft.com/en-us/azure/aks/ingress-tls?tabs=azure-cli
             # https://learn.microsoft.com/en-us/azure/aks/ingress-tls?tabs=azure-cli#use-a-static-public-ip-address
             helm install ingress-nginx ingress-nginx/ingress-nginx \
               --create-namespace --namespace ${{ env.ING_NS }} \
@@ -100,6 +101,7 @@ jobs:
             helm ls --namespace ${{ env.ING_NS }}
             sleep 15
             kubectl get deployments -n ${{ env.ING_NS }} -l app.kubernetes.io/name=ingress-nginx
+            kubectl describe svc ingress-nginx-controller -n  ${{ env.ING_NS }}
 
             ingress_controller_ip=$(kubectl get svc -n ${{ env.ING_NS }} ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
             echo "ING_CTL_IP:" $ingress_controller_ip
