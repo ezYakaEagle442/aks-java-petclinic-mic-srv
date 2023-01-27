@@ -91,8 +91,10 @@ jobs:
             helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
             helm repo update
 
+            # https://learn.microsoft.com/en-us/azure/aks/ingress-tls?tabs=azure-cli#use-a-static-public-ip-address
             helm install ingress-nginx ingress-nginx/ingress-nginx \
               --create-namespace --namespace ${{ env.ING_NS }} \
+              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"=${{ env.AZURE_DNS_LABEL_NAME }}
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
             
             helm ls --namespace ${{ env.ING_NS }}
@@ -114,11 +116,11 @@ jobs:
             #  -p vnetName=${{ env.VNET_NAME }} \
             #  -p aksSvcIp=$ING_CTL_IP
 
-              echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
-              ingControllerPublicIpId=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$ING_CTL_IP')].[id]" --output tsv)
-              echo $ingControllerPublicIpId
-              
-              az network public-ip update --ids $ingControllerPublicIpId --dns-name ${{ env.AZURE_DNS_LABEL_NAME }} -g $managed_rg
+            echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+            ingControllerPublicIpId=$(az network public-ip list -g $managed_rg --query "[?ipAddress!=null]|[?contains(ipAddress, '$ING_CTL_IP')].[id]" --output tsv)
+            echo $ingControllerPublicIpId
+            
+            az network public-ip update --ids $ingControllerPublicIpId --dns-name ${{ env.AZURE_DNS_LABEL_NAME }} -g $managed_rg
 
       shell: bash
 
