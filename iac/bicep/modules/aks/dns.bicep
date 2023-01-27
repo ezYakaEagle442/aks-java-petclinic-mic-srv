@@ -92,22 +92,22 @@ resource RecordSetAForCustomDNS 'Microsoft.Network/dnsZones/A@2018-05-01' = if(d
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.network/dnszones/cname?pivots=deployment-language-bicep
 resource RecordSetCname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = if(dnsZoneType=='azure') {
-  name: 'home'
+  name: 'www'
   parent: azureDnsZone
   properties: {
     CNAMERecord: {
-      cname: 'www.${appDnsZone}'
+      cname: appDnsZone
     }
     TTL: 360    
   }
 }
 
 resource RecordSetCnameForCustomDNS 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = if(dnsZoneType=='custom') {
-  name: 'home'
+  name: 'www'
   parent: cutomDnsZone
   properties: {
     CNAMERecord: {
-      cname: 'www.${customDns}'
+      cname: customDns
     }
     TTL: 360    
   }
