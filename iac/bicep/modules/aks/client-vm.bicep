@@ -1,5 +1,22 @@
 // See https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.compute/vm-simple-windows/main.bicep
 
+/*
+
+az provider register --namespace "Microsoft.DevTestLab"
+az provider show -n Microsoft.DevTestLab --query registrationState -o table
+az provider list --query "[?registrationState=='Registered']" --output table
+
+# The password length must be between 12 and 123. 
+az deployment group create --name storage -f iac/bicep/modules/aks/client-vm.bicep -g $RgName \
+-p appName=petcliaks \
+-p location=westeurope \
+-p windowsVMName=vm-winpetclinic \
+-p adminUsername=adm_aks \
+-p adminPassword=xxx \
+-p nsgRuleSourceAddressPrefix=your client IP \
+-p autoShutdownNotificationEmail=youremail@groland.grd
+
+*/
 @description('A UNIQUE name')
 @maxLength(20)
 param appName string = '101${uniqueString(deployment().name)}'
@@ -9,8 +26,8 @@ param location string = resourceGroup().location
 
 param vnetName string = 'vnet-aks'
 
-@description('Resource ID of a subnet for infrastructure components. This subnet must be in the same VNET as the subnet defined in runtimeSubnetId. Must not overlap with any other provided IP ranges.')
-param infrastructureSubnetID string
+//@description('Resource ID of a subnet for infrastructure components. This subnet must be in the same VNET as the subnet defined in runtimeSubnetId. Must not overlap with any other provided IP ranges.')
+//param infrastructureSubnetID string
 
 @description('Windows client VM deployed to the VNet. Computer name cannot be more than 15 characters long')
 param windowsVMName string = 'vm-winakspetcli'
@@ -27,7 +44,7 @@ param nsgName string = 'nsg-aks-${appName}-app-client'
 param nsgRuleName string = 'Allow RDP from local dev station'
 
 @description('The CIDR or source IP range. Asterisk "*" can also be used to match all source IPs. Default tags such as "VirtualNetwork", "AzureLoadBalancer" and "Internet" can also be used. If this is an ingress rule, specifies where network traffic originates from.')
-param nsgRuleSourceAddressPrefix string
+param nsgRuleSourceAddressPrefix string = '*'
 
 param nicName string = 'nic-aks-${appName}-client-vm'
 
@@ -97,7 +114,7 @@ resource NIC1 'Microsoft.Network/networkInterfaces@2022-07-01' = {
           privateIPAllocationMethod: 'Dynamic'
           primary: true
           subnet: {
-            id: infrastructureSubnetID
+            id: vnet.properties.subnets[0].id
           }
         }
       }
@@ -195,7 +212,6 @@ resource windowsVM 'Microsoft.Compute/virtualMachines@2022-08-01' = {
   }
 }
 
-
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.devtestlab/schedules?tabs=bicep
 resource AutoShutdownSchedule 'Microsoft.DevTestLab/schedules@2018-09-15' = {
   name: 'shutdown-computevm-${windowsVMName}'
@@ -263,9 +279,9 @@ win_client_vm_name="vm-win-pet-cli" #Windows computer name cannot be more than 1
 win_vm_admin_username="adm_aks"
 win_vm_admin_pwd="XXX" # The password length must be between 12 and 123. 
 rg_name="rg-iac-aks-petclinic-mic-srv"
-vnet_name="vnet-azure-container-apps"
-appSubnet="snet-app"
-nsg="vnet-azure-container-apps-snet-app-nsg-${location}"
+vnet_name="vnet-aks"
+appSubnet="snet-aks"
+nsg="vnet-snet-aks-nsg-${location}"
 
 az vm create --name $win_client_vm_name \
     --image MicrosoftWindowsDesktop:windows-11:win11-21h2-pron:22000.739.220608 \
