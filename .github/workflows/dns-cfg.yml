@@ -94,7 +94,7 @@ jobs:
             # https://learn.microsoft.com/en-us/azure/aks/ingress-tls?tabs=azure-cli#use-a-static-public-ip-address
             helm install ingress-nginx ingress-nginx/ingress-nginx \
               --create-namespace --namespace ${{ env.ING_NS }} \
-              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"=${{ env.AZURE_DNS_LABEL_NAME }}
+              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"=${{ env.AZURE_DNS_LABEL_NAME }} \
               --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz            
             
             helm ls --namespace ${{ env.ING_NS }}
