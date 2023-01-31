@@ -43,7 +43,7 @@
         2021.0.3 should be used, NOT 2022.0.0-M3
         -->
         <spring-cloud.version>2021.0.4</spring-cloud.version>
-        <spring-cloud-azure.version>4.4.0</spring-cloud-azure.version>
+        <spring-cloud-azure.version>4.5.0</spring-cloud-azure.version>
         <spring.jmx.enabled>true</spring.jmx.enabled>
 
         <!-- 
