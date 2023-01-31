@@ -186,6 +186,13 @@
                     <artifactId>spring-cloud-azure-starter-keyvault-secrets</artifactId>
                 </dependency>	
 
+                <!-- https://github.com/Azure/azure-sdk-for-java/issues/29241 -->
+                <dependency>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-identity</artifactId>
+                    <version>1.7.2</version>
+                </dependency>
+
             </dependencies>
         </profile>
 
