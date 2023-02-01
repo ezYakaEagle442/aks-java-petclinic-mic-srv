@@ -51,6 +51,7 @@
         https://github.com/GoogleCloudPlatform/spring-cloud-gcp
         -->
         <spring-cloud-gcp.version>3.4.0</spring-cloud-gcp.version> 
+        <!-- https://docs.spring.io/spring-boot/docs/2.7.8/reference/html/getting-started.html#getting-started.system-requirements Java 17 is supported-->
         <spring-boot.version>2.6.13</spring-boot.version> <!-- /!\ Bug in Netty with Spring Boot 2.6.6, see https://github.com/netty/netty/issues/12343 -->
 
         <java.version>11</java.version>
