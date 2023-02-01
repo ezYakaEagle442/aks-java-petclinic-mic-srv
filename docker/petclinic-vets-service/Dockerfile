@@ -1,9 +1,9 @@
-# docker build --build-arg --no-cache -t "petclinic-customers-service" -f "./docker/petclinic-customers-service/Dockerfile" .
-# docker tag petclinic-customers-service acrpetcliaks.azurecr.io/petclinic/petclinic-customers-service
-# docker push acrpetcliaks.azurecr.io/petclinic/petclinic-customers-service
-# docker pull acrpetcliaks.azurecr.io/petclinic/petclinic-customers-service
+# docker build --build-arg --no-cache -t "petclinic-vets-service" -f "./docker/petclinic-vets-service/Dockerfile" .
+# docker tag petclinic-vets-service acrpetcliaks.azurecr.io/petclinic/petclinic-vets-service
+# docker push acrpetcliaks.azurecr.io/petclinic/petclinic-vets-service
+# docker pull acrpetcliaks.azurecr.io/petclinic/petclinic-vets-service
 # docker image ls
-# docker run -p 8080:8080 -p 8081:8081 -p 8888:8888 -p 9090:9090 petclinic-customers-service
+# docker run -p 8080:8080 -p 8081:8081 -p 8888:8888 -p 9090:9090 petclinic-vets-service
 # docker container ls
 # docker ps
 # docker exec -it <container-id> /bin/sh
@@ -16,7 +16,7 @@ LABEL Maintainer="pinpin <noname@microsoft.com>"
 LABEL Description="PetClinic Customer service: Java Spring Boot microservice built from MS OpenJDK 11-Mariner"
 RUN mkdir /tmp/app
 WORKDIR /tmp/app
-COPY "./spring-petclinic-customers-service/target/*.jar" /tmp/app/app.jar
+COPY "./spring-petclinic-vets-service/target/*.jar" /tmp/app/app.jar
 RUN java -Djarmode=layertools -jar "/tmp/app/app.jar" extract
 RUN curl -SL --output ${APP_INSIGHTS_AGENT_JAR_FILE_PATH} https://github.com/microsoft/ApplicationInsights-Java/releases/download/${APPI_VERSION}/applicationinsights-agent-${APPI_VERSION}.jar
 
