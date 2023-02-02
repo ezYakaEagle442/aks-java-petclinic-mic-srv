@@ -48,6 +48,9 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
+        <!-- https://github.com/spring-cloud/spring-cloud-config/issues/2052 
+        spring.config.import and spring-cloud-starter-bootstrap can be used BOTH
+        -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>

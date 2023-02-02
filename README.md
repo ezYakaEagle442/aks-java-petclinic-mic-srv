@@ -96,8 +96,10 @@ TENANT_ID=$(az account show --query tenantId -o tsv)
 
 Add your AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID to your GH repo Settings / Security / Secrets and variables / Actions / Actions secrets / Repository secrets
 
-Read [https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Cwindows#create-a-service-principal-and-add-it-as-a-github-secret)
-
+Read :
+- [https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Cwindows#create-a-service-principal-and-add-it-as-a-github-secret)
+- [https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Cwindows#use-the-azure-login-action-with-openid-connect](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Cwindows#use-the-azure-login-action-with-openid-connect)
+- [https://learn.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust?pivots=identity-wif-apps-methods-azp](https://learn.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust?pivots=identity-wif-apps-methods-azp)
 
 In the GitHub Action Runner, to allow the Service Principal used to access the Key Vault, execute the command below:
 ```sh
@@ -138,8 +140,8 @@ Troubleshoot:
 If you hit _["Error: : No subscriptions found for ***."](https://learn.microsoft.com/en-us/answers/questions/738782/no-subscription-found-for-function-during-azure-cl.html)_ , this is related to an IAM privilege in the subscription.
 
 ```sh
-#SPN_APP_ID=$(az ad sp list --all --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
-SPN_APP_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
+SPN_APP_ID=$(az ad sp list --all --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
+#SPN_APP_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
 TENANT_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{t:appOwnerOrganizationId}" --output tsv)
 
 # Enterprise Application
@@ -273,7 +275,7 @@ az provider register --namespace Microsoft.ManagedIdentity
 az provider register --namespace Microsoft.Monitor
 az provider register --namespace Microsoft.OperationsManagement
 az provider register --namespace Microsoft.Network  
-az provider register --namespace Microsoft.RedHatOpenShift 
+c
 az provider register --namespace Microsoft.ServiceBus
 az provider register --namespace Microsoft.Storage
 az provider register --namespace Microsoft.Subscription
