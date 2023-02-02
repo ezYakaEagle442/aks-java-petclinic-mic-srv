@@ -694,6 +694,7 @@ URL ex:
 - http://petclinic.westeurope.cloudapp.azure.com/owners/6/pets/8/visits
 - http://petclinic.westeurope.cloudapp.azure.com/vets
 
+with Custom domains : http://appinnohandsonlab.com/#!/welcome 
 
 ```bash
 curl -X GET http://petclinic.westeurope.cloudapp.azure.com/api/customer/owners
