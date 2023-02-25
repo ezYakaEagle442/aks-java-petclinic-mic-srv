@@ -18,8 +18,8 @@ az deployment group create --name storage -f iac/bicep/modules/aks/client-vm.bic
 
 */
 @description('A UNIQUE name')
-@maxLength(20)
-param appName string = '101${uniqueString(deployment().name)}'
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the Azure resources.')
 param location string = resourceGroup().location
@@ -211,6 +211,9 @@ resource windowsVM 'Microsoft.Compute/virtualMachines@2022-08-01' = {
     }
   }
 }
+
+output windowsVMName string = windowsVM.name
+output windowsVMId string = windowsVM.id
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.devtestlab/schedules?tabs=bicep
 resource AutoShutdownSchedule 'Microsoft.DevTestLab/schedules@2018-09-15' = {

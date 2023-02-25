@@ -3,13 +3,17 @@
 @description('The Identity location')
 param location string = resourceGroup().location
 
+@description('A UNIQUE name')
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+
 @description('The Identity Tags. See https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources?tabs=bicep#apply-an-object')
 param tags object = {
-  'Environment': 'Dev'
-  'Dept': 'IT'
-  'Scope': 'EU'
-  'CostCenter': '442'
-  'Owner': 'Petclinic'
+  Environment: 'Dev'
+  Dept: 'IT'
+  Scope: 'EU'
+  CostCenter: '442'
+  Owner: 'Petclinic'
 }
 
 ///////////////////////////////////
@@ -19,28 +23,28 @@ param tags object = {
 // ex: id-appcn-keda-prod-eastus2-001
 
 @description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
+param aksIdentityName string = 'id-aks-${appName}-cluster-dev-${location}-101'
 
 @description('The admin-server Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param adminServerAppIdentityName string = 'id-aks-petclinic-admin-server-dev-westeurope-101'
-
-@description('The config-server Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param configServerAppIdentityName string = 'id-aks-petclinic-config-server-dev-westeurope-101'
+param adminServerAppIdentityName string = 'id-aks-${appName}-petclinic-admin-server-dev-${location}-101'
 
 @description('The discovery-server Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param discoveryServerAppIdentityName string = 'id-aks-petclinic-discovery-server-dev-westeurope-101'
+param discoveryServerAppIdentityName string = 'id-aks-${appName}-petclinic-discovery-server-dev-${location}-101'
+
+@description('The config-server Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
+param configServerAppIdentityName string = 'id-aks-${appName}-petclinic-config-server-dev-${location}-101'
 
 @description('The api-gateway Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param apiGatewayAppIdentityName string = 'id-aks-petclinic-api-gateway-dev-westeurope-101'
+param apiGatewayAppIdentityName string = 'id-aks-${appName}-petclinic-api-gateway-dev-${location}-101'
 
 @description('The customers-service Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param customersServiceAppIdentityName string = 'id-aks-petclinic-customers-service-dev-westeurope-101'
+param customersServiceAppIdentityName string = 'id-aks-${appName}-petclinic-customers-service-dev-${location}-101'
 
 @description('The vets-service Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param vetsServiceAppIdentityName string = 'id-aks-petclinic-vets-service-dev-westeurope-101'
+param vetsServiceAppIdentityName string = 'id-aks-${appName}-petclinic-vets-service-dev-${location}-101'
 
 @description('The visits-service Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param visitsServiceAppIdentityName string = 'id-aks-petclinic-visits-service-dev-westeurope-101'
+param visitsServiceAppIdentityName string = 'id-aks-${appName}-petclinic-visits-service-dev-${location}-101'
 
 ///////////////////////////////////
 // New resources
@@ -52,6 +56,7 @@ resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-3
   tags: tags
 }
 output aksIdentityIdentityId string = aksIdentity.id
+output aksIdentityName string = aksIdentity.name
 output aksIdentityPrincipalId string = aksIdentity.properties.principalId
 output aksIdentityClientId string = aksIdentity.properties.clientId
 
@@ -70,6 +75,7 @@ resource configServerIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@
   tags: tags
 }
 output configServerIdentityId string = configServerIdentity.id
+output configServerIdentityName string = configServerIdentity.name
 output configServerPrincipalId string = configServerIdentity.properties.principalId
 output configServerClientId string = configServerIdentity.properties.clientId
 
@@ -80,6 +86,7 @@ resource discoveryServerIdentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
   tags: tags
 }
 output discoveryServerIdentityId string = discoveryServerIdentity.id
+output discoveryServerIdentityName string = discoveryServerIdentity.name
 output discoveryServerPrincipalId string = discoveryServerIdentity.properties.principalId
 output discoveryServerClientId string = discoveryServerIdentity.properties.clientId
 
@@ -89,6 +96,7 @@ resource apiGatewayIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@20
   tags: tags
 }
 output apiGatewayIdentityId string = apiGatewayIdentity.id
+output apiGatewayIdentityName string = apiGatewayIdentity.name
 output apiGatewayPrincipalId string = apiGatewayIdentity.properties.principalId
 output apiGatewayClientId string = apiGatewayIdentity.properties.clientId
 
@@ -107,6 +115,7 @@ resource vetsServiceIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2
   tags: tags
 }
 output vetsServiceIdentityId string = vetsServiceIdentity.id
+output vetsServiceIdentityName string = vetsServiceIdentity.name
 output vetsServicePrincipalId string = vetsServiceIdentity.properties.principalId
 output vetsServiceClientId string = vetsServiceIdentity.properties.clientId
 
@@ -116,5 +125,6 @@ resource visitsServiceIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities
   tags: tags
 }
 output visitsServiceIdentityId string = visitsServiceIdentity.id
+output visitsServiceIdentityName string = visitsServiceIdentity.name
 output visitsServicePrincipalId string = visitsServiceIdentity.properties.principalId
 output visitsServiceClientId string = visitsServiceIdentity.properties.clientId

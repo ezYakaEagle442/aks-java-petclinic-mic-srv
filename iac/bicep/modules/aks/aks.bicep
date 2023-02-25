@@ -1,8 +1,8 @@
 // see BICEP samples at https://github.com/ssarwa/Bicep/blob/master/main.bicep
 // https://github.com/brwilkinson/AzureDeploymentFramework/blob/main/ADF/bicep/AKS.bicep
 @description('A UNIQUE name')
-@maxLength(20)
-param appName string = '101-${uniqueString(deployment().name)}'
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The name of the Managed Cluster resource.')
 param clusterName string = 'aks-${appName}'
@@ -35,8 +35,8 @@ param dnsPrefix string = 'appinnojava'
 @maxValue(1023)
 param osDiskSizeGB int = 0
 
-@description('AKS Cluster UserAssigned Managed Identity. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
+@description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
+param aksIdentityName string = 'id-aks-${appName}-cluster-dev-${location}-101'
 
 @description('The Log Analytics workspace name used by the OMS agent in the AKS Cluster')
 param logAnalyticsWorkspaceName string = 'log-${appName}'
@@ -265,11 +265,12 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-10-02-preview' = {
 }
 
 // https://github.com/Azure/azure-rest-api-specs/issues/17563
+output aksId string = aks.id
+output aksClusterName string = aks.name
 output controlPlaneFQDN string = aks.properties.fqdn
 output kubeletIdentity string = aks.properties.identityProfile.kubeletidentity.objectId
 output keyVaultAddOnIdentity string = aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.objectId
 output spnClientId string = aks.properties.servicePrincipalProfile.clientId
-output aksId string = aks.id
 
 // output aksIdentityPrincipalId string = aks.identity.principalId
 output aksOutboundType string = aks.properties.networkProfile.outboundType

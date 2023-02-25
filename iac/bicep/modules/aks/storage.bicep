@@ -5,8 +5,8 @@ az deployment group create --name aks-petclinic-storage -f iac/bicep/modules/aks
             
 */
 @description('A UNIQUE name')
-@maxLength(20)
-param appName string = '101${uniqueString(deployment().name)}'
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the Azure resources.')
 param location string = resourceGroup().location
@@ -36,6 +36,7 @@ param ghRunnerSpnPrincipalId string
 
 @description('The VNet rules to whitelist for the Strorage Account')
 param  vNetRules array = []
+
 @description('The IP rules to whitelist for the Strorage Account')
 param  ipRules array = []
 
@@ -59,6 +60,8 @@ resource storageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-
   tags: tags
 }
 output storageIdentityId string = storageIdentity.id
+output storageIdentityName string = storageIdentity.name
+output storageIdentityClientId string = storageIdentity.properties.clientId
 output storageIdentityPrincipalId string = storageIdentity.properties.principalId
 
 /*
@@ -143,6 +146,7 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 }
 
 output azurestorageId string = azurestorage.id
+output azurestorageName string = azurestorage.name
 // outputs-should-not-contain-secrets
 // output azurestorageSasToken string = azurestorage.listAccountSas().accountSasToken
 // output azurestorageKey0 string = azurestorage.listKeys().keys[0].value
@@ -183,6 +187,7 @@ resource azureblobservice 'Microsoft.Storage/storageAccounts/blobServices@2022-0
   }
 }
 output azureblobserviceId string = azureblobservice.id
+output azureblobserviceName string = azureblobservice.name
 
 resource blobcontainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
   name: blobContainerName
@@ -201,6 +206,7 @@ resource blobcontainer 'Microsoft.Storage/storageAccounts/blobServices/container
   }
 }
 output blobcontainerId string = blobcontainer.id
+output blobcontainerName string = blobcontainer.name
 
 // https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
 var role = {

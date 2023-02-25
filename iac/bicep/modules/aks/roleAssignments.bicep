@@ -1,4 +1,9 @@
-param acrName string
+@description('A UNIQUE name')
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+
+@description('The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.')
+param acrName string = 'acr${appName}'
 
 param aksClusterPrincipalId string
 
@@ -16,7 +21,7 @@ param networkRoleType string
   'AcrPush'
 ])
 @description('ACR Built-in role to assign')
-param acrRoleType string
+param acrRoleType string = 'AcrPull'
 
 @allowed([
   'KeyVaultAdministrator'

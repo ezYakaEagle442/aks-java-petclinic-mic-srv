@@ -7,8 +7,8 @@ Microsoft.KeyVault/locations/deletedVaults/purge/action
 // https://argonsys.com/microsoft-cloud/library/dealing-with-deployment-blockers-with-bicep/
 
 @description('A UNIQUE name')
-@maxLength(20)
-param appName string = 'iacdemo${uniqueString(resourceGroup().id)}'
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @maxLength(24)
 @description('The name of the KV, must be UNIQUE.  A vault name must be between 3-24 alphanumeric characters.')
@@ -73,6 +73,8 @@ resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   }
 }
 
+output kvSecretsId string = kvSecrets.id
+output kvSecretsName string = kvSecrets.name
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults/keys?tabs=bicep
 // https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys-details

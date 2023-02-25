@@ -1,7 +1,7 @@
 
 @description('A UNIQUE name')
-@maxLength(20)
-param appName string = 'iacdemo${uniqueString(resourceGroup().id)}'
+@maxLength(23)
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the MySQL DB.')
 param location string = resourceGroup().location
