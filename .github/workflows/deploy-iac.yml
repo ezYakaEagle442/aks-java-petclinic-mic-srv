@@ -25,16 +25,17 @@ env:
 
   DNS_PREFIX: appinnojava # customize this
   ING_NS: ingress # Namespace to use for the Ingress Controller
-  AKS_IDENTITY_NAME: id-aks-cluster-dev-westeurope-101 # customize this
 
   # APPLICATION INSIGHTS
   APPLICATIONINSIGHTS_CONFIGURATION_FILE: BOOT-INF/classes/applicationinsights.json
 
   # ==== Identities ====:
-  CUSTOMERS_SVC_APP_ID_NAME: id-aks-petclinic-customers-service-dev-westeurope-101 # customize this
-  VETS_SVC_APP_ID_NAME: id-aks-petclinic-vets-service-dev-westeurope-101 # customize this
-  VISITS_SVC_APP_ID_NAME: id-aks-petclinic-visits-service-dev-westeurope-101 # customize this
-  CONFIG_SERVER_APP_ID_NAME: id-aks-petclinic-config-server-dev-westeurope-101 # customize this
+  AKS_IDENTITY_NAME: id-aks-petcliaks-cluster-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-cluster-dev-${location}-101'
+
+  CUSTOMERS_SVC_APP_ID_NAME: id-aks-petcliaks-petclinic-customers-service-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-customers-service-dev-${location}-101'
+  VETS_SVC_APP_ID_NAME: id-aks-petcliaks-petclinic-vets-service-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-vets-service-dev-${location}-101'
+  VISITS_SVC_APP_ID_NAME: id-aks-petcliaks-petclinic-visits-service-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-visits-service-dev-${location}-101'
+  CONFIG_SERVER_APP_ID_NAME: id-aks-petcliaks-petclinic-config-server-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-config-server-dev-${location}-101'
 
   START_IP_ADDRESS: 172.16.1.0
   END_IP_ADDRESS: 172.16.1.255
@@ -101,7 +102,7 @@ env:
 
   # ==== Versions ====
   DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.42.0
+  AZ_CLI_VERSION: 2.45.0
   JAVA_VERSION: 11
 
 on:
