@@ -11,7 +11,7 @@ env:
 
   # ==== Versions ====
   DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.42.0
+  AZ_CLI_VERSION: 2.45.0
   JAVA_VERSION: 11
 
   AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.

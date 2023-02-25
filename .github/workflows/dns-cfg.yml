@@ -18,7 +18,6 @@ env:
 
   DNS_PREFIX: appinnojava # customize this
   ING_NS: ingress # Namespace to use for the Ingress Controller
-  AKS_IDENTITY_NAME: id-aks-cluster-dev-westeurope-101 # customize this
 
   # ==== APPS ====
   CLOUD_PROVIDER_ENV: azure
@@ -44,7 +43,7 @@ env:
 
   # ==== Versions ====
   DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.42.0
+  AZ_CLI_VERSION: 2.45.0
   JAVA_VERSION: 11
 
 on:
