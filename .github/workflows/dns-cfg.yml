@@ -120,7 +120,7 @@ jobs:
             echo "ING_CTL_IP:" $ING_CTL_IP
             az deployment group create --name aks-dns -f iac/bicep/modules/aks/dns.bicep -g ${{ env.RG_APP }} \
             -p dnsZoneType=custom \
-            -p customDns=${{ env.CUSTOM_DNS }} \     
+            -p customDns=${{ env.CUSTOM_DNS }} \
             -p location=${{ env.LOCATION }} \
             -p vnetName=${{ env.VNET_NAME }} \
             -p aksSvcIp=$ING_CTL_IP
