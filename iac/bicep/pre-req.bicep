@@ -51,10 +51,10 @@ param kvName string = 'kv-${appName}'
 param kvRGName string
 
 @description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
+param aksIdentityName string = 'id-aks-${appName}-cluster-dev-${location}-101'
 
 @description('The Storage Account name')
-param azureStorageName string = 'staks${appName}'
+param azureStorageName string = 'sta${appName}'
 
 @description('The BLOB Storage service name')
 param azureBlobServiceName string = 'default'

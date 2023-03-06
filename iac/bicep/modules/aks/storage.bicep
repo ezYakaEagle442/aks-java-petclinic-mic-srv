@@ -18,7 +18,7 @@ param clusterName string = 'aks-${appName}'
 param tenantId string = subscription().tenantId
 
 @description('The Storage Account name')
-param azureStorageName string = 'staks${appName}'
+param azureStorageName string = 'sta${appName}'
 
 @description('The BLOB Storage service name')
 param azureBlobServiceName string = 'default' // '${appName}-blob-svc'
