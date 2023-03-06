@@ -39,7 +39,8 @@ jobs:
     # /!\ IMPORTANT: The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV        
+          echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+          az version    
       shell: bash
 
     - name: Azure Login

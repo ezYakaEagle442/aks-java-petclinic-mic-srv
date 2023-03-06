@@ -206,11 +206,13 @@ jobs:
     - name: Set Base environment variables
       run: |
 
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+        az version
 
         KV_NAME=$(az deployment group show --name aks-petclinic-kv -g ${{ env.RG_KV }} --query properties.outputs.keyVaultName.value -o tsv)
         echo "KV_NAME=$KV_NAME" >> $GITHUB_ENV 
         echo "KV_NAME=$KV_NAME"
+
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
 
       shell: bash
         

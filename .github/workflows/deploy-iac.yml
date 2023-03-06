@@ -134,6 +134,8 @@ jobs:
     - name: Set Base environment variables
       run: |
         
+        az version
+
         echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
         echo "DISCOVERY_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
 

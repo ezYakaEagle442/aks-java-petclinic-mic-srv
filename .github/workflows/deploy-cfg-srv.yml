@@ -91,6 +91,7 @@ jobs:
     - name: Set Base environment variables
       run: |
 
+        az version
         echo "CONFIG_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}" >> $GITHUB_ENV
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
         echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV

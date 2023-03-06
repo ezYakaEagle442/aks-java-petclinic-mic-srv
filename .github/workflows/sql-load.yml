@@ -37,7 +37,7 @@ jobs:
             
     steps:
     - name: Login with GHA Runner SP
-      uses: azure/login@v1.4.6 # fails https://github.com/marketplace/actions/azure-login
+      uses: azure/login@v1 # fails https://github.com/marketplace/actions/azure-login
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
 
@@ -46,6 +46,8 @@ jobs:
 
     - name: Configure DB
       run: |
+
+            az version
             az mysql flexible-server parameter set --name time_zone --value ${{ env.MYSQL_TIME_ZONE }} \
             -s ${{ env.MYSQL_SERVER_NAME }} -g ${{ env.RG_APP }}
 

@@ -91,6 +91,8 @@ jobs:
     # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
+
+        az version
         echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
         echo "API_GATEWAY_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"

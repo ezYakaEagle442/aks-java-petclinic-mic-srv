@@ -44,6 +44,7 @@ jobs:
 
           az config set extension.use_dynamic_install=yes_without_prompt
 
+          az version
           # az aks list -o table
           # az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}
           az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }}

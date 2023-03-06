@@ -94,11 +94,18 @@ jobs:
       tag_id: ${{ steps.docker_build.outputs.tag_id }}
 
     steps:
+
+    - name: Azure Login
+      uses: azure/login@v1 # https://github.com/marketplace/actions/azure-login
+      with:
+        creds: ${{ env.credentials }}
+
     # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
     # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
+        az version
         
         echo "API_GATEWAY_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
 
@@ -106,6 +113,8 @@ jobs:
         echo "API_GATEWAY_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}" >> $GITHUB_ENV
 
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
       shell: bash
 
     - name: Checkout
@@ -121,6 +130,7 @@ jobs:
     - name: Build with Maven
       id: mvn_build
       run: |
+
         pwd
         ls -al
 
@@ -151,15 +161,11 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Azure Login
-      uses: azure/login@v1.4.6 # https://github.com/marketplace/actions/azure-login
-      with:
-        creds: ${{ env.credentials }}
-
     - name: Build image and push it to ACR
       id: docker_build      
       run: |
 
+          az version
           # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
           # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
           # GITHUB_SHA: The commit SHA that triggered the workflow

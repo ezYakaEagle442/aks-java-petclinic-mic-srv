@@ -62,7 +62,7 @@ jobs:
     steps:
 
     - name: Login with GHA Runner SP
-      uses: azure/login@v1.4.6 # https://github.com/marketplace/actions/azure-login
+      uses: azure/login@v1 # https://github.com/marketplace/actions/azure-login
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
 
@@ -81,6 +81,8 @@ jobs:
     # https://github.com/marketplace/actions/helm-tool-installer
     - name: HELM Install
       run: |
+
+            az version
             # https://github.com/kubernetes/ingress-nginx
             # https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
             # https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/
@@ -114,6 +116,7 @@ jobs:
 
     - name: setup DNS
       run: |
+
             echo "ING_CTL_IP:" $ING_CTL_IP
             az deployment group create --name aks-dns -f iac/bicep/modules/aks/dns.bicep -g ${{ env.RG_APP }} \
             -p dnsZoneType=custom \
