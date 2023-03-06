@@ -21,10 +21,6 @@ env:
   AKS_SUBNET_CIDR: 172.16.1.0/24
   AKS_SUBNET_NAME: snet-aks
 
-  START_IP_ADDRESS: 172.16.1.0
-  END_IP_ADDRESS: 172.16.1.255
-  CLIENT_IP_ADDRESS: 42.42.42.42 #  not used
-
   DNS_ZONE: cloudapp.azure.com
   APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
 
@@ -223,9 +219,6 @@ jobs:
             -p vnetCidr=${{ env.VNET_CIDR }} \
             -p aksSubnetCidr=${{ env.AKS_SUBNET_CIDR }} \
             -p aksSubnetName=${{ env.AKS_SUBNET_NAME }} \
-            -p startIpAddress=${{ env.START_IP_ADDRESS }} \
-            -p endIpAddress=${{ env.END_IP_ADDRESS }} \
-            -p clientIPAddress=${{ env.CLIENT_IP_ADDRESS }} \
             -p mySQLadministratorLoginPassword=${{ env.SPRING_DATASOURCE_PASSWORD }} \
             -p appDnsZone=${{ env.APP_DNS_ZONE }} \
             -p acrName=${{ env.ACR_NAME }} \
