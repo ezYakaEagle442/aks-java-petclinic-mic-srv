@@ -76,10 +76,6 @@ module mysqlPub './modules/mysql/mysql.bicep' = {
   params: {
     appName: appName
     location: location
-    setFwRuleClient: setFwRuleClient
-    clientIPAddress: clientIPAddress
-    startIpAddress: startIpAddress
-    endIpAddress: endIpAddress
     mySQLServerName: mySQLServerName
     mySQLadministratorLogin: mySQLadministratorLogin
     mySQLadministratorLoginPassword: kv.getSecret('SPRING-DATASOURCE-PASSWORD')
