@@ -1,6 +1,6 @@
 @description('A UNIQUE name')
 @maxLength(21)
-param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 
 param location string = resourceGroup().location
 

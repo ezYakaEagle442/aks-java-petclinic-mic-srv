@@ -2,7 +2,7 @@
 // https://github.com/brwilkinson/AzureDeploymentFramework/blob/main/ADF/bicep/AKS.bicep
 @description('A UNIQUE name')
 @maxLength(21)
-param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The name of the Managed Cluster resource.')
 param clusterName string = 'aks-${appName}'

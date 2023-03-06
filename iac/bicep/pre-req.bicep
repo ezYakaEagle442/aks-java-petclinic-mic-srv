@@ -2,7 +2,7 @@
 
 @maxLength(21)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
-param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 param location string = 'westeurope'
 param acrName string = 'acr${appName}'
 
@@ -131,6 +131,7 @@ module identities './modules/aks/identity.bicep' = {
   name: 'aks-identities'
   params: {
     location: location
+    appName: appName
   }
 }
 
@@ -157,6 +158,7 @@ var vNetRules = [
 module roleAssignments './modules/aks/roleAssignments.bicep' = {
   name: 'role-assignments'
   params: {
+    appName: appName
     acrName: acrName
     acrRoleType: 'AcrPull'
     aksClusterPrincipalId: identities.outputs.aksIdentityPrincipalId

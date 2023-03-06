@@ -20,7 +20,7 @@ az deployment group create --name aks-gh-self-hosted-runner -f iac/bicep/gh/gh-s
 */
 @description('A UNIQUE name')
 @maxLength(23)
-param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the Azure resources.')
 param location string = resourceGroup().location

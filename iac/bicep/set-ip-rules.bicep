@@ -1,6 +1,6 @@
 @maxLength(21)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
-param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
+param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 param location string = 'westeurope'
 
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
