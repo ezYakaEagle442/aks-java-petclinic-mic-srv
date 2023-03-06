@@ -2,6 +2,13 @@
 name: Load SQL scripts to DB
 
 env:
+
+  # ==== Versions ====
+  
+  AZ_CLI_VERSION: 2.45.0
+
+  # ==== General settings  ====
+  
   APP_NAME: petcliaks
   LOCATION: westeurope
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
@@ -11,15 +18,13 @@ env:
   MYSQL_ADM_USR: mys_adm
   MYSQL_TIME_ZONE: Europe/Paris
   MYSQL_CHARACTER_SET: utf8
+  MYSQL_COLLATION: fr_FR.utf8
   MYSQL_PORT: 3306
 
   # ==== Secrets ====
 
   MYSQL_ADM_PWD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
   credentials: ${{ secrets.AZURE_CREDENTIALS }}
-
-  # ==== Versions ====
-  AZ_CLI_VERSION: 2.45.0
 
 on:
   workflow_dispatch:

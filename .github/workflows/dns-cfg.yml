@@ -1,9 +1,17 @@
 name: Install ingress-nginx and configure DNS
 
 env:
+
+  # ==== Versions ====
+
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.45.0
+  JAVA_VERSION: 11
+
+  # ==== General settings  ====
+
   APP_NAME: petcliaks
   LOCATION: westeurope
-  RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
   ACR_NAME: acrpetcliaks # customize this
@@ -20,6 +28,7 @@ env:
   ING_NS: ingress # Namespace to use for the Ingress Controller
 
   # ==== APPS ====
+
   CLOUD_PROVIDER_ENV: azure
   PRJ_PREFIX: spring-petclinic
 
@@ -40,11 +49,6 @@ env:
   credentials: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-  # ==== Versions ====
-  DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.45.0
-  JAVA_VERSION: 11
 
 on:
   workflow_dispatch:

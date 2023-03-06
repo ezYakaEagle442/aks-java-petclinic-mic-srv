@@ -12,7 +12,7 @@ env:
   GH_API: api.github.com/user/packages/maven
 
   # ==== APPS ====:
-  
+
   API_GATEWAY: api-gateway
   ADMIN_SERVER: admin-server
   CUSTOMERS_SERVICE: customers-service
@@ -35,6 +35,7 @@ jobs:
     steps:
     - name: Set Base environment variables
       run: |
+
         echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
 
         echo "API_GATEWAY_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
@@ -73,6 +74,7 @@ jobs:
     # Variables in the env map cannot be defined in terms of other variables in the map
     - name: Set dependent environment variables
       run: |
+
         # ==== JARS ====: PWD already in /home/runner/work/azure-spring-cloud-petclinic-mic-srv >> $GITHUB_ENV
         echo "API_GATEWAY_JAR=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}/target/$API_GATEWAY_JAR_ARTIFACT" >> $GITHUB_ENV
         echo "ADMIN_SERVER_JAR=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}/target/$ADMIN_SERVER_JAR_ARTIFACT" >> $GITHUB_ENV
@@ -101,6 +103,7 @@ jobs:
 
     - name: Delete ALL Jar artifacts
       run: |
+
         echo "checking package files ..."
         curl \
         -H "Authorization: Bearer ${{ env.GHA_PAT }}" \

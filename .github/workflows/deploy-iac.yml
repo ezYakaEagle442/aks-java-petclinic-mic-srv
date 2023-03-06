@@ -4,6 +4,15 @@
 name: Deploy IaC with Azure Bicep
 
 env:
+
+  # ==== Versions ====
+  
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.45.0
+  JAVA_VERSION: 11
+
+  # ==== General settings  ====
+
   APP_NAME: petcliaks
   LOCATION: westeurope # francecentral
   RG_KV: rg-iac-kv33 # RG where to deploy KV
@@ -30,6 +39,7 @@ env:
   APPLICATIONINSIGHTS_CONFIGURATION_FILE: BOOT-INF/classes/applicationinsights.json
 
   # ==== Identities ====:
+
   AKS_IDENTITY_NAME: id-aks-petcliaks-cluster-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-cluster-dev-${location}-101'
 
   CUSTOMERS_SVC_APP_ID_NAME: id-aks-petcliaks-petclinic-customers-service-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-customers-service-dev-${location}-101'
@@ -52,13 +62,13 @@ env:
 
   SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: https://kv-petcliaks33.vault.azure.net/
   KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
-  SET_KV_ACCESS_POLICIES: false # let it to false
 
   # GIT_CFG_URI: https://github.com/ezYakaEagle442/aks-cfg-srv
 
   VM_ADMIN_USER_NAME: adm_aks
   
   # ==== APPS ====
+
   CLOUD_PROVIDER_ENV: azure
   PRJ_PREFIX: spring-petclinic
 
@@ -99,11 +109,6 @@ env:
   credentials: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-  # ==== Versions ====
-  DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.45.0
-  JAVA_VERSION: 11
 
 on:
   workflow_dispatch:

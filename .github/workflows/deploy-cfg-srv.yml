@@ -1,16 +1,20 @@
 name: Deploy Config-Server
 
 env:
+
+  # ==== Versions ====
+  
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.45.0
+  JAVA_VERSION: 11
+  WI_VERSION: 0.15.0 # Azure AD Workload Identity version: https://github.com/Azure/azure-workload-identity/releases
+
+  # ==== General settings  ====
+
   APP_NAME: petcliaks
   LOCATION: westeurope # francecentral
-  RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
   
-  DEPLOY_TO_VNET: false
-
-  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
-  SET_KV_ACCESS_POLICIES: false # let it to false
-
   DNS_ZONE: cloudapp.azure.com
   APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
   CUSTOM_DNS: javaonazurehandsonlabs.com
@@ -47,18 +51,13 @@ env:
   DISCOVERY_SERVER: discovery-server
 
   # ==== Secrets ====
+
   credentials: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
   SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT: ${{ secrets.SPRING_CLOUD_AZURE_KEY_VAULT_ENDPOINT }}
   SPRING_CLOUD_AZURE_TENANT_ID: ${{ secrets.SPRING_CLOUD_AZURE_TENANT_ID }}
-
-  # ==== Versions ====
-  DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.45.0
-  JAVA_VERSION: 11
-  WI_VERSION: 0.15.0 # Azure AD Workload Identity version: https://github.com/Azure/azure-workload-identity/releases
 
 on:
   workflow_call:
@@ -91,11 +90,12 @@ jobs:
     # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
         
         echo "CONFIG_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.CONFIG_SERVER }}" >> $GITHUB_ENV
-
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
       shell: bash
 
     - name: Display environment variables

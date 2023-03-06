@@ -8,14 +8,20 @@
 name: Java CI with Maven for UI WITHOUT -Denv=azure 
 
 env:
+
+  # ==== Versions ====
+
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.45.0
+  JAVA_VERSION: 11
+
+  # ==== General settings  ====
+  
   AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
   REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
   REPOSITORY: petclinic                  # set this to your ACR repository
   PROJECT_NAME: petclinic                # set this to your project's name
 
-  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
-  
-  RG_KV: rg-iac-kv33 # RG where to deploy KV
   RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
 
  # ==== Azure storage to store Artifacts , values must be consistent with the ones in storage.bicep ====:
@@ -30,6 +36,7 @@ env:
   AZ_BLOB_TIMEOUT: 600
   
   # ==== APPS ====
+
   PRJ_PREFIX: spring-petclinic
 
   API_GATEWAY: api-gateway
@@ -49,14 +56,11 @@ env:
   DOCKERFILE_PATH_VETS_SERVICE: ./docker/petclinic-vets-service/Dockerfile
   DOCKERFILE_PATH_VISITS_SERVICE: ./docker/petclinic-visits-service/Dockerfile
 
-  # ==== Versions ====
-  DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.45.0
-  JAVA_VERSION: 11
-
   # https://github.com/Azure/actions-workflow-samples/blob/master/assets/create-secrets-for-GitHub-workflows.md#consume-secrets-in-your-workflow
   # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-secrets
+
   # ==== Secrets ====
+
   credentials: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   SPN_ID: ${{ secrets.SPN_ID }}

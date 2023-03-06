@@ -1,6 +1,17 @@
 name: Deploy Customers, Vets & Visits Services
 
 env:
+
+  # ==== Versions ====
+  
+  DEPLOYMENT_VERSION: 2.6.13
+  AZ_CLI_VERSION: 2.45.0
+  JAVA_VERSION: 11
+  WI_VERSION: 0.15.0 # Azure AD Workload Identity version: https://github.com/Azure/azure-workload-identity/releases
+
+
+  # ==== General settings  ====
+
   APP_NAME: petcliaks
   LOCATION: westeurope # francecentral
   RG_KV: rg-iac-kv33 # RG where to deploy KV
@@ -40,6 +51,7 @@ env:
   AZ_BLOB_TIMEOUT: 600
   
   # ==== APPS ====
+
   CLOUD_PROVIDER_ENV: azure
   PRJ_PREFIX: spring-petclinic
 
@@ -53,16 +65,11 @@ env:
   DISCOVERY_SERVER: discovery-server
 
   # ==== Secrets ====
+
   credentials: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   SPRING_CLOUD_AZURE_TENANT_ID: ${{ secrets.SPRING_CLOUD_AZURE_TENANT_ID }}
-
-  # ==== Versions ====
-  DEPLOYMENT_VERSION: 2.6.13
-  AZ_CLI_VERSION: 2.45.0
-  JAVA_VERSION: 11
-  WI_VERSION: 0.15.0 # Azure AD Workload Identity version: https://github.com/Azure/azure-workload-identity/releases
 
 on:
   workflow_call:
@@ -87,7 +94,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Azure Login
-      uses: azure/login@v1.4.6 # https://github.com/marketplace/actions/azure-login
+      uses: azure/login@v1 # https://github.com/marketplace/actions/azure-login
       with:
         creds: ${{ env.credentials }}
 
@@ -95,6 +102,7 @@ jobs:
     # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
+
         echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
         
         echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
@@ -107,10 +115,15 @@ jobs:
         echo "VISITS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
 
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+
+        REGISTRY_URL=$(az deployment group show --name acr -g ${{ env.RG_APP }} --query properties.outputs.acrRegistryUrl.value -o tsv)
+        echo "REGISTRY_URL= " $REGISTRY_URL
+
       shell: bash
 
     - name: Display environment variables
       run: |
+
         echo "Checking GITHUB_ENV"
         echo "LOCAL_IP=$LOCAL_IP"
         
@@ -140,6 +153,7 @@ jobs:
 
     - name: Get Apps Identity Id
       run: |
+
           # vetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServicePrincipalId.value)
           vetsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServiceClientId.value)
 
@@ -156,6 +170,7 @@ jobs:
     - name: Prepare Manifests to deploy Customers, Vets & Visits services to AKS
       # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
       run: |
+
           echo "About to deploy the Config-Server, Customers, Vets & Visits services ..." 
           tag_id=${{ inputs.tag_id }}
           echo "Image Build tag ID:"$tag_id
