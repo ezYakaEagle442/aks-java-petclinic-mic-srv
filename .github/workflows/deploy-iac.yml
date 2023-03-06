@@ -222,7 +222,7 @@ jobs:
             aks_client_id=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} --query properties.outputs.kubeletIdentity.value)
             echo "AKS Cluster Kubelet Identity " $aks_client_id
 
-            acr_registry_id=$(az deployment group show --name ${{ env.ACR_NAME }} -g ${{ env.RG_APP }} --query properties.outputs.acrId.value -o tsv)
+            acr_registry_id=$(az deployment group show --name acr -g ${{ env.RG_APP }} --query properties.outputs.acrId.value -o tsv)
             echo "ACR  ID " $acr_registry_id
             az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
             echo "ACR is now attached to AKS Cluster"
