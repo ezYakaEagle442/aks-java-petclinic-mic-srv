@@ -142,14 +142,16 @@ If you hit _["Error: : No subscriptions found for ***."](https://learn.microsoft
 ```sh
 SPN_APP_ID=$(az ad sp list --all --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
 #SPN_APP_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{appId:appId}" --output tsv)
-TENANT_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{t:appOwnerOrganizationId}" --output tsv)
+# TENANT_ID=$(az ad sp list --show-mine --query "[?appDisplayName=='${SPN_APP_NAME}'].{t:appOwnerOrganizationId}" --output tsv)
 
 # Enterprise Application
 az ad app list --show-mine --query "[?displayName=='${SPN_APP_NAME}'].{objectId:id}"
 az ad app show --id $SPN_APP_ID
 
 # This is the unique ID of the Service Principal object associated with this application.
-SPN_OBJECT_ID=$(az ad sp list --show-mine --query "[?displayName=='${SPN_APP_NAME}'].{objectId:id}" -o tsv)
+# SPN_OBJECT_ID=$(az ad sp list --show-mine --query "[?displayName=='${SPN_APP_NAME}'].{objectId:id}" -o tsv)
+SPN_OBJECT_ID=$(az ad sp list --all --query "[?displayName=='${SPN_APP_NAME}'].{objectId:id}" -o tsv)
+
 az ad sp show --id $SPN_OBJECT_ID
 
 # the assignee is an appId
