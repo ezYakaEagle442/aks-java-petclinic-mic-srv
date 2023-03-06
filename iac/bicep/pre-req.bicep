@@ -77,7 +77,7 @@ param privateDnsZone string = 'privatelink.${location}.azmk8s.io'
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/workspaces?tabs=bicep
 resource logAnalyticsWorkspace  'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
-  name: 'law'
+  name: logAnalyticsWorkspaceName
   location: location
   properties: any({
     retentionInDays: 30
@@ -94,7 +94,7 @@ output logAnalyticsWorkspaceCustomerId string = logAnalyticsWorkspace.properties
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.insights/components?tabs=bicep
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'App-Insights'
+  name: appInsightsName
   location: location
   kind: 'web'
   properties: { 
