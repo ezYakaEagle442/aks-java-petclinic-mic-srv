@@ -7,7 +7,7 @@ Microsoft.KeyVault/locations/deletedVaults/purge/action
 // https://argonsys.com/microsoft-cloud/library/dealing-with-deployment-blockers-with-bicep/
 
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @maxLength(24)

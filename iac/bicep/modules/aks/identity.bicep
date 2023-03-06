@@ -4,7 +4,7 @@
 param location string = resourceGroup().location
 
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The Identity Tags. See https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources?tabs=bicep#apply-an-object')
@@ -46,8 +46,23 @@ param vetsServiceAppIdentityName string = 'id-aks-${appName}-petclinic-vets-serv
 @description('The visits-service Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
 param visitsServiceAppIdentityName string = 'id-aks-${appName}-petclinic-visits-service-dev-${location}-101'
 
+@description('The Azure Strorage Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
+param storageIdentityName string = 'id-aks-${appName}-petclinic-strorage-dev-${location}-101'
+
 ///////////////////////////////////
 // New resources
+
+// https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities?pivots=deployment-language-bicep
+resource storageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+  name: storageIdentityName
+  location: location
+  tags: tags
+}
+
+output storageIdentityId string = storageIdentity.id
+output storageIdentityName string = storageIdentity.name
+output storageIdentityClientId string = storageIdentity.properties.clientId
+output storageIdentityPrincipalId string = storageIdentity.properties.principalId
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities?pivots=deployment-language-bicep
 resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
@@ -65,7 +80,9 @@ resource adminServerIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2
   location: location
   tags: tags
 }
+
 output adminServerIdentityId string = adminServerIdentity.id
+output adminServerIdentityName string = adminServerIdentity.name
 output adminServerPrincipalId string = adminServerIdentity.properties.principalId
 output adminServerClientId string = adminServerIdentity.properties.clientId
 
@@ -106,6 +123,7 @@ resource customersServicedentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
   tags: tags
 }
 output customersServiceIdentityId string = customersServicedentity.id
+output customersServiceIdentityName string = customersServicedentity.name
 output customersServicePrincipalId string = customersServicedentity.properties.principalId
 output customersServiceClientId string = customersServicedentity.properties.clientId
 

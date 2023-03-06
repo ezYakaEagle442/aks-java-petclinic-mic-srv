@@ -18,7 +18,7 @@ az deployment group create --name storage -f iac/bicep/modules/aks/client-vm.bic
 
 */
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the Azure resources.')

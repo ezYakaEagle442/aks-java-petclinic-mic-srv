@@ -1,6 +1,6 @@
 @maxLength(20)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
-param appName string = 'petcliaks${uniqueString(resourceGroup().id)}'
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 param location string = 'westeurope'
 
 @description('Should the service be deployed to a Corporate VNet ?')

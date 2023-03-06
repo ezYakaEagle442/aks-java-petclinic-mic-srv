@@ -5,7 +5,7 @@ az deployment group create --name aks-petclinic-storage -f iac/bicep/modules/aks
             
 */
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the Azure resources.')
@@ -50,25 +50,13 @@ param tags object = {
 }
 
 @description('The Azure Strorage Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param storageIdentityName string = 'id-aks-petclinic-strorage-dev-westeurope-101'
+param storageIdentityName string = 'id-aks-${appName}-petclinic-strorage-dev-${location}-101'
 
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities?pivots=deployment-language-bicep
-resource storageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
+resource storageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
   name: storageIdentityName
-  location: location
-  tags: tags
 }
-output storageIdentityId string = storageIdentity.id
-output storageIdentityName string = storageIdentity.name
-output storageIdentityClientId string = storageIdentity.properties.clientId
-output storageIdentityPrincipalId string = storageIdentity.properties.principalId
-
-/*
-resource aks 'Microsoft.ContainerService/managedClusters@2022-09-02-preview' existing = {
-  name: clusterName
-}
-*/
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?pivots=deployment-language-bicep
 resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {

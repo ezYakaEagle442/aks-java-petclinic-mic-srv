@@ -7,7 +7,7 @@ Microsoft.KeyVault/locations/deletedVaults/purge/action
 // https://argonsys.com/microsoft-cloud/library/dealing-with-deployment-blockers-with-bicep/
 
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @maxLength(24)
@@ -73,6 +73,7 @@ resource kv 'Microsoft.KeyVault/vaults@2022-07-01' = {
 }
 
 output keyVault object = kv
+output keyVaultName string = kv.name
 output keyVaultId string = kv.id
 output keyVaultPublicNetworkAccess string = kv.properties.publicNetworkAccess
 output keyVaultURI string = kv.properties.vaultUri

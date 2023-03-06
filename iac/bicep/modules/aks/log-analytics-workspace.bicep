@@ -1,5 +1,5 @@
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 param logAnalyticsWorkspaceName string = 'log-${appName}'

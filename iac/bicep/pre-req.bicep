@@ -2,7 +2,7 @@
 
 @maxLength(20)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
-param appName string = 'petcliaks${uniqueString(resourceGroup().id)}'
+param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 param location string = 'westeurope'
 param acrName string = 'acr${appName}'
 
@@ -33,18 +33,6 @@ param mySQLadministratorLoginPassword string
 
 @description('The MySQL server name')
 param mySQLServerName string = 'petcliaks'
-
-@description('Should a MySQL Firewall be set to allow client workstation for local Dev/Test only')
-param setFwRuleClient bool = false
-
-@description('Allow client workstation IP adress for local Dev/Test only, requires setFwRuleClient=true')
-param clientIPAddress string
-
-@description('Allow AKS subnet to access MySQL DB')
-param startIpAddress string
-
-@description('Allow AKS subnet to access MySQL DB')
-param endIpAddress string
 
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
@@ -188,10 +176,6 @@ module mysql './modules/mysql/mysql.bicep' = {
     // The default number of managed outbound public IPs is 1.
     // https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
     mySQLServerName: mySQLServerName
-    setFwRuleClient: setFwRuleClient
-    clientIPAddress: clientIPAddress
-    startIpAddress: startIpAddress
-    endIpAddress: endIpAddress
   }
 }
 

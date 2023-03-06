@@ -1,7 +1,7 @@
 // see BICEP samples at https://github.com/ssarwa/Bicep/blob/master/main.bicep
 // https://github.com/brwilkinson/AzureDeploymentFramework/blob/main/ADF/bicep/AKS.bicep
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The name of the Managed Cluster resource.')

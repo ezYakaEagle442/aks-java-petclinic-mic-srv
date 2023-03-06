@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('A UNIQUE name')
-@maxLength(20)
+@maxLength(21)
 param appName string = 'petcliaks${uniqueString(deployment().location)}'
 
 param location string = deployment().location
