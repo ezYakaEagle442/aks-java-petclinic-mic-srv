@@ -166,6 +166,8 @@ module roleAssignments './modules/aks/roleAssignments.bicep' = {
     kvRGName: kvRGName
     kvRoleType: 'KeyVaultSecretsUser'
     networkRoleType: 'NetworkContributor'
+    storageBlobRoleType: 'StorageBlobDataContributor'
+    ghRunnerSpnPrincipalId: ghRunnerSpnPrincipalId
     vnetName: vnetName
     subnetName: aksSubnetName
   }
@@ -198,7 +200,6 @@ module storage './modules/aks/storage.bicep' = {
     blobContainerName: blobContainerName
     azureBlobServiceName: azureBlobServiceName
     azureStorageName: azureStorageName
-    ghRunnerSpnPrincipalId: ghRunnerSpnPrincipalId
   }
   dependsOn: [
     identities
