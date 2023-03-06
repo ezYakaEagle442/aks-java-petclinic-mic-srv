@@ -102,8 +102,6 @@ jobs:
     # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
     - name: Set Base environment variables
       run: |
-
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
         
         echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
         echo "DISCOVERY_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
@@ -116,8 +114,24 @@ jobs:
 
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
 
+        KV_NAME=$(az deployment group show --name aks-petclinic-kv -g ${{ env.RG_KV }} --query properties.outputs.keyVaultName.value -o tsv)
+        echo "KV_NAME=$KV_NAME" >> $GITHUB_ENV 
+        echo "KV_NAME=$KV_NAME"
+
         REGISTRY_URL=$(az deployment group show --name acr -g ${{ env.RG_APP }} --query properties.outputs.acrRegistryUrl.value -o tsv)
-        echo "REGISTRY_URL= " $REGISTRY_URL
+        echo "REGISTRY_URL="$REGISTRY_URL
+        echo "REGISTRY_URL="$REGISTRY_URL >> $GITHUB_ENV
+
+        AKS_CLUSTER_NAME=$(az deployment group show --name aks -g ${{ env.RG_APP }} --query properties.outputs.aksClusterName.value -o tsv)
+        echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME
+        echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME >> $GITHUB_ENV
+
+        managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
+        echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+        echo "managed_rg=$managed_rg" >> $GITHUB_ENV
+
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
 
       shell: bash
 
@@ -135,6 +149,11 @@ jobs:
         echo "CUSTOMERS_SERVICE_FOLDER=$CUSTOMERS_SERVICE_FOLDER"
         echo "VETS_SERVICE_FOLDER=$VETS_SERVICE_FOLDER"
         echo "VISITS_SERVICE_FOLDER=$VISITS_SERVICE_FOLDER"
+
+        echo "KV_NAME=$KV_NAME"
+        echo "REGISTRY_URL="$REGISTRY_URL
+        echo "AKS_CLUSTER_NAME=$AKS_CLUSTER_NAME"
+        echo "managed_rg="$managed_rg
 
         echo "GH_WORKSPACE=$GH_WORKSPACE"
       shell: bash

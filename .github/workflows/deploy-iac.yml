@@ -127,7 +127,6 @@ jobs:
     steps:
     - name: Set Base environment variables
       run: |
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
         
         echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
         echo "DISCOVERY_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.DISCOVERY_SERVER }}" >> $GITHUB_ENV
@@ -138,11 +137,22 @@ jobs:
         echo "VETS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VETS_SERVICE }}" >> $GITHUB_ENV
         echo "VISITS_SERVICE_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
 
+        KV_NAME=$(az deployment group show --name aks-petclinic-kv -g ${{ env.RG_KV }} --query properties.outputs.keyVaultName.value -o tsv)
+        echo "KV_NAME=$KV_NAME" >> $GITHUB_ENV 
+        echo "KV_NAME=$KV_NAME"
+
+        REGISTRY_URL=$(az deployment group show --name acr -g ${{ env.RG_APP }} --query properties.outputs.acrRegistryUrl.value -o tsv)
+        echo "REGISTRY_URL="$REGISTRY_URL
+        echo "REGISTRY_URL="$REGISTRY_URL >> $GITHUB_ENV
+
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
       shell: bash
 
     - name: Display environment variables
       run: |
+
         echo "Checking GITHUB_ENV"
         echo "LOCAL_IP=$LOCAL_IP"
         
@@ -155,7 +165,11 @@ jobs:
         echo "VETS_SERVICE_FOLDER=$VETS_SERVICE_FOLDER"
         echo "VISITS_SERVICE_FOLDER=$VISITS_SERVICE_FOLDER"
 
+        echo "KV_NAME=$KV_NAME"
+        echo "REGISTRY_URL="$REGISTRY_URL
+
         echo "GH_WORKSPACE=$GH_WORKSPACE"
+
       shell: bash
 
     - name: Login with GHA Runner SP
@@ -168,6 +182,7 @@ jobs:
 
     - name: Create AKS cluster
       run: |
+
           echo "****************************************************************************************"
           echo "*                                                                                      *"
           echo "*                                                                                      *"
@@ -182,12 +197,7 @@ jobs:
             -p kvName=${{ env.KV_NAME }} \
             -p kvRGName=${{ env.RG_KV }} \
             -p publicNetworkAccess=enabled \
-            -p startIpAddress=${{ env.START_IP_ADDRESS }} \
-            -p endIpAddress=${{ env.END_IP_ADDRESS }} \
-            -p clientIPAddress=${{ env.CLIENT_IP_ADDRESS }} \
             -p vnetName=${{ env.VNET_NAME }} \
-            -p subnetName=${{ env.AKS_SUBNET_NAME }} \
-            -p vnetCidr=${{ env.VNET_CIDR }} \
             -p dnsPrefix=${{ env.DNS_PREFIX }} \
             -p aksIdentityName=${{ env.AKS_IDENTITY_NAME }} \
             -p mySQLServerName=${{ env.MYSQL_SERVER_NAME }} \
@@ -195,8 +205,12 @@ jobs:
             -p mySQLadministratorLoginPassword=${{ env.SPRING_DATASOURCE_PASSWORD }} \
             -p acrName=${{ env.ACR_NAME }} \
             -p sshPublicKey="${{ env.SSH_PUB_KEY }}"
- 
-            managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name ${{ env.AKS_CLUSTER_NAME }} --query nodeResourceGroup -o tsv)
+
+            AKS_CLUSTER_NAME=$(az deployment group show --name aks -g ${{ env.RG_APP }} --query properties.outputs.aksClusterName.value -o tsv)
+            echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME
+            echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME >> $GITHUB_ENV
+
+            managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
             echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
             echo "managed_rg=$managed_rg" >> $GITHUB_ENV
 
@@ -204,6 +218,7 @@ jobs:
 
     - name: Integrate AKS with ACR
       run: |
+
             echo "About to configure AKS to be allowed to pull image from ACR"
 
             # aks_client_id=$(az aks show -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --query identityProfile.kubeletidentity.clientId -o tsv)
@@ -219,10 +234,10 @@ jobs:
 
     - name: Whitelist AKS OutboundIP
       run: |
+
             az config set extension.use_dynamic_install=yes_without_prompt
 
             echo "About to Whitelist AKS OutboundIP in KV & MySQL"
-
             vNetRules=$(az deployment group show --name vnet-aks -g ${{ env.RG_APP }} --query properties.outputs.aksSubnetId.value)
 
             aksOutboundIPResourceId=$(az deployment group show --name aks-petclinic-main -g ${{ env.RG_APP }} \
@@ -251,6 +266,7 @@ jobs:
 
     - name: Get Apps Identity Id
       run: |
+
           # vetsServicePrincipalId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServicePrincipalId.value)
           vetsServiceClientId=$(az deployment group show --name aks-identities -g ${{ env.RG_APP }} --query properties.outputs.vetsServiceClientId.value)
 
@@ -283,6 +299,7 @@ jobs:
 
     - name: Create Petclinic Namespace
       run: |
+
             kubectl cluster-info
             # kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }}
             kubectl create namespace ${{ env.PETCLINIC_NAMESPACE }} --dry-run=client -o yaml > ns-petclinic.yaml
@@ -293,6 +310,7 @@ jobs:
     # https://blog.identitydigest.com/azuread-federate-mi/
     - name: Configure AAD WI
       run: |
+
             # "$(az identity show --resource-group "${RG_NAME}" --name "${{ env.RG_APP }}" --query 'clientId' -o tsv)"
 
             mkdir $CUSTOMERS_SERVICE_FOLDER/k8s/deploy
@@ -364,6 +382,7 @@ jobs:
 
     - name: setup Petclinic K8S Config
       run: |
+
             cat <<EOF >> cm-petclinic.yaml
             apiVersion: v1
             kind: ConfigMap
