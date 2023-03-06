@@ -198,6 +198,11 @@ jobs:
     needs: deploy-kv
     steps:
 
+    - name: Login with GHA Runner SP
+      uses: azure/login@v1 # fails https://github.com/marketplace/actions/azure-login
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
+
     - name: Set Base environment variables
       run: |
 
@@ -208,11 +213,6 @@ jobs:
         echo "KV_NAME=$KV_NAME"
 
       shell: bash
-
-    - name: Login with GHA Runner SP
-      uses: azure/login@v1.4.6 # fails https://github.com/marketplace/actions/azure-login
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }} # ${{ env.credentials }}
         
     - name: Checkout
       uses: actions/checkout@v3 # https://github.com/actions/checkout
