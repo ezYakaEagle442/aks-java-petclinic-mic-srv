@@ -12,6 +12,7 @@ env:
   GH_API: api.github.com/user/packages/maven
 
   # ==== APPS ====:
+  
   API_GATEWAY: api-gateway
   ADMIN_SERVER: admin-server
   CUSTOMERS_SERVICE: customers-service
