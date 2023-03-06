@@ -34,6 +34,12 @@ param mySQLadministratorLoginPassword string
 @description('The MySQL server name')
 param mySQLServerName string = 'petcliaks'
 
+@description('The MySQL DB name.')
+param dbName string = 'petclinic'
+
+param charset string = 'utf8'
+param collation string = 'fr_FR.utf8'
+
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
 
@@ -66,7 +72,7 @@ param privateDnsZone string = 'privatelink.${location}.azmk8s.io'
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/workspaces?tabs=bicep
 resource logAnalyticsWorkspace  'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
-  name: logAnalyticsWorkspaceName
+  name: 'law'
   location: location
   properties: any({
     retentionInDays: 30
@@ -83,7 +89,7 @@ output logAnalyticsWorkspaceCustomerId string = logAnalyticsWorkspace.properties
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.insights/components?tabs=bicep
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: appInsightsName
+  name: 'App-Insights'
   location: location
   kind: 'web'
   properties: { 
@@ -102,7 +108,7 @@ output appInsightsConnectionString string = appInsights.properties.ConnectionStr
 // output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
 
 module ACR './modules/aks/acr.bicep' = {
-  name: acrName
+  name: 'acr'
   params: {
     appName: appName
     acrName: acrName
@@ -112,12 +118,12 @@ module ACR './modules/aks/acr.bicep' = {
 }
 
 resource kvRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
-  name: kvRGName
+  name: 'kv-rg'
   scope: subscription()
 }
 
 resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: kvName
+  name: 'kv'
   scope: kvRG
 }
 
@@ -176,6 +182,9 @@ module mysql './modules/mysql/mysql.bicep' = {
     // The default number of managed outbound public IPs is 1.
     // https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
     mySQLServerName: mySQLServerName
+    charset: charset
+    collation: collation
+    dbName: dbName
   }
 }
 
