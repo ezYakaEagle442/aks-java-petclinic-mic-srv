@@ -87,6 +87,9 @@ resource mysqlDB 'Microsoft.DBforMySQL/flexibleServers/databases@2021-12-01-prev
   }
 }
 
+output mysqlDBResourceId string = mysqlDB.id
+output mysqlDBName string = mysqlDB.name
+
  // Allow AKS
  resource fwRuleAllowAKS 'Microsoft.DBforMySQL/flexibleServers/firewallRules@2021-12-01-preview' = {
   name: 'Allow-AKS-OutboundPubIP'
@@ -96,6 +99,9 @@ resource mysqlDB 'Microsoft.DBforMySQL/flexibleServers/databases@2021-12-01-prev
     endIpAddress: k8sOutboundPubIP
   }
 }
+
+output fwRuleResourceId string = fwRuleAllowAKS.id
+output fwRuleName string = fwRuleAllowAKS.name
 
  // /!\ SECURITY Risk: Allow ANY HOST for local Dev/Test only
  /*

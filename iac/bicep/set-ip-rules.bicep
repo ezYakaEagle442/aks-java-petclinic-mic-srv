@@ -3,27 +3,6 @@
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 param location string = 'westeurope'
 
-@description('Should the service be deployed to a Corporate VNet ?')
-param deployToVNet bool = false
-
-/*
-@description('The “runtime subnet” field is currently deprecated and not used. If you provide a value there during creation of your container apps environment it will be ignored. Only the infrastructure subnet is required if you wish to provide your own VNET. Resource ID of a subnet that Container App containers are injected into. This subnet must be in the same VNET as the subnet defined in infrastructureSubnetId. Must not overlap with any other provided IP ranges.')
-param runtimeSubnetCidr string = '10.42.4.0/23'
-param runtimeSubnetName string = 'snet-run' // used to deploy the Apps to Pods
-*/
-
-@description('Should a MySQL Firewall be set to allow client workstation for local Dev/Test only')
-param setFwRuleClient bool = false
-
-@description('Allow client workstation IP adress for local Dev/Test only, requires setFwRuleClient=true')
-param clientIPAddress string
-
-@description('Allow Azure Container App subnet to access MySQL DB')
-param startIpAddress string
-
-@description('Allow Azure Container App subnet to access MySQL DB')
-param endIpAddress string
-
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
 
@@ -82,3 +61,13 @@ module mysqlPub './modules/mysql/mysql.bicep' = {
     k8sOutboundPubIP: ipRules[0]
   }
 }
+
+output mySQLResourceID string = mysqlPub.outputs.mySQLResourceID
+output mySQLResourceName string = mysqlPub.outputs.mySQLResourceName
+output mySQLResourceFQDN string = mysqlPub.outputs.mySQLResourceFQDN
+
+output mysqlDBResourceId string = mysqlPub.outputs.mysqlDBResourceId
+output mysqlDBName string = mysqlPub.outputs.mysqlDBName
+
+output fwRuleResourceId string = mysqlPub.outputs.fwRuleResourceId
+output fwRuleName string = mysqlPub.outputs.fwRuleName
