@@ -200,9 +200,6 @@ jobs:
             -p vnetName=${{ env.VNET_NAME }} \
             -p dnsPrefix=${{ env.DNS_PREFIX }} \
             -p aksIdentityName=${{ env.AKS_IDENTITY_NAME }} \
-            -p mySQLServerName=${{ env.MYSQL_SERVER_NAME }} \
-            -p mySQLadministratorLogin=${{ env.MYSQL_ADM_USR }} \
-            -p mySQLadministratorLoginPassword=${{ env.SPRING_DATASOURCE_PASSWORD }} \
             -p acrName=${{ env.ACR_NAME }} \
             -p sshPublicKey="${{ env.SSH_PUB_KEY }}"
 

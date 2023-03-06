@@ -13,7 +13,7 @@ param logAnalyticsWorkspaceName string = 'log-${appName}'
 param vnetName string = 'vnet-aks'
 
 @description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
-param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
+param aksIdentityName string = 'id-aks-${appName}-cluster-dev-${location}-101'
 
 @description('The AKS SSH public key')
 @secure()
@@ -48,23 +48,6 @@ param skuName string = 'standard'
 
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
-
-@description('The MySQL DB Admin Login.')
-param mySQLadministratorLogin string = 'mys_adm'
-
-@secure()
-@description('The MySQL DB Admin Password.')
-param mySQLadministratorLoginPassword string
-
-@description('The MySQL server name')
-param mySQLServerName string = 'petcliaks'
-
-@description('Allow client workstation to MySQL for local Dev/Test only')
-param clientIPAddress string
-
-@description('Should a MySQL Firewall be set to allow client workstation for local Dev/Test only')
-param setFwRuleClient bool = false
-
 
 // https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/key-vault-parameter?tabs=azure-cli
 /*
