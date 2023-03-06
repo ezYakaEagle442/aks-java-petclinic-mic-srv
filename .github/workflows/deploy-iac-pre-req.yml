@@ -136,7 +136,7 @@ jobs:
     # When Public access is disabled on KV, you need to add a network rule in the KV Firewall
     - name: Authorize local IP to access the Azure Key Vault
       run: |
-          az keyvault network-rule add --ip-address $LOCAL_IP --name ${{ env.KV_NAME }} --only-show-errors
+          az keyvault network-rule add --ip-address $LOCAL_IP --name ${{ env.KV_NAME }} -g ${{ env.RG_KV }} --only-show-errors
           sleep 30
       shell: bash
 
@@ -190,7 +190,7 @@ jobs:
     - name: Disable local IP access to the Key Vault
       if: ${{ always() }}
       run: |
-          az keyvault network-rule remove --ip-address $LOCAL_IP --name ${{ env.KV_NAME }} --only-show-errors
+          az keyvault network-rule remove --ip-address $LOCAL_IP --name ${{ env.KV_NAME }} -g ${{ env.RG_KV }} --only-show-errors
       shell: bash
 
   deploy-iac:
