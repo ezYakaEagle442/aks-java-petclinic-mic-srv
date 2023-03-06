@@ -1,4 +1,4 @@
-@maxLength(20)
+@maxLength(21)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
 param appName string = 'petcliaks${uniqueString(resourceGroup().id, subscription().id)}'
 param location string = 'westeurope'
