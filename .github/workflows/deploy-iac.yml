@@ -47,15 +47,12 @@ env:
   VISITS_SVC_APP_ID_NAME: id-aks-petcliaks-petclinic-visits-service-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-visits-service-dev-${location}-101'
   CONFIG_SERVER_APP_ID_NAME: id-aks-petcliaks-petclinic-config-server-dev-westeurope-101 # customize this, must match 'id-aks-${appName}-petclinic-config-server-dev-${location}-101'
 
-  START_IP_ADDRESS: 172.16.1.0
-  END_IP_ADDRESS: 172.16.1.255
-  CLIENT_IP_ADDRESS: 42.42.42.42 #  not used
-
   MYSQL_SERVER_NAME: petcliaks
   MYSQL_DB_NAME: petclinic
   MYSQL_ADM_USR: mys_adm
   MYSQL_TIME_ZONE: Europe/Paris
   MYSQL_CHARACTER_SET: utf8
+  MYSQL_COLLATION: utf8_general_ci
   MYSQL_PORT: 3306
 
   DEPLOY_TO_VNET: false

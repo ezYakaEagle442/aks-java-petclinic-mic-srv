@@ -32,13 +32,18 @@ param mySQLadministratorLogin string = 'mys_adm'
 param mySQLadministratorLoginPassword string
 
 @description('The MySQL server name')
-param mySQLServerName string = 'petcliaks'
+param mySQLServerName string = appName
 
 @description('The MySQL DB name.')
 param dbName string = 'petclinic'
 
 param charset string = 'utf8'
-param collation string = 'fr_FR.utf8'
+
+@allowed( [
+  'utf8_general_ci'
+
+])
+param collation string = 'utf8_general_ci' // SELECT @@character_set_database, @@collation_database;
 
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId

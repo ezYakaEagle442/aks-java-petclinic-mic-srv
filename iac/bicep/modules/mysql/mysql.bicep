@@ -48,7 +48,12 @@ param databaseSkuTier string = 'Burstable'
 param mySqlVersion string = '5.7' // https://docs.microsoft.com/en-us/azure/mysql/concepts-supported-versions
 
 param charset string = 'utf8'
-param collation string = 'fr_FR.utf8'
+
+@allowed( [
+  'utf8_general_ci'
+
+])
+param collation string = 'utf8_general_ci' // SELECT @@character_set_database, @@collation_database;
 
 resource mysqlserver 'Microsoft.DBforMySQL/flexibleServers@2021-12-01-preview' = {
   location: location

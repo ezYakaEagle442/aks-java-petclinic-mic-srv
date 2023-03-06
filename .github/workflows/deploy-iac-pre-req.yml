@@ -38,7 +38,7 @@ env:
   MYSQL_ADM_USR: mys_adm
   MYSQL_TIME_ZONE: Europe/Paris
   MYSQL_CHARACTER_SET: utf8
-  MYSQL_COLLATION: fr_FR.utf8
+  MYSQL_COLLATION: utf8_general_ci
   MYSQL_PORT: 3306
 
   DEPLOY_TO_VNET: false

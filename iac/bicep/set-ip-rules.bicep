@@ -22,7 +22,19 @@ param  ipRules array = []
 param mySQLadministratorLogin string = 'mys_adm'
 
 @description('The MySQL server name')
-param mySQLServerName string = 'petcliaks'
+param mySQLServerName string = appName
+
+@description('The MySQL DB name.')
+param dbName string = 'petclinic'
+
+param charset string = 'utf8'
+
+@allowed( [
+  'utf8_general_ci'
+
+])
+param collation string = 'utf8_general_ci' // SELECT @@character_set_database, @@collation_database;
+
 
 resource kvRG 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
   name: kvRGName
@@ -59,6 +71,9 @@ module mysqlPub './modules/mysql/mysql.bicep' = {
     mySQLadministratorLogin: mySQLadministratorLogin
     mySQLadministratorLoginPassword: kv.getSecret('SPRING-DATASOURCE-PASSWORD')
     k8sOutboundPubIP: ipRules[0]
+    charset: charset
+    collation: collation
+    dbName: dbName
   }
 }
 
