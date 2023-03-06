@@ -11,15 +11,6 @@ param aksVersion string = '1.24.6'
 param MCnodeRG string = 'rg-MC-${appName}'
 param logAnalyticsWorkspaceName string = 'log-${appName}'
 param vnetName string = 'vnet-aks'
-param subnetName string = 'snet-aks'
-param vnetCidr string = '172.16.0.0/16'
-param aksSubnetCidr string = '172.16.1.0/24'
-
-@description('Allow AKS subnet to access MySQL DB')
-param startIpAddress string = '172.16.1.0'
-
-@description('Allow AKS subnet to access MySQL DB')
-param endIpAddress string = '172.16.1.255'
 
 @description('AKS Cluster UserAssigned Managed Identity name. Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
 param aksIdentityName string = 'id-aks-cluster-dev-westeurope-101'
@@ -36,7 +27,7 @@ param aksAdminUserName string = '${appName}-admin'
 
 @maxLength(24)
 @description('The name of the KV, must be UNIQUE.  A vault name must be between 3-24 alphanumeric characters.')
-param kvName string // = 'kv-${appName}'
+param kvName string ='kv-${appName}'
 
 @description('The name of the KV RG')
 param kvRGName string
@@ -111,12 +102,14 @@ module aks './modules/aks/aks.bicep' = {
     authorizedIPRanges: authorizedIPRanges
   }
 }
+
 output controlPlaneFQDN string = aks.outputs.controlPlaneFQDN
 // https://github.com/Azure/azure-rest-api-specs/issues/17563
 output kubeletIdentity string = aks.outputs.kubeletIdentity
 output keyVaultAddOnIdentity string = aks.outputs.keyVaultAddOnIdentity
 output spnClientId string = aks.outputs.spnClientId
 output aksId string = aks.outputs.aksId
+output aksClusterName string = aks.name
 output aksOutboundType string = aks.outputs.aksOutboundType
 // The default number of managed outbound public IPs is 1.
 // https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
