@@ -165,7 +165,7 @@ jobs:
       uses: azure/aks-set-context@v1
       with:
           creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
-          resource-group: ${{ env.RG_APP }} 
+          resource-group: ${{ env.RG_APP }}
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
       id: akslogin
 
