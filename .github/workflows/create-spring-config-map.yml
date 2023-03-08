@@ -8,9 +8,9 @@ env:
 
   # ==== General settings  ====
 
-  APP_NAME: tap42
+  APP_NAME: petcliaks
   LOCATION: westeurope # francecentral
-  RG_APP: rg-aks-tap-apps # RG where to deploy the other Azure services: AKS, TAP, ACR, MySQL, etc.
+  RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, TAP, ACR, MySQL, etc.
   GIT_CFG_URL: https://raw.githubusercontent.com/ezYakaEagle442/aks-cfg-srv/main
 
   PETCLINIC_NAMESPACE: petclinic
