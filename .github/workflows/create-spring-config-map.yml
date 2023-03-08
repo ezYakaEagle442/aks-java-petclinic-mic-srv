@@ -1,0 +1,119 @@
+name: Create ConfigMap instead of using Spring Config-Server
+
+env:
+
+  # ==== Versions ====
+
+  AZ_CLI_VERSION: 2.45.0
+
+  # ==== General settings  ====
+
+  APP_NAME: tap42
+  LOCATION: westeurope # francecentral
+  RG_APP: rg-aks-tap-apps # RG where to deploy the other Azure services: AKS, TAP, ACR, MySQL, etc.
+  GIT_CFG_URL: https://raw.githubusercontent.com/ezYakaEagle442/aks-cfg-srv/main
+
+  PETCLINIC_NAMESPACE: petclinic
+  AKS_CLUSTER_NAME: aks-petcliaks
+
+  # ==== Secrets ====
+  credentials: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  create-config-map:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1 # https://github.com/marketplace/actions/azure-login
+      with:
+        creds: ${{ env.credentials }}
+
+    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+    # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
+    - name: Set Base environment variables
+      run: |
+
+        echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
+      shell: bash
+
+    - name: Display environment variables
+      run: |
+
+        echo "Checking GITHUB_ENV"
+        echo "LOCAL_IP=$LOCAL_IP"        
+        echo "GH_WORKSPACE=$GH_WORKSPACE"
+                
+      shell: bash
+
+    # https://github.com/Azure/aks-set-context/tree/releases/v1
+    - name: AKS Set Context
+      uses: azure/aks-set-context@v1
+      with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
+          resource-group: ${{ env.RG_APP }} 
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      id: akslogin
+
+    # https://github.com/marketplace/actions/helm-tool-installer
+
+    - name: Prepare Manifests
+      # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
+      run: |
+
+          CONFIG_MAP_DIR=configmap
+          mkdir $CONFIG_MAP_DIR
+          ls -al $CONFIG_MAP_DIR
+
+          wget ${{ env.GIT_CFG_URL }}/api-gateway.yml -O $CONFIG_MAP_DIR/api-gateway.yml
+          wget ${{ env.GIT_CFG_URL }}/application-mysql.yml -O $CONFIG_MAP_DIR/application-mysql.yml
+          wget ${{ env.GIT_CFG_URL }}/application.yml -O $CONFIG_MAP_DIR/application.yml
+          wget ${{ env.GIT_CFG_URL }}/customers-service.yml -O $CONFIG_MAP_DIR/customers-service.yml
+          wget ${{ env.GIT_CFG_URL }}/vets-service.yml -O $CONFIG_MAP_DIR/vets-service.yml
+          wget ${{ env.GIT_CFG_URL }}/visits-service.yml -O $CONFIG_MAP_DIR/visits-service.yml
+
+          echo "About to generate the ConfigMap Manifest ..."
+
+          # You can use kubectl create configmap to create a ConfigMap from multiple files in the same directory. 
+          # When you are creating a ConfigMap based on a directory, kubectl identifies files whose filename is a valid key in the directory
+          # and packages each of those files into the new ConfigMap
+          
+          kubectl create configmap spring-app-config --from-file=$CONFIG_MAP_DIR --dry-run=client -o yaml > spring-app-config.yaml
+          
+          #kubectl create configmap spring-app-config --from-file=application-mysql.yml --dry-run=client -o yaml > cm-application-mysql.yml
+          #kubectl create configmap spring-app-config --from-file=application.yml --dry-run=client -o yaml > cm-application.yml
+          #kubectl create configmap spring-app-config --from-file=customers-service.yml --dry-run=client -o yaml > cm-customers-service.yml
+          #kubectl create configmap spring-app-config --from-file=vets-service.yml --dry-run=client -o yaml > cm-vets-service.yml
+          #kubectl create configmap spring-app-config --from-file=visits-service.yml --dry-run=client -o yaml > cm-visits-service.yml
+
+          ls -al $CONFIG_MAP_DIR
+
+      shell: bash
+
+    - name: Deploy Manifests to AKS
+      uses: Azure/k8s-deploy@v4
+      with:
+        namespace: ${{ env.PETCLINIC_NAMESPACE }}
+        manifests: |
+          spring-app-config.yaml
+
+    # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
+    # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
+    # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
+    - name: Azure Logout security hardening
+      run: |
+          az logout
+          az cache purge
+          az account clear
+      shell: bash
