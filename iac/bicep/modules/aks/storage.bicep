@@ -11,12 +11,6 @@ param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().
 @description('The location of the Azure resources.')
 param location string = resourceGroup().location
 
-@description('The name of the Managed Cluster resource.')
-param clusterName string = 'aks-${appName}'
-
-@description('The Azure Active Directory tenant ID that should be used to manage AKS cluster Identity.')
-param tenantId string = subscription().tenantId
-
 @description('The Storage Account name')
 param azureStorageName string = 'sta${appName}'
 
@@ -43,7 +37,6 @@ param tags object = {
 
 @description('The Azure Strorage Identity name, see Character limit: 3-128 Valid characters: Alphanumerics, hyphens, and underscores')
 param storageIdentityName string = 'id-aks-${appName}-petclinic-strorage-dev-${location}-101'
-
 
 // https://learn.microsoft.com/en-us/azure/templates/microsoft.managedidentity/userassignedidentities?pivots=deployment-language-bicep
 resource storageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' existing = {
@@ -127,13 +120,13 @@ resource azurestorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 
 output azurestorageId string = azurestorage.id
 output azurestorageName string = azurestorage.name
+output azurestorageHttpEndpoint string = azurestorage.properties.primaryEndpoints.blob
+output azurestorageFileEndpoint string = azurestorage.properties.primaryEndpoints.file
+
 // outputs-should-not-contain-secrets
 // output azurestorageSasToken string = azurestorage.listAccountSas().accountSasToken
 // output azurestorageKey0 string = azurestorage.listKeys().keys[0].value
 // output azurestorageKey1 string = azurestorage.listKeys().keys[1].value
-
-output azurestorageHttpEndpoint string = azurestorage.properties.primaryEndpoints.blob
-output azurestorageFileEndpoint string = azurestorage.properties.primaryEndpoints.file
 
 
 resource azureblobservice 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {

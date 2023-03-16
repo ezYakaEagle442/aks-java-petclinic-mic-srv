@@ -15,7 +15,6 @@ param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().
 param kvName string = 'kv-${appName}'
 
 @description('Secret Name.')
-@secure()
 param secretName string
 
 @description('Secret value')
@@ -49,14 +48,14 @@ param aksSshKeyExpirationDate int = 1703980800 // 31/12/2023
 @description('the AKS cluster SSH key name')
 param aksSshKeyName string = 'kv-ssh-keys-aks${appName}'
 
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-11-01' existing = {
   name: kvName
 }
 
 // https://docs.microsoft.com/en-us/azure/developer/github/github-key-vault
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults/secrets?tabs=bicep
 
-resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource kvSecrets 'Microsoft.KeyVault/vaults/secrets@2022-11-01' = {
   name: secretName
   parent: kv
   properties: {

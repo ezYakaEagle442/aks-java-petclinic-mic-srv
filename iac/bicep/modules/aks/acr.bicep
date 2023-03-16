@@ -14,7 +14,7 @@ param location string = resourceGroup().location
 param networkRuleSetCidr string = '172.16.0.0/16'
 
 
-resource acr 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
+resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: acrName
   location: location
   sku: {

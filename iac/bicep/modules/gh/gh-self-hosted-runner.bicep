@@ -19,7 +19,7 @@ az deployment group create --name aks-gh-self-hosted-runner -f iac/bicep/gh/gh-s
 
 */
 @description('A UNIQUE name')
-@maxLength(23)
+@maxLength(21)
 param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 
 @description('The location of the Azure resources.')
@@ -144,7 +144,7 @@ var infrastructureSubnetID = vnet.properties.subnets[0].id
 
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.network/publicipaddresses?tabs=bicep#publicipaddresssku
-resource pip 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
+resource pip 'Microsoft.Network/publicIPAddresses@2022-09-01' = {
   name: 'pip-vm-aks-petclinic-client'
   location: location
   sku: {
@@ -164,7 +164,7 @@ output pipId string = pip.id
 output hostname string = pip.properties.dnsSettings.fqdn
 output pipGUID string = pip.properties.resourceGuid
 
-resource NSG 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+resource NSG 'Microsoft.Network/networkSecurityGroups@2022-09-01' = {
   name: nsgName
   location: location
   properties: {
@@ -204,7 +204,7 @@ output nsgsecurityRule0 string = NSG.properties.securityRules[0].name
 output nsgsecurityRule1 string = NSG.properties.securityRules[1].name
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.network/networkinterfaces?tabs=bicep
-resource NIC1 'Microsoft.Network/networkInterfaces@2021-08-01' = {
+resource NIC1 'Microsoft.Network/networkInterfaces@2022-09-01' = {
   location: location
   name: nicName
   properties: {
@@ -234,7 +234,7 @@ output nicId string = NIC1.id
 // output nicPublicIPAddressId string = NIC1.properties.ipConfigurations[0].properties.publicIPAddress.id
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/virtualmachines?tabs=bicep
-resource linuxVM 'Microsoft.Compute/virtualMachines@2022-08-01' = {
+resource linuxVM 'Microsoft.Compute/virtualMachines@2022-11-01' = {
   name: linuxVMName
   location: location
   properties: {

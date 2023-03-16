@@ -1,7 +1,7 @@
 @maxLength(21)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
 param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
-param location string = 'westeurope'
+param location string = resourceGroup().location
 
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
@@ -17,6 +17,31 @@ param kvRGName string
 param  vNetRules array = []
 @description('The IP rules to whitelist for the KV & MySQL')
 param  ipRules array = []
+
+// https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-deploy-on-azure-free-account
+@description('Azure Database for MySQL SKU')
+@allowed([
+  'Standard_D4s_v3'
+  'Standard_D2s_v3'
+  'Standard_B1ms'
+])
+param databaseSkuName string = 'Standard_B1ms' //  'GP_Gen5_2' for single server
+
+@description('Azure Database for MySQL pricing tier')
+@allowed([
+  'Burstable'
+  'GeneralPurpose'
+  'MemoryOptimized'
+])
+param databaseSkuTier string = 'Burstable'
+
+@description('MySQL version see https://learn.microsoft.com/en-us/azure/mysql/concepts-version-policy')
+@allowed([
+  '8.0.21'
+  '8.0.28'
+  '5.7'
+])
+param mySqlVersion string = '5.7' // https://docs.microsoft.com/en-us/azure/mysql/concepts-supported-versions
 
 @description('The MySQL DB Admin Login.')
 param mySQLadministratorLogin string = 'mys_adm'
@@ -57,7 +82,14 @@ module kvsetiprules './modules/kv/kv.bicep' = {
   }
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+output keyVault object = kvsetiprules.outputs.keyVault
+output keyVaultId string = kvsetiprules.outputs.keyVaultId
+output keyVaultName string = kvsetiprules.outputs.keyVaultName
+output keyVaultURI string = kvsetiprules.outputs.keyVaultURI
+output keyVaultPublicNetworkAccess string = kvsetiprules.outputs.keyVaultPublicNetworkAccess
+output keyVaultPublicNetworkAclsPpRules array = kvsetiprules.outputs.keyVaultPublicNetworkAclsPpRules
+
+resource kv 'Microsoft.KeyVault/vaults@2022-11-01' existing = {
   name: kvName
   scope: kvRG
 }  
@@ -68,12 +100,16 @@ module mysqlPub './modules/mysql/mysql.bicep' = {
     appName: appName
     location: location
     mySQLServerName: mySQLServerName
+    dbName: dbName
+    databaseSkuName: databaseSkuName
+    databaseSkuTier: databaseSkuTier
+    mySqlVersion: mySqlVersion
     mySQLadministratorLogin: mySQLadministratorLogin
     mySQLadministratorLoginPassword: kv.getSecret('SPRING-DATASOURCE-PASSWORD')
     k8sOutboundPubIP: ipRules[0]
     charset: charset
     collation: collation
-    dbName: dbName
+
   }
 }
 

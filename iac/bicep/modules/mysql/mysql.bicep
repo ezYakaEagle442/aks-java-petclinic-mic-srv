@@ -22,7 +22,6 @@ param dbName string = 'petclinic'
 @description('AKS Outbound Public IP')
 param k8sOutboundPubIP string = '0.0.0.0'
 
-
 // https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-deploy-on-azure-free-account
 @description('Azure Database for MySQL SKU')
 @allowed([
@@ -42,7 +41,8 @@ param databaseSkuTier string = 'Burstable'
 
 @description('MySQL version see https://learn.microsoft.com/en-us/azure/mysql/concepts-version-policy')
 @allowed([
-  '8.0'
+  '8.0.21'
+  '8.0.28'
   '5.7'
 ])
 param mySqlVersion string = '5.7' // https://docs.microsoft.com/en-us/azure/mysql/concepts-supported-versions
@@ -79,9 +79,10 @@ resource mysqlserver 'Microsoft.DBforMySQL/flexibleServers@2021-12-01-preview' =
   }
 }
 
-output mySQLResourceID string = mysqlserver.id
-output mySQLResourceName string = mysqlserver.name
-output mySQLResourceFQDN string = mysqlserver.properties.fullyQualifiedDomainName
+output mySQLServerID string = mysqlserver.id
+output mySQLServerName string = mysqlserver.name
+output mySQLServerFQDN string = mysqlserver.properties.fullyQualifiedDomainName
+output mySQLServerAdminLogin string = mysqlserver.properties.administratorLogin
 
 resource mysqlDB 'Microsoft.DBforMySQL/flexibleServers/databases@2021-12-01-preview' = {
   name: dbName

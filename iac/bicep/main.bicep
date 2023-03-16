@@ -1,8 +1,9 @@
+
 @maxLength(21)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
 param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 
-param location string = 'westeurope'
+param location string = resourceGroup().location
 // param rgName string = 'rg-${appName}'
 param dnsPrefix string = 'appinnojava'
 param acrName string = 'acr${appName}'
@@ -23,7 +24,7 @@ param sshPublicKey string
 param authorizedIPRanges array = []
   
 @description('The AKS Cluster Admin Username')
-param aksAdminUserName string = '${appName}-admin'
+param aksAdminUserName string = 'aks-admin'
 
 @maxLength(24)
 @description('The name of the KV, must be UNIQUE.  A vault name must be between 3-24 alphanumeric characters.')

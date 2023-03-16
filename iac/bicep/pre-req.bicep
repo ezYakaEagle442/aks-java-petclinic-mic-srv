@@ -3,7 +3,7 @@
 @maxLength(21)
 // to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
 param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
-param location string = 'westeurope'
+param location string = resourceGroup().location
 param acrName string = 'acr${appName}'
 
 @description('The Log Analytics workspace name used by the AKS cluster')
@@ -23,6 +23,32 @@ param vnetName string = 'vnet-aks'
 param vnetCidr string = '172.16.0.0/16'
 param aksSubnetCidr string = '172.16.1.0/24'
 param aksSubnetName string = 'snet-aks'
+
+
+// https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-deploy-on-azure-free-account
+@description('Azure Database for MySQL SKU')
+@allowed([
+  'Standard_D4s_v3'
+  'Standard_D2s_v3'
+  'Standard_B1ms'
+])
+param databaseSkuName string = 'Standard_B1ms' //  'GP_Gen5_2' for single server
+
+@description('Azure Database for MySQL pricing tier')
+@allowed([
+  'Burstable'
+  'GeneralPurpose'
+  'MemoryOptimized'
+])
+param databaseSkuTier string = 'Burstable'
+
+@description('MySQL version see https://learn.microsoft.com/en-us/azure/mysql/concepts-version-policy')
+@allowed([
+  '8.0.21'
+  '8.0.28'
+  '5.7'
+])
+param mySqlVersion string = '5.7' // https://docs.microsoft.com/en-us/azure/mysql/concepts-supported-versions
 
 @description('The MySQL DB Admin Login.')
 param mySQLadministratorLogin string = 'mys_adm'
@@ -122,12 +148,18 @@ module ACR './modules/aks/acr.bicep' = {
   }
 }
 
-resource kvRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+output acrId string = ACR.outputs.acrId
+output acrName string = ACR.outputs.acrName
+output acrIdentity string = ACR.outputs.acrIdentity
+output acrType string = ACR.outputs.acrType
+output acrRegistryUrl string = ACR.outputs.acrRegistryUrl
+
+resource kvRG 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
   name: 'kv-rg'
   scope: subscription()
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-11-01' existing = {
   name: 'kv'
   scope: kvRG
 }
@@ -137,20 +169,49 @@ module identities './modules/aks/identity.bicep' = {
   params: {
     location: location
     appName: appName
+    aksIdentityName: aksIdentityName
   }
 }
+
+output adminServerIdentityId string = identities.outputs.adminServerIdentityId
+output adminServerPrincipalId string = identities.outputs.adminServerPrincipalId
+output adminServerClientId string = identities.outputs.adminServerClientId
+
+output configServerIdentityId string = identities.outputs.configServerIdentityId
+output configServerPrincipalId string = identities.outputs.configServerPrincipalId
+output configServerClientId string = identities.outputs.configServerClientId
+
+output apiGatewayIdentityId string = identities.outputs.apiGatewayIdentityId
+output apiGatewayPrincipalId string = identities.outputs.apiGatewayPrincipalId
+output apiGatewayClientId string = identities.outputs.apiGatewayClientId
+
+output customersServiceIdentityId string = identities.outputs.customersServiceIdentityId
+output customersServicePrincipalId string = identities.outputs.customersServicePrincipalId
+output customersServiceClientId string = identities.outputs.customersServiceClientId
+
+output vetsServiceIdentityId string = identities.outputs.vetsServiceIdentityId
+output vetsServicePrincipalId string = identities.outputs.vetsServicePrincipalId
+output vetsServiceClientId string = identities.outputs.vetsServiceClientId
+
+output visitsServiceIdentityId string = identities.outputs.visitsServiceIdentityId
+output visitsServicePrincipalId string = identities.outputs.visitsServicePrincipalId
+output visitsServiceClientId string = identities.outputs.visitsServiceClientId
 
 module vnet './modules/aks/vnet.bicep' = {
   name: 'vnet-aks'
   // scope: resourceGroup(rg.name)
   params: {
     location: location
-     vnetName: vnetName
-     aksSubnetName: aksSubnetName
-     vnetCidr: vnetCidr
-     aksSubnetCidr: aksSubnetCidr
+    vnetName: vnetName
+    aksSubnetName: aksSubnetName
+    vnetCidr: vnetCidr
+    aksSubnetCidr: aksSubnetCidr
   }   
 }
+
+output vnetId string = vnet.outputs.vnetId
+output aksSubnetId string = vnet.outputs.aksSubnetId
+output aksSubnetAddressPrefix string = vnet.outputs.aksSubnetAddressPrefix
 
 var vNetRules = [
   {
@@ -186,16 +247,28 @@ module mysql './modules/mysql/mysql.bicep' = {
   params: {
     appName: appName
     location: location
+    databaseSkuName: databaseSkuName
+    databaseSkuTier: databaseSkuTier
+    mySqlVersion: mySqlVersion
+    mySQLServerName: mySQLServerName
+    dbName: dbName
     mySQLadministratorLogin: mySQLadministratorLogin
     mySQLadministratorLoginPassword: mySQLadministratorLoginPassword
     // The default number of managed outbound public IPs is 1.
     // https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#scale-the-number-of-managed-outbound-public-ips
-    mySQLServerName: mySQLServerName
     charset: charset
     collation: collation
-    dbName: dbName
+
   }
 }
+
+output mySQLServerID string = mysql.outputs.mySQLServerID
+output mySQLServerName string = mysql.outputs.mySQLServerName
+output mySQLServerFQDN string = mysql.outputs.mySQLServerFQDN
+output mySQLServerAdminLogin string = mysql.outputs.mySQLServerAdminLogin
+
+output mysqlDBResourceId string = mysql.outputs.mysqlDBResourceId
+output mysqlDBName string = mysql.outputs.mysqlDBName
 
 module storage './modules/aks/storage.bicep' = {
   name: 'storage'
@@ -210,6 +283,17 @@ module storage './modules/aks/storage.bicep' = {
     identities
   ] 
 }
+
+output azurestorageId string = storage.outputs.azurestorageId
+output azurestorageName string =storage.outputs.azurestorageName
+output azurestorageHttpEndpoint string = storage.outputs.azurestorageHttpEndpoint
+output azurestorageFileEndpoint string = storage.outputs.azurestorageFileEndpoint
+
+output azureblobserviceId string = storage.outputs.azureblobserviceId
+output azureblobserviceName string = storage.outputs.azureblobserviceName
+
+output blobcontainerId string = storage.outputs.blobcontainerId
+output blobcontainerName string = storage.outputs.blobcontainerName
 
 /*
 module DNS './modules/aks/dns.bicep' = {

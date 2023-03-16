@@ -20,7 +20,7 @@ param kvRoleType string = 'KeyVaultSecretsUser'
 
 param kvName string
 
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-11-01' existing = {
   name: kvName
 }
 
