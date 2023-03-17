@@ -54,6 +54,7 @@ param mySqlVersion string = '5.7' // https://docs.microsoft.com/en-us/azure/mysq
 param mySQLadministratorLogin string = 'mys_adm'
 
 @secure()
+@minLength(8)
 @description('The MySQL DB Admin Password.')
 param mySQLadministratorLoginPassword string
 
@@ -116,6 +117,7 @@ resource logAnalyticsWorkspace  'Microsoft.OperationalInsights/workspaces@2022-1
   })
 }
 output logAnalyticsWorkspaceResourceId string = logAnalyticsWorkspace.id
+output logAnalyticsWorkspaceName string = logAnalyticsWorkspace.name
 output logAnalyticsWorkspaceCustomerId string = logAnalyticsWorkspace.properties.customerId
 
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.insights/components?tabs=bicep
@@ -135,6 +137,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 output appInsightsId string = appInsights.id
+output appInsightsName string = appInsights.name
 output appInsightsConnectionString string = appInsights.properties.ConnectionString
 // output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
 

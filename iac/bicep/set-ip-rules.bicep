@@ -87,7 +87,7 @@ output keyVaultId string = kvsetiprules.outputs.keyVaultId
 output keyVaultName string = kvsetiprules.outputs.keyVaultName
 output keyVaultURI string = kvsetiprules.outputs.keyVaultURI
 output keyVaultPublicNetworkAccess string = kvsetiprules.outputs.keyVaultPublicNetworkAccess
-output keyVaultPublicNetworkAclsPpRules array = kvsetiprules.outputs.keyVaultPublicNetworkAclsPpRules
+output keyVaultPublicNetworkAclsIpRules array = kvsetiprules.outputs.keyVaultPublicNetworkAclsIpRules
 
 resource kv 'Microsoft.KeyVault/vaults@2022-11-01' existing = {
   name: kvName
@@ -113,9 +113,10 @@ module mysqlPub './modules/mysql/mysql.bicep' = {
   }
 }
 
-output mySQLResourceID string = mysqlPub.outputs.mySQLResourceID
-output mySQLResourceName string = mysqlPub.outputs.mySQLResourceName
-output mySQLResourceFQDN string = mysqlPub.outputs.mySQLResourceFQDN
+output mySQLServerID string = mysqlPub.outputs.mySQLServerID
+output mySQLServerName string = mysqlPub.outputs.mySQLServerName
+output mySQLServerFQDN string = mysqlPub.outputs.mySQLServerFQDN
+output mySQLServerAdminLogin string = mysqlPub.outputs.mySQLServerAdminLogin
 
 output mysqlDBResourceId string = mysqlPub.outputs.mysqlDBResourceId
 output mysqlDBName string = mysqlPub.outputs.mysqlDBName

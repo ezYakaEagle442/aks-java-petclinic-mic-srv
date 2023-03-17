@@ -10,6 +10,7 @@ param location string = resourceGroup().location
 param mySQLadministratorLogin string = 'mys_adm'
 
 @secure()
+@minLength(8)
 @description('The MySQL DB Admin Password.')
 param mySQLadministratorLoginPassword string
 
