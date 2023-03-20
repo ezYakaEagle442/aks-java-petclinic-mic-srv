@@ -154,6 +154,7 @@ jobs:
     - name: Build with Maven
       id: mvn_build
       run: |
+
         pwd
         ls -al
 
@@ -188,6 +189,7 @@ jobs:
     # https://maven.apache.org/plugins/maven-deploy-plugin/deploy-mojo.html#altDeploymentRepository
     - name:  Publish the Maven package
       run: |
+
         mkdir -p ~/.m2
         echo "<settings><servers><server><id>github-aca</id><username>$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $1}')</username><password>\${env.GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
         REPO="github-aca::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
@@ -269,6 +271,7 @@ jobs:
     - name: Authorize local IP access to the Azure BLOB Storage 
       if: ${{ always() }}
       run: |
+
         echo "About to ADD network-rule to ALLOW $LOCAL_IP to Azure BLOB Storage ${{ env.AZ_STORAGE_NAME }}"
         az storage account network-rule add --ip-address $LOCAL_IP --account-name  ${{ env.AZ_STORAGE_NAME }}  --action "Allow" -g ${{ env.RG_APP }}  --only-show-errors
         sleep 30
@@ -278,18 +281,18 @@ jobs:
         echo "VETS_SERVICE_JAR=spring-petclinic-${{ env.VETS_SERVICE }}/target/$VETS_SERVICE_JAR_ARTIFACT" >> $GITHUB_ENV
         echo "VISITS_SERVICE_JAR=spring-petclinic-${{ env.VISITS_SERVICE }}/target/$VISITS_SERVICE_JAR_ARTIFACT" >> $GITHUB_ENV
 
-
       shell: bash
 
     - name: Upload Artifacts to Azure BLOB Storage
       id: blob_upload
-      run: | 
+      run: |
+
         # https://learn.microsoft.com/en-us/azure/storage/blobs/blob-cli
 
         # Runner will be blocked by network rules of storage account. Must Allow its IP
         # in Bicep : RBAC ==> GH Runner SPN must have "Storage Blob Data Contributor" Role on the storage Account
 
-         az config set extension.use_dynamic_install=yes_without_prompt
+        az config set extension.use_dynamic_install=yes_without_prompt
         echo "About to upload Artifcats to Azure BLOB Storage. /!\ --overwrite' is in preview and under development"
         echo "AZ_BLOB_MAX_CONNECTIONS=${{ env.AZ_BLOB_MAX_CONNECTIONS }}"
         echo "AZ_BLOB_TIMEOUT=${{ env.AZ_BLOB_TIMEOUT }} "
