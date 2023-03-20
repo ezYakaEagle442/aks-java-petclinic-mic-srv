@@ -130,7 +130,7 @@ jobs:
 
     - name: Set Base environment variables
       run: |
-        
+
         az version
 
         echo "ADMIN_SERVER_FOLDER=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}" >> $GITHUB_ENV
@@ -159,7 +159,6 @@ jobs:
       run: |
 
         echo "Checking GITHUB_ENV"
-        echo "LOCAL_IP=$LOCAL_IP"
         
         echo "ADMIN_SERVER_FOLDER=$ADMIN_SERVER_FOLDER"
         echo "DISCOVERY_SERVER_FOLDER=$DISCOVERY_SERVER_FOLDER"
@@ -174,6 +173,7 @@ jobs:
         echo "REGISTRY_URL="$REGISTRY_URL
 
         echo "GH_WORKSPACE=$GH_WORKSPACE"
+        echo "LOCAL_IP=$LOCAL_IP"
 
       shell: bash
 
@@ -224,8 +224,8 @@ jobs:
 
             acr_registry_id=$(az deployment group show --name acr -g ${{ env.RG_APP }} --query properties.outputs.acrId.value -o tsv)
             echo "ACR  ID " $acr_registry_id
-            az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
-            echo "ACR is now attached to AKS Cluster"
+            # az aks update -n ${{ env.AKS_CLUSTER_NAME }} -g ${{ env.RG_APP }} --attach-acr $acr_registry_id
+            echo "ACR is attached to AKS Cluster"
 
       shell: bash
 
