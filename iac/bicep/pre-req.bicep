@@ -176,6 +176,11 @@ module identities './modules/aks/identity.bicep' = {
   }
 }
 
+output aksIdentityIdentityId string = identities.outputs.aksIdentityIdentityId
+output aksIdentityClientId string = identities.outputs.aksIdentityClientId
+output aksIdentityPrincipalId string = identities.outputs.aksIdentityPrincipalId
+output aksIdentityName string = identities.outputs.aksIdentityName
+
 output adminServerIdentityId string = identities.outputs.adminServerIdentityId
 output adminServerPrincipalId string = identities.outputs.adminServerPrincipalId
 output adminServerClientId string = identities.outputs.adminServerClientId
