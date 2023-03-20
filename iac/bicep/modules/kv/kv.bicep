@@ -77,4 +77,4 @@ output keyVaultName string = kv.name
 output keyVaultId string = kv.id
 output keyVaultURI string = kv.properties.vaultUri
 output keyVaultPublicNetworkAccess string = kv.properties.publicNetworkAccess
-output keyVaultPublicNetworkAclsPpRules array = kv.properties.networkAcls.ipRules
+output keyVaultPublicNetworkAclsIpRules array = kv.properties.networkAcls.ipRules
