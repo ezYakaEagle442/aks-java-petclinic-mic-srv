@@ -1,6 +1,5 @@
 
 @maxLength(21)
-// to get a unique name each time ==> param appName string = 'demo${uniqueString(resourceGroup().id, deployment().name)}'
 param appName string = 'petcli${uniqueString(resourceGroup().id, subscription().id)}'
 
 param location string = resourceGroup().location
@@ -50,6 +49,11 @@ param skuName string = 'standard'
 @description('The Azure Active Directory tenant ID that should be used for authenticating requests to the Key Vault.')
 param tenantId string = subscription().tenantId
 
+param dnsZone string = 'cloudapp.azure.com'
+param appDnsZone string = 'petclinic.${location}.${dnsZone}'
+param customDns string = 'javaonazurehandsonlabs.com'
+param privateDnsZone string = 'privatelink.${location}.azmk8s.io'
+
 // https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/key-vault-parameter?tabs=azure-cli
 /*
 The user who deploys the Bicep file must have the Microsoft.KeyVault/vaults/deploy/action permission for the scope 
@@ -65,6 +69,101 @@ resource logAnalyticsWorkspace  'Microsoft.OperationalInsights/workspaces@2022-1
 resource vnet 'Microsoft.Network/virtualNetworks@2022-05-01' existing= {
   name: vnetName
 }
+
+// https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deployment-script-bicep
+// https://mcr.microsoft.com/v2/azure-cli/tags/list
+// https://mcr.microsoft.com/v2/azuredeploymentscripts-powershell/tags/list
+resource passwordgenerator 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
+  name: 'pass-gen'
+  location: location
+  kind: 'AzurePowerShell'
+  properties: {
+    azPowerShellVersion: '9.4' // or azCliVersion: '2.45.0'
+    retentionInterval: 'P1D'
+    scriptContent: loadTextContent('./passwordgenerator.ps1')
+  }
+}
+
+//output encodedPassword string =  passwordgenerator.properties.outputs.encodedPassword
+//output passwordText string =  passwordgenerator.properties.outputs.password
+
+module prereq './pre-req.bicep' = {
+  name: 'pre-req'
+  params: {
+    appName: appName
+    location: location
+    acrName: acrName
+    kvName: kvName
+    kvRGName: kvRGName
+    ghRunnerSpnPrincipalId: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    customDns: appDnsZone
+    mySQLadministratorLoginPassword: passwordgenerator.properties.outputs.password
+  }
+}
+
+
+output aksIdentityIdentityId string = prereq.outputs.aksIdentityIdentityId
+output aksIdentityClientId string = prereq.outputs.aksIdentityClientId
+output aksIdentityPrincipalId string = prereq.outputs.aksIdentityPrincipalId
+output aksIdentityName string = prereq.outputs.aksIdentityName
+
+output adminServerIdentityId string = prereq.outputs.adminServerIdentityId
+output adminServerPrincipalId string = prereq.outputs.adminServerPrincipalId
+output adminServerClientId string = prereq.outputs.adminServerClientId
+
+output configServerIdentityId string = prereq.outputs.configServerIdentityId
+output configServerPrincipalId string = prereq.outputs.configServerPrincipalId
+output configServerClientId string = prereq.outputs.configServerClientId
+
+output apiGatewayIdentityId string = prereq.outputs.apiGatewayIdentityId
+output apiGatewayPrincipalId string = prereq.outputs.apiGatewayPrincipalId
+output apiGatewayClientId string = prereq.outputs.apiGatewayClientId
+
+output customersServiceIdentityId string = prereq.outputs.customersServiceIdentityId
+output customersServicePrincipalId string = prereq.outputs.customersServicePrincipalId
+output customersServiceClientId string = prereq.outputs.customersServiceClientId
+
+output vetsServiceIdentityId string = prereq.outputs.vetsServiceIdentityId
+output vetsServicePrincipalId string = prereq.outputs.vetsServicePrincipalId
+output vetsServiceClientId string = prereq.outputs.vetsServiceClientId
+
+output visitsServiceIdentityId string = prereq.outputs.visitsServiceIdentityId
+output visitsServicePrincipalId string = prereq.outputs.visitsServicePrincipalId
+output visitsServiceClientId string = prereq.outputs.visitsServiceClientId
+
+output vnetId string = prereq.outputs.vnetId
+output aksSubnetId string = prereq.outputs.aksSubnetId
+
+output acrId string = prereq.outputs.acrId
+output acrName string = prereq.outputs.acrName
+output acrType string = prereq.outputs.acrType
+output acrRegistryUrl string = prereq.outputs.acrRegistryUrl
+
+output logAnalyticsWorkspaceName string = prereq.outputs.logAnalyticsWorkspaceName
+output logAnalyticsWorkspaceResourceId string = prereq.outputs.logAnalyticsWorkspaceResourceId
+output logAnalyticsWorkspaceCustomerId string = prereq.outputs.logAnalyticsWorkspaceCustomerId
+
+output appInsightsName string = prereq.outputs.appInsightsName
+output appInsightsConnectionString string = prereq.outputs.appInsightsConnectionString
+
+output mySQLServerID string = prereq.outputs.mySQLServerID
+output mySQLServerName string = prereq.outputs.mySQLServerName
+output mySQLServerFQDN string = prereq.outputs.mySQLServerFQDN
+output mySQLServerAdminLogin string = prereq.outputs.mySQLServerAdminLogin
+
+output mysqlDBResourceId string = prereq.outputs.mysqlDBResourceId
+output mysqlDBName string = prereq.outputs.mysqlDBName
+
+output azurestorageId string = prereq.outputs.azurestorageId
+output azurestorageName string =prereq.outputs.azurestorageName
+output azurestorageHttpEndpoint string = prereq.outputs.azurestorageHttpEndpoint
+output azurestorageFileEndpoint string = prereq.outputs.azurestorageFileEndpoint
+
+output azureblobserviceId string = prereq.outputs.azureblobserviceId
+output azureblobserviceName string = prereq.outputs.azureblobserviceName
+
+output blobcontainerId string = prereq.outputs.blobcontainerId
+output blobcontainerName string = prereq.outputs.blobcontainerName
 
 // https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scenarios-secrets
 module aks './modules/aks/aks.bicep' = {
@@ -85,10 +184,13 @@ module aks './modules/aks/aks.bicep' = {
     kvName: kvName
     authorizedIPRanges: authorizedIPRanges
   }
+  dependsOn: [
+    prereq
+  ]
 }
 
-output controlPlaneFQDN string = aks.outputs.controlPlaneFQDN
 // https://github.com/Azure/azure-rest-api-specs/issues/17563
+output controlPlaneFQDN string = aks.outputs.controlPlaneFQDN
 output kubeletIdentity string = aks.outputs.kubeletIdentity
 output keyVaultAddOnIdentity string = aks.outputs.keyVaultAddOnIdentity
 output spnClientId string = aks.outputs.spnClientId
@@ -100,24 +202,72 @@ output aksOutboundType string = aks.outputs.aksOutboundType
 output aksEffectiveOutboundIPs array = aks.outputs.aksEffectiveOutboundIPs
 output aksManagedOutboundIPsCount int = aks.outputs.aksManagedOutboundIPsCount
 
-resource kvRG 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+resource kvRG 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {
   name: kvRGName
   scope: subscription()
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+resource kv 'Microsoft.KeyVault/vaults@2022-11-01' existing = {
   name: kvName
   scope: kvRG
 }
 
-/*
-var ipRules = aks.outputs.aksOutboundIPs[0]
+module attachacr './modules/aks/attach-acr.bicep' = {
+  name: 'attach-acr'
+  params: {
+    appName: appName
+    acrName: prereq.outputs.acrName
+    aksClusterPrincipalId: aks.outputs.kubeletIdentity
+  }
+  dependsOn: [
+    aks
+  ]
+}
+
+
 var vNetRules = [vnet.properties.subnets[0].id]
-module kvsetiprules './modules/kv/kv.bicep' = {
+var aksOutboundIPResourceId = aks.outputs.aksEffectiveOutboundIPs
+
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: aksIdentityName
+}
+
+// https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deployment-script-bicep
+// https://mcr.microsoft.com/v2/azure-cli/tags/list
+// https://mcr.microsoft.com/v2/azuredeploymentscripts-powershell/tags/list
+resource getAKSIPAddress 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
+  name: 'get-aks-ip-address'
+  location: location
+  kind: 'AzureCLI'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${identity.id}': {}
+    }
+  } 
+  properties: {
+    azCliVersion: '2.45.0'
+    retentionInterval: 'P1D'
+    arguments: '\\"${aksOutboundIPResourceId[0]}\\"'
+    scriptContent: loadTextContent('./get-aks-ip-address.sh')
+    cleanupPreference: 'OnSuccess'
+  }
+  dependsOn: [
+    aks
+  ]
+}
+
+output aksIpAddress object = getAKSIPAddress.properties.outputs
+output aksIp string = getAKSIPAddress.properties.outputs.Result
+
+var ipRules=[getAKSIPAddress.properties.outputs.Result]
+module kvsetiprules './set-ip-rules.bicep' = {
   name: 'kv-set-iprules'
   scope: kvRG
   params: {
+    appName: appName
     kvName: kvName
+    kvRGName: kvRGName
     location: location
     ipRules: ipRules
     vNetRules: vNetRules
@@ -126,4 +276,3 @@ module kvsetiprules './modules/kv/kv.bicep' = {
     aks
   ]  
 }
-*/
