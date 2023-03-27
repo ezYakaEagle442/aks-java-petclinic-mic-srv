@@ -123,7 +123,7 @@ jobs:
         echo "REGISTRY_URL="$REGISTRY_URL
         echo "REGISTRY_URL="$REGISTRY_URL >> $GITHUB_ENV
 
-        AKS_CLUSTER_NAME=$(az deployment group show --name aks -g ${{ env.RG_APP }} --query properties.outputs.aksClusterName.value -o tsv)
+        AKS_CLUSTER_NAME=$(az deployment group show --name aks -g ${{ env.RG_APP }} --query properties.outputs.aksClusterName.value -o tsv | tr -d '\r' | tr -d '"')
         echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME
         echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME >> $GITHUB_ENV
 
