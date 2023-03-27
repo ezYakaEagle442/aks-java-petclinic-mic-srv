@@ -102,6 +102,16 @@ param appDnsZone string = 'petclinic.${location}.${dnsZone}'
 param customDns string = 'javaonazurehandsonlabs.com'
 param privateDnsZone string = 'privatelink.${location}.azmk8s.io'
 
+@allowed([
+  'CapacityReservation'
+  'Free'
+  'LACluster'
+  'Standalone'
+]
+)
+@description('The Log AnalyticsWorkspace SKU - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs')
+param laSKU string = 'LACluster'
+
 // https://docs.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/workspaces?tabs=bicep
 resource logAnalyticsWorkspace  'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: logAnalyticsWorkspaceName
@@ -112,7 +122,7 @@ resource logAnalyticsWorkspace  'Microsoft.OperationalInsights/workspaces@2022-1
       searchVersion: 1
     }
     sku: {
-      name: 'PerGB2018'
+      name: laSKU
     }
   })
 }
