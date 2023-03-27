@@ -1,0 +1,171 @@
+name: Deploy Customers, Vets & Visits Services
+
+env:
+
+  # ==== Versions ====
+  
+  ARTIFACTORY_VERSION: 7.55.8
+  AZ_CLI_VERSION: 2.46.0
+  JAVA_VERSION: 11
+
+  # ==== General settings  ====
+
+  APP_NAME: petcliaks
+  LOCATION: westeurope # francecentral
+  RG_KV: rg-iac-kv33 # RG where to deploy KV
+  RG_APP: rg-iac-aks-petclinic-mic-srv # RG where to deploy the other Azure services: AKS, ACR, MySQL, etc.
+  
+  KV_NAME: kv-petcliaks33 # The name of the KV, must be UNIQUE. A vault name must be between 3-24 alphanumeric characters
+  
+  DNS_ZONE: cloudapp.azure.com
+  APP_DNS_ZONE: petclinic.westeurope.cloudapp.azure.com
+  CUSTOM_DNS: javaonazurehandsonlabs.com
+  AZURE_DNS_LABEL_NAME: petclinic
+  
+  JFROG_NS: artifactory
+  AKS_CLUSTER_NAME: aks-petcliaks
+  AZURE_CONTAINER_REGISTRY: acrpetcliaks # The name of the ACR, must be UNIQUE. The name must contain only alphanumeric characters, be globally unique, and between 5 and 50 characters in length.
+  REGISTRY_URL: acrpetcliaks.azurecr.io  # set this to the URL of your registry
+  REPOSITORY: jfrog                  # set this to your ACR repository
+
+  
+  # ==== APPS ====
+
+
+  # ==== Secrets ====
+
+  credentials: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  SPRING_CLOUD_AZURE_TENANT_ID: ${{ secrets.SPRING_CLOUD_AZURE_TENANT_ID }}
+
+on:
+  workflow_call:
+
+jobs:
+  install-artifactory:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1 # https://github.com/marketplace/actions/azure-login
+      with:
+        creds: ${{ env.credentials }}
+
+    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+    # /!\ IMPORTANT:  The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
+    - name: Set Base environment variables
+      run: |
+
+        az version
+        echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+
+        KV_NAME=$(az deployment group show --name aks-petclinic-kv -g ${{ env.RG_KV }} --query properties.outputs.keyVaultName.value -o tsv)
+        echo "KV_NAME=$KV_NAME" >> $GITHUB_ENV 
+        echo "KV_NAME=$KV_NAME"
+
+        REGISTRY_URL=$(az deployment group show --name acr -g ${{ env.RG_APP }} --query properties.outputs.acrRegistryUrl.value -o tsv)
+        echo "REGISTRY_URL="$REGISTRY_URL
+        echo "REGISTRY_URL="$REGISTRY_URL >> $GITHUB_ENV
+
+        AKS_CLUSTER_NAME=$(az deployment group show --name aks -g ${{ env.RG_APP }} --query properties.outputs.aksClusterName.value -o tsv)
+        echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME
+        echo "AKS_CLUSTER_NAME="$AKS_CLUSTER_NAME >> $GITHUB_ENV
+
+        managed_rg=$(az aks show --resource-group ${{ env.RG_APP }} --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
+        echo "CLUSTER_RESOURCE_GROUP:" $managed_rg
+        echo "managed_rg=$managed_rg" >> $GITHUB_ENV
+
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
+
+      shell: bash
+
+    - name: Display environment variables
+      run: |
+
+        echo "Checking GITHUB_ENV"
+        echo "LOCAL_IP=$LOCAL_IP"
+        
+        echo "KV_NAME=$KV_NAME"
+        echo "REGISTRY_URL="$REGISTRY_URL
+        echo "AKS_CLUSTER_NAME=$AKS_CLUSTER_NAME"
+        echo "managed_rg="$managed_rg
+
+        echo "GH_WORKSPACE=$GH_WORKSPACE"
+      shell: bash
+
+
+    # https://github.com/Azure/aks-set-context/tree/releases/v1
+    - name: AKS Set Context
+      uses: azure/aks-set-context@v1
+      with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
+          resource-group: ${{ env.RG_APP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      id: akslogin
+
+    # https://github.com/marketplace/actions/helm-tool-installer
+    # https://www.jfrog.com/confluence/display/JFROG/Installing+Artifactory#InstallingArtifactory-HelmInstallation
+
+    - name: Create JFrog Namespace
+      run: |
+
+          kubectl create namespace ${{ env.JFROG_NS }}
+
+      shell: bash
+
+
+    - name: HELM Install
+      run: |
+
+          helm repo add jfrog https://charts.jfrog.io
+          helm repo update
+
+          wget "https://releases.jfrog.io/artifactory/bintray-artifactory/org/artifactory/oss/jfrog-artifactory-oss/${{ env.ARTIFACTORY_VERSION }}/jfrog-artifactory-oss-%5bRELEASE%5d-linux.tar.gz"
+
+          # Create a key
+          export MASTER_KEY=$(openssl rand -hex 32)
+          echo ${MASTER_KEY}
+
+          # Create a secret containing the key. The key in the secret must be named master-key
+          kubectl create secret generic my-masterkey-secret -n ${{ env.JFROG_NS }} --from-literal=master-key=${MASTER_KEY}
+
+          # Create a key
+          export JOIN_KEY=$(openssl rand -hex 32)
+          echo ${JOIN_KEY}
+
+          # Create a secret containing the key. The key in the secret must be named join-key
+          kubectl create secret generic my-joinkey-secret -n ${{ env.JFROG_NS }} --from-literal=join-key=${JOIN_KEY}
+
+          helm upgrade --install artifactory --set artifactory.masterKey=${MASTER_KEY} --set artifactory.joinKey=${JOIN_KEY} --namespace ${{ env.JFROG_NS }} jfrog/artifactory
+
+    - name: Check Installation
+      # with: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepswith
+      run: |
+
+          kubectl get po -n  ${{ env.JFROG_NS }}
+          
+      shell: bash
+
+    # By default, Helm deploys Artifactory with PostgreSQL (running in a separate pod). It is possible to deploy Artifactory without PostgreSQL (or any other external database), which will default to the embedded Derby database.
+    - name: Setup Azure DB for PostgreSQL
+      run: |
+
+          # Disable the default postgresql
+          helm upgrade --install artifactory --set replicaCount=3 postgresql.enabled=false --namespace artifactory center/jfrog/artifactory
+
+      shell: bash
+
+    # security hardening for self-hosted agents: https://github.com/marketplace/actions/azure-login
+    # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners
+    # if the runner is self-hosted which is not github provided it is recommended to manually logout at the end of the workflow as shown below.
+    - name: Azure Logout security hardening
+      run: |
+          az logout
+          az cache purge
+          az account clear
+      shell: bash
