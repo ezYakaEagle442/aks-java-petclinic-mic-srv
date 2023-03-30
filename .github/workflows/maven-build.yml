@@ -107,7 +107,6 @@ jobs:
       run: |
 
         az version
-        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
         
         echo "API_GATEWAY_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.API_GATEWAY }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
         echo "ADMIN_SERVER_JAR_ARTIFACT=${{ env.PRJ_PREFIX }}-${{ env.ADMIN_SERVER }}-${{ env.DEPLOYMENT_VERSION }}.jar" >> $GITHUB_ENV
@@ -139,6 +138,15 @@ jobs:
         echo "VISITS_SERVICE_ARTIFACT_ID=${{ env.PRJ_PREFIX }}-${{ env.VISITS_SERVICE }}" >> $GITHUB_ENV
 
         echo "GH_WORKSPACE=${{ github.workspace }}" >> $GITHUB_ENV # "/github/workspace"
+
+        # ip addr show eth3 | grep inet
+        # ifconfig -a
+        # hostname -I
+        # host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has address"
+        # myip=$(curl icanhazip.com)
+        # myip=$(dig +short myip.opendns.com @resolver1.opendns.com)      
+        echo "LOCAL_IP=$(curl whatismyip.akamai.com)" >> $GITHUB_ENV
+
       shell: bash
 
     - name: Checkout
