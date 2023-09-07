@@ -295,7 +295,7 @@ Read [https://azure.github.io/azure-workload-identity/docs/installation/azwi.htm
 
 Install Azure AD Workload Identity CLI
 ```sh
-AAD_WI_CLI_VERSION=0.15.0
+AAD_WI_CLI_VERSION=1.0.0
 wget https://github.com/Azure/azure-workload-identity/releases/download/v$AAD_WI_CLI_VERSION/azwi-v$AAD_WI_CLI_VERSION-linux-amd64.tar.gz
 gunzip azwi-v$AAD_WI_CLI_VERSION-linux-amd64.tar.gz
 tar -xvf azwi-v$AAD_WI_CLI_VERSION-linux-amd64.tar
